@@ -20,6 +20,18 @@ Operational manual for Claude Code. The full product specification lives in `PRO
 
 Key libs: `react-hook-form`, `zod`, `date-fns` + `date-fns-tz`, `framer-motion`, `@tsparticles/react`, `partycles`, `react-colorful`, `splittypejs`, `lucide-react`.
 
+## Deviations from generic stack defaults
+
+When future prompts reference standard setup patterns, remember these specifics for this project:
+
+- **Tailwind v4** — no `tailwind.config.ts`. Theme tokens go in `app/globals.css` via the `@theme` directive.
+- **next-intl v4 layout** — config is split into `i18n/routing.ts` and `i18n/request.ts`, not a single `i18n.ts`.
+- **Next.js 15 (not 16)** — uses `middleware.ts`, not `proxy.ts`. Do not upgrade to 16 without explicit instruction.
+- **shadcn preset** — see `components.json` for actual style/baseColor. The preset name in use is `radix-nova` (Radix-backed, neutral).
+- **Node 22.x required** (pnpm 11 dependency). `.nvmrc` pins the exact version.
+- **`pnpm-workspace.yaml`** includes an `allowBuilds` list. Append package names there if pnpm complains about unapproved native build scripts during install.
+- **`turbopack.root`** is pinned to `__dirname` in `next.config.ts` to avoid workspace-root warnings.
+
 ## Commands
 
 ```
@@ -130,3 +142,15 @@ If a prompt is ambiguous, ask one clarifying question before coding. Don't guess
 - [ ] No console errors in the browser
 - [ ] Mobile viewport (360px) renders correctly if UI was touched
 - [ ] No unrelated changes
+
+---
+
+## Git commits
+
+When you commit on this project:
+
+- Do NOT add `Co-Authored-By: Claude <noreply@anthropic.com>` trailers. The user does not want Claude listed as a contributor on GitHub.
+- Do NOT add `🤖 Generated with [Claude Code](...)` trailers.
+- Commit messages should be the user's voice — concise, technical, no AI attribution.
+- Commit message format: `[NN] short description in imperative mood` where NN is the prompt number (e.g. `[02] add supabase auth and profiles table`).
+- One commit per completed prompt unless the user says otherwise.
