@@ -1,5 +1,20 @@
 {
   "common": {
-    "hello": "Hello"
+    "hello": "Hello",
+    "logIn": "Log in"
+  },
+  "auth": {
+    "login": {
+      "title": "Sign in to your account",
+      "emailLabel": "Email",
+      "emailPlaceholder": "you@example.com",
+      "magicLinkButton": "Send magic link",
+      "googleButton": "Continue with Google",
+      "or": "or",
+      "checkEmail": "Check your email — we sent you a sign-in link.",
+      "errorGeneric": "Something went wrong. Please try again."
+    },
+    "signOut": "Sign out",
+    "greeting": "Hello, {email}"
   }
 }

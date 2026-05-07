@@ -1,5 +1,20 @@
 {
   "common": {
-    "hello": "Привет"
+    "hello": "Привет",
+    "logIn": "Войти"
+  },
+  "auth": {
+    "login": {
+      "title": "Войдите в аккаунт",
+      "emailLabel": "Эл. почта",
+      "emailPlaceholder": "вы@пример.ru",
+      "magicLinkButton": "Отправить волшебную ссылку",
+      "googleButton": "Продолжить с Google",
+      "or": "или",
+      "checkEmail": "Проверьте почту — мы отправили ссылку для входа.",
+      "errorGeneric": "Что-то пошло не так. Попробуйте ещё раз."
+    },
+    "signOut": "Выйти",
+    "greeting": "Привет, {email}"
   }
 }

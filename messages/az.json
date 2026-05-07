@@ -1,5 +1,20 @@
 {
   "common": {
-    "hello": "Salam"
+    "hello": "Salam",
+    "logIn": "Daxil ol"
+  },
+  "auth": {
+    "login": {
+      "title": "Hesabınıza daxil olun",
+      "emailLabel": "E-poçt",
+      "emailPlaceholder": "siz@nümunə.az",
+      "magicLinkButton": "Sehrli linki göndər",
+      "googleButton": "Google ilə davam edin",
+      "or": "və ya",
+      "checkEmail": "Linkin göndərildiyini görmək üçün e-poçtunuzu yoxlayın.",
+      "errorGeneric": "Nəsə alınmadı. Yenidən cəhd edin."
+    },
+    "signOut": "Çıxış",
+    "greeting": "Salam, {email}"
   }
 }

@@ -28,6 +28,9 @@ export default async function HomePage({
           </Button>
         ))}
       </nav>
+      <Button asChild>
+        <Link href={`/${locale}/login`}>{t('logIn')}</Link>
+      </Button>
     </main>
   )
 }
