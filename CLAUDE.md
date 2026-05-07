@@ -68,6 +68,7 @@ If a prompt seems to want multiple things, push back: "Should I split this into 
 8. **No premature optimization.** No Drizzle, no tRPC, no React Query in v1. Plain Server Components + Server Actions + Supabase JS client.
 9. **Error + loading states are P0** for every data-fetching component. Use Next.js `loading.tsx` and `error.tsx` at route level.
 10. **`prefers-reduced-motion` disables effects.** Don't ship animations that ignore this.
+11. **Server-only secret clients use `import 'server-only'`.** Any module that touches `SUPABASE_SECRET_KEY` (or any other server secret) must import `'server-only'` at the top. This makes Next.js throw a build error if a client component accidentally imports it. Defense in depth beyond RLS — see `lib/supabase/service.ts` for the canonical pattern.
 
 ---
 

@@ -252,8 +252,8 @@ All keys live in `.env.local` (never committed) and are referenced from `.env.ex
 ```
 # Supabase
 NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY=
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
+SUPABASE_SECRET_KEY=
 
 # Resend
 RESEND_API_KEY=

@@ -8,9 +8,17 @@ function isLocale(value: string | undefined): value is Locale {
   return !!value && (routing.locales as readonly string[]).includes(value)
 }
 
+function isSafeRelativePath(next: string | null): next is string {
+  if (!next) return false
+  // Must start with / but not // (protocol-relative) or /\ (path traversal)
+  return (
+    next.startsWith('/') && !next.startsWith('//') && !next.startsWith('/\\')
+  )
+}
+
 function detectLocale(request: NextRequest, nextParam: string | null): Locale {
-  // 1. Locale embedded in `next` (e.g. /az/events)
-  if (nextParam) {
+  // 1. Locale embedded in `next` (e.g. /az/events) — only trust safe paths
+  if (isSafeRelativePath(nextParam)) {
     const segments = nextParam.split('/').filter(Boolean)
     if (isLocale(segments[0])) return segments[0]
   }
@@ -44,7 +52,6 @@ export async function GET(request: NextRequest) {
   }
 
   // If `next` is a safe relative path, honor it; else default to /<locale>/events.
-  const target =
-    nextParam && nextParam.startsWith('/') ? nextParam : `/${locale}/events`
+  const target = isSafeRelativePath(nextParam) ? nextParam : `/${locale}/events`
   return NextResponse.redirect(`${origin}${target}`)
 }
