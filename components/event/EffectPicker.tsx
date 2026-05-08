@@ -24,7 +24,7 @@ const EFFECT_THUMBNAILS: Record<string, string> = {
   Confetti: '🎉',
   Snow: '❄️',
   Hearts: '💖',
-  Stars: '✨',
+  Stars: '🌟',
   Fireworks: '🎆',
   Bubbles: '🫧',
   Sparkles: '✨',
@@ -34,7 +34,7 @@ const EFFECT_THUMBNAILS: Record<string, string> = {
   Embers: '🔥',
   Balloons: '🎈',
   Lights: '🪔',
-  'Snow heavy': '❄️',
+  'Snow heavy': '🌨️',
 }
 
 export type EffectRowMin = {
