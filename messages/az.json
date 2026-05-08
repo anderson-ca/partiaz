@@ -16,5 +16,20 @@
     },
     "signOut": "Çıxış",
     "greeting": "Salam, {email}"
+  },
+  "coverPicker": {
+    "pickCover": "Üz şəkli seç",
+    "removeCover": "Üz şəklini sil",
+    "library": "Kitabxana",
+    "upload": "Yüklə",
+    "chooseFile": "Şəkil seçin və ya bura buraxın",
+    "dropHere": "Yükləmək üçün şəkli buraxın",
+    "uploading": "Yüklənir…",
+    "uploadButton": "Yüklə",
+    "errors": {
+      "tooLarge": "Fayl 5 MB-dan kiçik olmalıdır.",
+      "badType": "JPEG, PNG, WebP və ya GIF istifadə edin.",
+      "network": "Yükləmə alınmadı. Yenidən cəhd edin."
+    }
   }
 }

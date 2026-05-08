@@ -16,5 +16,20 @@
     },
     "signOut": "Sign out",
     "greeting": "Hello, {email}"
+  },
+  "coverPicker": {
+    "pickCover": "Pick cover",
+    "removeCover": "Remove cover",
+    "library": "Library",
+    "upload": "Upload",
+    "chooseFile": "Choose photo or drop here",
+    "dropHere": "Drop the photo to upload",
+    "uploading": "Uploading…",
+    "uploadButton": "Upload",
+    "errors": {
+      "tooLarge": "File must be under 5MB.",
+      "badType": "Use JPEG, PNG, WebP, or GIF.",
+      "network": "Upload failed. Try again."
+    }
   }
 }

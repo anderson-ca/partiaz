@@ -16,5 +16,20 @@
     },
     "signOut": "Выйти",
     "greeting": "Привет, {email}"
+  },
+  "coverPicker": {
+    "pickCover": "Выбрать обложку",
+    "removeCover": "Убрать обложку",
+    "library": "Библиотека",
+    "upload": "Загрузить",
+    "chooseFile": "Выберите фото или перетащите сюда",
+    "dropHere": "Отпустите фото для загрузки",
+    "uploading": "Загрузка…",
+    "uploadButton": "Загрузить",
+    "errors": {
+      "tooLarge": "Файл должен быть меньше 5 МБ.",
+      "badType": "Используйте JPEG, PNG, WebP или GIF.",
+      "network": "Загрузка не удалась. Попробуйте ещё раз."
+    }
   }
 }

@@ -19,6 +19,14 @@ const nextConfig: NextConfig = {
         hostname: 'images.unsplash.com',
         pathname: '/flagged/photo-**',
       },
+      {
+        // Supabase Storage public objects: event-covers and any future
+        // public bucket. Hostname is project-ref scoped so this whitelist
+        // is per-environment safe.
+        protocol: 'https',
+        hostname: '**.supabase.co',
+        pathname: '/storage/v1/object/public/**',
+      },
     ],
   },
 }
