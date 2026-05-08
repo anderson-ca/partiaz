@@ -2,16 +2,10 @@
 
 import { useMemo, useState } from 'react'
 import { Check, Dices } from 'lucide-react'
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 import { Button } from '@/components/ui/button'
+import { ResponsivePicker } from '@/components/event/ResponsivePicker'
 import { EFFECT_THUMBNAILS } from '@/lib/effect-thumbnails'
 import { cn } from '@/lib/utils'
 
@@ -73,72 +67,67 @@ export function EffectPicker({
   }
 
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger asChild>{trigger}</SheetTrigger>
-      <SheetContent
-        side="right"
-        className="flex w-full flex-col gap-0 p-0 sm:max-w-md"
-      >
-        <SheetHeader className="flex-row items-center justify-between border-b p-4">
-          <SheetTitle>Effect</SheetTitle>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-sm"
-            aria-label="Shuffle"
-            onClick={handleShuffle}
-          >
-            <Dices />
-          </Button>
-        </SheetHeader>
-
-        <Tabs
-          value={activeTab}
-          onValueChange={(v) => setActiveTab(v as Category)}
-          className="border-b"
+    <ResponsivePicker
+      open={open}
+      onOpenChange={setOpen}
+      trigger={trigger}
+      title="Effect"
+      side="left"
+      toolbar={
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          aria-label="Shuffle"
+          onClick={handleShuffle}
+          className="text-white hover:bg-white/10"
         >
-          <ScrollArea className="w-full">
-            <TabsList className="flex w-max min-w-full justify-start gap-1 bg-transparent px-4 py-2">
-              {CATEGORIES.map((cat) => (
-                <TabsTrigger
-                  key={cat}
-                  value={cat}
-                  className="capitalize"
-                >
-                  {cat}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-            <ScrollBar orientation="horizontal" className="h-1.5" />
-          </ScrollArea>
-        </Tabs>
-
-        <ScrollArea className="flex-1">
-          <div className="grid grid-cols-3 gap-3 p-4 min-[380px]:grid-cols-4">
-            {/* Pinned None button */}
-            {noneEffect && (
-              <EffectCircle
-                emoji={EFFECT_THUMBNAILS.None ?? '🚫'}
-                label="None"
-                isSelected={selectedEffectId === noneEffect.id}
-                onClick={() => handlePick(noneEffect.id)}
-                tone="muted"
-              />
-            )}
-
-            {filtered.map((effect) => (
-              <EffectCircle
-                key={effect.id}
-                emoji={EFFECT_THUMBNAILS[effect.name] ?? '✨'}
-                label={effect.name}
-                isSelected={selectedEffectId === effect.id}
-                onClick={() => handlePick(effect.id)}
-              />
+          <Dices />
+        </Button>
+      }
+    >
+      <Tabs
+        value={activeTab}
+        onValueChange={(v) => setActiveTab(v as Category)}
+        className="border-b border-white/10"
+      >
+        <ScrollArea className="w-full">
+          <TabsList className="flex w-max min-w-full justify-start gap-1 bg-transparent px-3 py-2">
+            {CATEGORIES.map((cat) => (
+              <TabsTrigger key={cat} value={cat} className="capitalize">
+                {cat}
+              </TabsTrigger>
             ))}
-          </div>
+          </TabsList>
+          <ScrollBar orientation="horizontal" className="h-1.5" />
         </ScrollArea>
-      </SheetContent>
-    </Sheet>
+      </Tabs>
+
+      <ScrollArea className="flex-1">
+        <div className="grid grid-cols-3 gap-3 p-4 min-[380px]:grid-cols-4">
+          {/* Pinned None button */}
+          {noneEffect && (
+            <EffectCircle
+              emoji={EFFECT_THUMBNAILS.None ?? '🚫'}
+              label="None"
+              isSelected={selectedEffectId === noneEffect.id}
+              onClick={() => handlePick(noneEffect.id)}
+              tone="muted"
+            />
+          )}
+
+          {filtered.map((effect) => (
+            <EffectCircle
+              key={effect.id}
+              emoji={EFFECT_THUMBNAILS[effect.name] ?? '✨'}
+              label={effect.name}
+              isSelected={selectedEffectId === effect.id}
+              onClick={() => handlePick(effect.id)}
+            />
+          ))}
+        </div>
+      </ScrollArea>
+    </ResponsivePicker>
   )
 }
 
@@ -161,33 +150,29 @@ function EffectCircle({
       aria-label={label}
       aria-pressed={isSelected}
       onClick={onClick}
-      className={cn(
-        'group flex flex-col items-center gap-1.5',
-      )}
+      className={cn('group flex flex-col items-center gap-1.5')}
     >
       <div
         className={cn(
-          'relative aspect-square w-full overflow-hidden rounded-full border',
+          'relative aspect-square w-full overflow-hidden rounded-full border border-white/10',
           'flex items-center justify-center text-2xl',
           'transition group-hover:scale-105',
           tone === 'muted'
-            ? 'bg-muted'
+            ? 'bg-white/5 text-white/80'
             : 'bg-linear-to-br from-zinc-800 to-zinc-900 text-white',
-          isSelected && 'ring-2 ring-foreground ring-offset-2',
+          isSelected && 'ring-2 ring-white ring-offset-2 ring-offset-zinc-900',
         )}
       >
         <span aria-hidden>{emoji}</span>
         {isSelected && (
           <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/30">
-            <span className="rounded-full bg-foreground/80 p-1 text-background">
+            <span className="rounded-full bg-white/90 p-1 text-zinc-900">
               <Check className="h-3.5 w-3.5" />
             </span>
           </div>
         )}
       </div>
-      <span className="line-clamp-1 text-[10px] text-muted-foreground">
-        {label}
-      </span>
+      <span className="line-clamp-1 text-[10px] text-white/70">{label}</span>
     </button>
   )
 }
