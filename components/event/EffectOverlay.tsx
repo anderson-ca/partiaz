@@ -2,6 +2,15 @@
 
 import { useEffect, useState } from 'react'
 import Particles, { initParticlesEngine } from '@tsparticles/react'
+// We deliberately use loadAll instead of loadSlim. 7 of our 14 seeded effects
+// depend on plugins not in slim:
+//   - shape: 'char' (Hearts, Petals, Emoji rain, Balloons) → @tsparticles/shape-text
+//   - destroy.split + move.gravity.inverse (Fireworks)
+// loadAll costs ~50KB extra over loadSlim but eliminates per-effect plugin
+// curation. If bundle size becomes a real performance issue on the public
+// event page (currently 233KB First Load on /dev/themes), the surgical fix
+// is loadSlim + explicit imports of the specific plugins each effect needs,
+// NOT a blanket switch to loadSlim. See PRODUCT_SPEC.md §9.4.
 import { loadAll } from '@tsparticles/all'
 import type { ISourceOptions } from '@tsparticles/engine'
 import { cn } from '@/lib/utils'

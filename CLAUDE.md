@@ -146,6 +146,18 @@ If a prompt is ambiguous, ask one clarifying question before coding. Don't guess
 
 ---
 
+## Catalog renderer rules
+
+These are subtle gotchas around the theme/effect/font catalog that are easy to get wrong in refactors. Don't violate them without a deliberate reason.
+
+1. **`background_value->>'url'` is opaque.** Treat URLs from theme rows as fully-formed strings. Never reconstruct them from `photo_id` or assume the prefix is `images.unsplash.com/photo-` — some are `/flagged/photo-` paths. The CDN URL is canonical; the photo_id is for attribution only.
+
+2. **`@tsparticles/all` is the deliberate choice for `loadAll`.** Do NOT refactor to `loadSlim` "for performance" — 7 of 14 effects break. If bundle size needs trimming, use `loadSlim` + explicit per-plugin imports for shape: char (Hearts/Petals/Emoji rain/Balloons) and destroy.split + move.gravity.inverse (Fireworks).
+
+3. **Catalog updates are append-only migrations.** Do not edit `20260507211248_seed_catalog.sql` to fix bad data — write a new migration (e.g. `fix_effect_configs.sql`). Once a migration has been pushed to remote, its history is locked.
+
+---
+
 ## Git commits
 
 When you commit on this project:

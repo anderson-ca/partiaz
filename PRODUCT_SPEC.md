@@ -1313,3 +1313,4 @@ Each prompt → branch → commit → test → next.
 - **A2P 10DLC** — not relevant since we skipped SMS.
 - **Font glyph audit** — verify each font renders Az diacritics + Cyrillic before launch.
 - **Unsplash API approval** — apply for production tier (5000 req/h) once ready to launch.
+- **Bundle size on the public event page.** `/dev/themes` First Load is 233KB due to `@tsparticles/all`. The public event page (Prompt 09) will use the same EffectOverlay component. If First Load there exceeds ~200KB on production builds, dynamic-import the EffectOverlay so particles load after first paint, OR switch to `loadSlim` + explicit plugin imports for our 7 plugin-dependent effects. Watch this when Prompt 09 lands.
