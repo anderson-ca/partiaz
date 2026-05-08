@@ -8,6 +8,7 @@ import {
 import { createClient } from '@/lib/supabase/server'
 import type { ThemeRow } from '@/lib/schemas/theme'
 import { EffectsSection } from './EffectsSection'
+import { PickerTest } from './PickerTest'
 
 const FONT_SAMPLE = 'Salam, dünya! Привет, мир! Hello, world!'
 
@@ -65,6 +66,8 @@ export default async function ThemesDevPage({
           Internal QA harness. Themes: {themes.length} · Effects: {effects.length} · Fonts: {fonts.length}.
         </p>
       </header>
+
+      <PickerTest themes={themes} effects={effects} fonts={fonts} />
 
       {/* Themes */}
       <section className="mb-12">
