@@ -32,6 +32,41 @@ When future prompts reference standard setup patterns, remember these specifics 
 - **`pnpm-workspace.yaml`** includes an `allowBuilds` list. Append package names there if pnpm complains about unapproved native build scripts during install.
 - **`turbopack.root`** is pinned to `__dirname` in `next.config.ts` to avoid workspace-root warnings.
 
+### Tailwind v4 utility renames (vs v3)
+
+Verified against the official upgrade guide: https://tailwindcss.com/docs/upgrade-guide. The IDE flags v3 names with a `suggestCanonicalClasses` warning on every edit — use the v4 names from the start to avoid review noise.
+
+**Size-shift renames** (default scales gained an `xs` step; the old `sm` slid down to `xs`, the unsuffixed default became `sm`):
+
+- `shadow-sm` → `shadow-xs` ; `shadow` → `shadow-sm`
+- `drop-shadow-sm` → `drop-shadow-xs` ; `drop-shadow` → `drop-shadow-sm`
+- `blur-sm` → `blur-xs` ; `blur` → `blur-sm`
+- `backdrop-blur-sm` → `backdrop-blur-xs` ; `backdrop-blur` → `backdrop-blur-sm`
+- `rounded-sm` → `rounded-xs` ; `rounded` → `rounded-sm`
+
+**Gradients** (namespaced by gradient kind):
+
+- `bg-gradient-to-{dir}` → `bg-linear-to-{dir}`
+- New siblings: `bg-radial-{at-…}` and `bg-conic-{angle}` for radial / conic gradients
+
+**Outline:**
+
+- `outline-none` → `outline-hidden` (v4's `outline-none` now literally removes the outline; `outline-hidden` keeps the v3 transparent-but-present behavior commonly used for focus-visible styles)
+
+**Ring** (defaults changed):
+
+- `ring` is now `1px` / `currentColor` by default (was `3px` / `blue-500`)
+- To get the v3 default: `ring-3` plus an explicit color utility
+
+**Removed deprecated utilities** (replacements):
+
+- `bg-opacity-*` / `text-opacity-*` → opacity modifier (`bg-black/50`)
+- `flex-shrink-*` → `shrink-*`
+- `flex-grow-*` → `grow-*`
+- `overflow-ellipsis` → `text-ellipsis`
+- `decoration-slice` → `box-decoration-slice`
+- `decoration-clone` → `box-decoration-clone`
+
 ## Commands
 
 ```
@@ -155,6 +190,41 @@ These are subtle gotchas around the theme/effect/font catalog that are easy to g
 2. **`@tsparticles/all` is the deliberate choice for `loadAll`.** Do NOT refactor to `loadSlim` "for performance" — 7 of 14 effects break. If bundle size needs trimming, use `loadSlim` + explicit per-plugin imports for shape: char (Hearts/Petals/Emoji rain/Balloons) and destroy.split + move.gravity.inverse (Fireworks).
 
 3. **Catalog updates are append-only migrations.** Do not edit `20260507211248_seed_catalog.sql` to fix bad data — write a new migration (e.g. `fix_effect_configs.sql`). Once a migration has been pushed to remote, its history is locked.
+
+---
+
+## CSS Grid pitfalls
+
+Tailwind's `grid-cols-[Xfr_Yfr]` compiles to `minmax(auto, Xfr)` per column. The `auto` minimum means any column with intrinsic content wider than its fractional share (horizontal scrollers, long unbroken strings, picker pill rows, code blocks) will blow the column out — pushing other columns or escaping the container entirely.
+
+When a two-column grid contains content with its own intrinsic width:
+
+- Use `grid-cols-[minmax(0,1fr)_minmax(0,1fr)]` (or any explicit `minmax(0, …)`) instead of `grid-cols-[1fr_1fr]` or `grid-cols-[3fr_2fr]`.
+- Add `min-w-0` to direct children of the grid item so any flex / scroll containers inside also respect the column boundary.
+
+Hit in Prompt 06.6 — FontPicker (10 pills × ~120px) blew the left column wide enough to push the right column under the floating rail.
+
+---
+
+## shadcn / Radix conventions
+
+When a custom component is the trigger for a Radix primitive that uses `asChild` (`DialogTrigger`, `SheetTrigger`, `PopoverTrigger`, `TooltipTrigger`, `DropdownMenuTrigger`, etc.), that custom component MUST forward props AND ref to the underlying DOM element. Radix uses `React.cloneElement` to attach `onClick`, `onKeyDown`, `aria-*`, and refs — if the component drops them, the trigger silently breaks (button looks correct, never fires).
+
+Canonical pattern for any custom trigger:
+
+```tsx
+const RailButton = React.forwardRef<
+  HTMLButtonElement,
+  React.ComponentPropsWithoutRef<'button'>
+>(({ children, ...props }, ref) => (
+  <button ref={ref} {...props}>
+    {children}
+  </button>
+))
+RailButton.displayName = 'RailButton'
+```
+
+If a Radix-wrapped trigger ever "doesn't respond," this is the first thing to check. We hit this in Prompt 06.6 — Theme/Effect rail buttons looked fine, fired nothing, because props weren't spread.
 
 ---
 
