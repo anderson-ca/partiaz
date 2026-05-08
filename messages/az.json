@@ -17,6 +17,20 @@
     "signOut": "Çıxış",
     "greeting": "Salam, {email}"
   },
+  "events": {
+    "editor": {
+      "untitledTitle": "Adsız tədbir",
+      "titlePlaceholder": "Adsız tədbir",
+      "saveDraft": "Qaralamanı saxla",
+      "saving": "Saxlanır…",
+      "saveSuccess": "Saxlanıldı",
+      "saveError": "Saxlamaq alınmadı. Yenidən cəhd edin.",
+      "editButton": "Redaktə et"
+    },
+    "public": {
+      "notFound": "Tədbir tapılmadı"
+    }
+  },
   "coverPicker": {
     "pickCover": "Üz şəkli seç",
     "removeCover": "Üz şəklini sil",

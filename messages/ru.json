@@ -17,6 +17,20 @@
     "signOut": "Выйти",
     "greeting": "Привет, {email}"
   },
+  "events": {
+    "editor": {
+      "untitledTitle": "Без названия",
+      "titlePlaceholder": "Без названия",
+      "saveDraft": "Сохранить черновик",
+      "saving": "Сохраняем…",
+      "saveSuccess": "Сохранено",
+      "saveError": "Не удалось сохранить. Попробуйте ещё раз.",
+      "editButton": "Редактировать"
+    },
+    "public": {
+      "notFound": "Событие не найдено"
+    }
+  },
   "coverPicker": {
     "pickCover": "Выбрать обложку",
     "removeCover": "Убрать обложку",

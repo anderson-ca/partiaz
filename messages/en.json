@@ -17,6 +17,20 @@
     "signOut": "Sign out",
     "greeting": "Hello, {email}"
   },
+  "events": {
+    "editor": {
+      "untitledTitle": "Untitled Event",
+      "titlePlaceholder": "Untitled Event",
+      "saveDraft": "Save draft",
+      "saving": "Saving…",
+      "saveSuccess": "Saved",
+      "saveError": "Couldn't save. Try again.",
+      "editButton": "Edit"
+    },
+    "public": {
+      "notFound": "Event not found"
+    }
+  },
   "coverPicker": {
     "pickCover": "Pick cover",
     "removeCover": "Remove cover",
