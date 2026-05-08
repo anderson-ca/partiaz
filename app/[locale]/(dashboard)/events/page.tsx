@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { redirect } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -33,6 +34,12 @@ export default async function EventsPage({
           {t('signOut')}
         </Button>
       </form>
+      <Link
+        href={`/${locale}/dev/themes`}
+        className="text-xs text-muted-foreground underline-offset-4 hover:underline"
+      >
+        Theme catalog
+      </Link>
     </main>
   )
 }

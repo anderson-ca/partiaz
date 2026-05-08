@@ -1,0 +1,89 @@
+/* Text effects layered on top of the font preset. The base color is passed
+ * via the inline `color` style; gradient/extrude/glow derive their accent
+ * from CSS custom properties (--accent) we set on the same element so we
+ * don't have to inline keyframes per render. */
+
+.base {
+  display: inline-block;
+}
+
+/* gradient: clip a fixed pastel gradient to text */
+.gradient {
+  background: linear-gradient(
+    90deg,
+    #ff6b9d 0%,
+    #f59e0b 50%,
+    #5b8def 100%
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* outline: draw the stroke, hide the fill */
+.outline {
+  -webkit-text-stroke: 2px currentColor;
+  color: transparent;
+}
+
+/* glow: layered shadows in the current color */
+.glow {
+  text-shadow:
+    0 0 8px currentColor,
+    0 0 16px currentColor,
+    0 0 32px currentColor;
+}
+
+/* extrude: stacked offset shadows (3D-ish), darker than current color */
+.extrude {
+  text-shadow:
+    1px 1px 0 rgba(0, 0, 0, 0.55),
+    2px 2px 0 rgba(0, 0, 0, 0.45),
+    3px 3px 0 rgba(0, 0, 0, 0.35),
+    4px 4px 0 rgba(0, 0, 0, 0.25),
+    5px 5px 0 rgba(0, 0, 0, 0.15);
+}
+
+/* animated_gradient: same gradient, with a slow position shift */
+.animatedGradient {
+  background: linear-gradient(
+    90deg,
+    #ff6b9d 0%,
+    #f59e0b 25%,
+    #5b8def 50%,
+    #10b981 75%,
+    #ff6b9d 100%
+  );
+  background-size: 200% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: animatedGradientShift 8s linear infinite;
+}
+
+@keyframes animatedGradientShift {
+  from {
+    background-position: 0% 50%;
+  }
+  to {
+    background-position: 200% 50%;
+  }
+}
+
+/* chromatic: offset RGB shadows for a glitch look */
+.chromatic {
+  text-shadow:
+    -2px 0 #ff3d3d,
+    2px 0 #5b8def,
+    0 -1px #29c489;
+}
+
+/* Disable expensive animations under reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .animatedGradient {
+    animation: none;
+    background-position: 0% 50%;
+  }
+}
