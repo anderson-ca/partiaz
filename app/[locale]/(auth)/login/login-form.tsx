@@ -10,7 +10,13 @@ import { sendMagicLink, type MagicLinkState } from './actions'
 
 const initialState: MagicLinkState = { status: 'idle' }
 
-export function LoginForm() {
+type LoginFormProps = {
+  /** Sanitized post-sign-in redirect target. Already validated by the
+   *  page-level Server Component via `isSafeRelativePath`. */
+  next: string | null
+}
+
+export function LoginForm({ next }: LoginFormProps) {
   const t = useTranslations('auth.login')
   const [state, formAction, pending] = useActionState(
     sendMagicLink,
@@ -19,15 +25,23 @@ export function LoginForm() {
 
   async function handleGoogle() {
     const supabase = createClient()
+    const callbackUrl = next
+      ? `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`
+      : `${window.location.origin}/auth/callback`
     await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
+      options: { redirectTo: callbackUrl },
     })
   }
 
   return (
     <div className="w-full space-y-4">
       <form action={formAction} className="space-y-3">
+        {/* Hidden field threads `next` into FormData → Server Action →
+            emailRedirectTo. The action re-validates with isSafeRelativePath
+            so a hostile DOM tweak between render and submit can't poison the
+            redirect target. */}
+        {next && <input type="hidden" name="next" value={next} />}
         <div className="space-y-1.5">
           <Label htmlFor="email">{t('emailLabel')}</Label>
           <Input

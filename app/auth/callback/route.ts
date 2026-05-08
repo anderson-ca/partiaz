@@ -1,19 +1,12 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { routing } from '@/i18n/routing'
+import { isSafeRelativePath } from '@/lib/auth/safe-redirect'
 
 type Locale = (typeof routing.locales)[number]
 
 function isLocale(value: string | undefined): value is Locale {
   return !!value && (routing.locales as readonly string[]).includes(value)
-}
-
-function isSafeRelativePath(next: string | null): next is string {
-  if (!next) return false
-  // Must start with / but not // (protocol-relative) or /\ (path traversal)
-  return (
-    next.startsWith('/') && !next.startsWith('//') && !next.startsWith('/\\')
-  )
 }
 
 function detectLocale(request: NextRequest, nextParam: string | null): Locale {

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import type { ISourceOptions } from '@tsparticles/engine'
-import { EffectOverlay } from '@/components/event/EffectOverlay'
+import { LazyEffectOverlay as EffectOverlay } from '@/components/event/LazyEffectOverlay'
 import { cn } from '@/lib/utils'
 
 type EffectRowMin = {

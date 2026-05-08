@@ -24,7 +24,7 @@ import {
   type CoverSource,
 } from '@/components/event/CoverImagePicker'
 import { EditorRail } from '@/components/event/EditorRail'
-import { EffectOverlay } from '@/components/event/EffectOverlay'
+import { LazyEffectOverlay as EffectOverlay } from '@/components/event/LazyEffectOverlay'
 import type { EffectRowMin } from '@/components/event/EffectPicker'
 import { EventTitle } from '@/components/event/EventTitle'
 import {
