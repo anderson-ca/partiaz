@@ -14,6 +14,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet'
 import { useMediaQuery } from '@/lib/hooks/use-media-query'
+import { FLOATING_SURFACE } from '@/lib/ui/floating-surface'
 import { cn } from '@/lib/utils'
 
 type ResponsivePickerProps = {
@@ -40,10 +41,10 @@ const HEADER_CLASS =
   'flex flex-row items-center justify-between border-b border-white/10 px-4 py-3'
 const TITLE_CLASS = 'text-base font-semibold text-white'
 
-// Shared dark glass styling so Popover (desktop) and Sheet (mobile) read as
-// the same picker visually. Matches Partiful's reference cards.
-const CARD_CLASS =
-  'flex flex-col gap-0 overflow-hidden border border-white/10 bg-zinc-900/95 p-0 text-white shadow-2xl backdrop-blur-xl'
+// Layout-only classes for the picker card. Dark-glass styling comes from
+// FLOATING_SURFACE (project-wide convention — see CLAUDE.md "Floating
+// surface convention").
+const CARD_LAYOUT = 'flex flex-col gap-0 overflow-hidden p-0'
 
 export function ResponsivePicker({
   trigger,
@@ -86,7 +87,8 @@ export function ResponsivePicker({
           collisionPadding={16}
           avoidCollisions
           className={cn(
-            CARD_CLASS,
+            FLOATING_SURFACE,
+            CARD_LAYOUT,
             'max-h-[80vh] w-[min(360px,calc(100vw-2rem))] rounded-2xl',
             contentClassName,
           )}
@@ -107,7 +109,8 @@ export function ResponsivePicker({
       <SheetContent
         side="bottom"
         className={cn(
-          CARD_CLASS,
+          FLOATING_SURFACE,
+          CARD_LAYOUT,
           'max-h-[85vh] rounded-t-2xl',
           contentClassName,
         )}

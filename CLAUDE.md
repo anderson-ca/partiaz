@@ -226,6 +226,37 @@ RailButton.displayName = 'RailButton'
 
 If a Radix-wrapped trigger ever "doesn't respond," this is the first thing to check. We hit this in Prompt 06.6 — Theme/Effect rail buttons looked fine, fired nothing, because props weren't spread.
 
+### Floating surface convention
+
+Any UI element that floats over the themed page background — Popover, Sheet, Dialog content, DropdownMenu, CommandList, Tooltip, etc. — MUST use `FLOATING_SURFACE` from `lib/ui/floating-surface.ts` for its content card. Do NOT use shadcn's default `bg-popover` / `bg-card` tokens. They resolve to white-on-light in our setup, which renders illegibly over a themed background.
+
+Inside a FLOATING_SURFACE container, child elements that would otherwise reference shadcn neutral tokens (`text-foreground`, `bg-muted`, `ring-foreground`, `text-destructive`, etc.) MUST be remapped to explicit equivalents. Use the `ON_FLOATING` map in the same file as the canonical mapping.
+
+This applies project-wide. Even ostensibly-default shadcn primitives (DropdownMenuContent, CommandList, etc.) wear FLOATING_SURFACE in our pages.
+
+Hit in Prompt 06.7 — every picker had to ad-hoc remap shadcn tokens to read correctly on the dark themed page.
+
+### Responsive Radix wrappers — defer until mount
+
+Conditionally rendering different Radix primitives based on viewport (Sheet on mobile, Popover on desktop, switched via `useMediaQuery`) corrupts Radix's internal `useId()` counter on hydration. The SSR pass and the post-mount pass produce different sequences of `useId` calls; downstream Radix components — even ones unrelated to the responsive wrapper — get mismatched aria-controls / aria-describedby ids and silently break accessibility relationships.
+
+Symptom: React hydration warnings, broken aria associations, sometimes-unrelated sibling Radix components (e.g. a sibling Popover) getting wrong ids.
+
+Pattern: render only the bare trigger during SSR and first paint. Defer mounting the Radix wrapper until a `mounted` flag flips in a mount effect. SSR + first-paint output is stable (no Radix-generated ids in the first pass); post-mount renders deterministically pick the right wrapper.
+
+```tsx
+const [mounted, setMounted] = useState(false)
+useEffect(() => setMounted(true), [])
+
+if (!mounted) return <>{trigger}</>
+
+return isDesktop
+  ? <Popover>...</Popover>
+  : <Sheet>...</Sheet>
+```
+
+Applies to ANY responsive Radix swap. Hit in Prompt 06.8 — ResponsivePicker's Sheet/Popover swap broke ColorPicker's id sequence until we deferred the wrapper.
+
 ---
 
 ## Git commits
