@@ -5,6 +5,7 @@ import { getMessages, setRequestLocale } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 import { routing } from '@/i18n/routing'
 import { allFontVariables } from '@/lib/fonts'
+import { Toaster } from '@/components/ui/sonner'
 import '../globals.css'
 
 const geistSans = Geist({
@@ -50,6 +51,7 @@ export default async function LocaleLayout({
       <body className="antialiased">
         <NextIntlClientProvider locale={locale} messages={messages}>
           {children}
+          <Toaster position="bottom-center" />
         </NextIntlClientProvider>
       </body>
     </html>

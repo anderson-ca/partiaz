@@ -12,30 +12,11 @@ import {
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 import { Button } from '@/components/ui/button'
+import { EFFECT_THUMBNAILS } from '@/lib/effect-thumbnails'
 import { cn } from '@/lib/utils'
 
 const CATEGORIES = ['all', 'fun', 'classic', 'trending', 'seasonal'] as const
 type Category = (typeof CATEGORIES)[number]
-
-// Static representative thumbnails (TODO: animated previews in P1).
-// Keys match the `name` column of `public.effects`.
-const EFFECT_THUMBNAILS: Record<string, string> = {
-  None: '🚫',
-  Confetti: '🎉',
-  Snow: '❄️',
-  Hearts: '💖',
-  Stars: '🌟',
-  Fireworks: '🎆',
-  Bubbles: '🫧',
-  Sparkles: '✨',
-  'Emoji rain': '🎊',
-  Petals: '🌸',
-  Rain: '🌧️',
-  Embers: '🔥',
-  Balloons: '🎈',
-  Lights: '🪔',
-  'Snow heavy': '🌨️',
-}
 
 export type EffectRowMin = {
   id: string
@@ -191,7 +172,7 @@ function EffectCircle({
           'transition group-hover:scale-105',
           tone === 'muted'
             ? 'bg-muted'
-            : 'bg-gradient-to-br from-zinc-800 to-zinc-900 text-white',
+            : 'bg-linear-to-br from-zinc-800 to-zinc-900 text-white',
           isSelected && 'ring-2 ring-foreground ring-offset-2',
         )}
       >

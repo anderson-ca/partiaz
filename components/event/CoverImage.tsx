@@ -6,6 +6,8 @@ type CoverImageProps = {
   alt?: string
   className?: string
   priority?: boolean
+  /** CSS aspect-ratio, e.g. "1 / 1", "16 / 9", "4 / 5". Default 16:9. */
+  aspect?: string
 }
 
 export function CoverImage({
@@ -13,6 +15,7 @@ export function CoverImage({
   alt = '',
   className,
   priority = false,
+  aspect = '16 / 9',
 }: CoverImageProps) {
   if (!url) return null
 
@@ -22,7 +25,7 @@ export function CoverImage({
         'relative w-full overflow-hidden rounded-xl',
         className,
       )}
-      style={{ aspectRatio: '16 / 9' }}
+      style={{ aspectRatio: aspect }}
     >
       <Image
         src={url}
