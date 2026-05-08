@@ -2,10 +2,10 @@
 
 import { Eye, Settings as SettingsIcon } from 'lucide-react'
 import { toast } from 'sonner'
+import { EffectThumbnail } from '@/components/event/EffectThumbnail'
 import { ThemeBackground } from '@/components/event/ThemeBackground'
 import { ThemePicker } from '@/components/event/ThemePicker'
 import { EffectPicker, type EffectRowMin } from '@/components/event/EffectPicker'
-import { effectThumbnail } from '@/lib/effect-thumbnails'
 import { cn } from '@/lib/utils'
 import type { ThemeRow } from '@/lib/schemas/theme'
 
@@ -66,9 +66,7 @@ export function EditorRail({
           onSelectEffect={onSelectEffect}
           trigger={
             <RailButton label="Effect" ariaLabel="Open effect picker">
-              <div className="flex h-full w-full items-center justify-center rounded-full bg-linear-to-br from-zinc-800 to-zinc-900 text-2xl">
-                <span aria-hidden>{effectThumbnail(selectedEffect?.name)}</span>
-              </div>
+              <EffectThumbnail name={selectedEffect?.name ?? 'None'} />
             </RailButton>
           }
         />

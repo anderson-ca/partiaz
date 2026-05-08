@@ -5,8 +5,8 @@ import { Check, Dices } from 'lucide-react'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 import { Button } from '@/components/ui/button'
+import { EffectThumbnail } from '@/components/event/EffectThumbnail'
 import { ResponsivePicker } from '@/components/event/ResponsivePicker'
-import { EFFECT_THUMBNAILS } from '@/lib/effect-thumbnails'
 import { cn } from '@/lib/utils'
 
 const CATEGORIES = ['all', 'fun', 'classic', 'trending', 'seasonal'] as const
@@ -108,18 +108,17 @@ export function EffectPicker({
           {/* Pinned None button */}
           {noneEffect && (
             <EffectCircle
-              emoji={EFFECT_THUMBNAILS.None ?? '🚫'}
+              name={noneEffect.name}
               label="None"
               isSelected={selectedEffectId === noneEffect.id}
               onClick={() => handlePick(noneEffect.id)}
-              tone="muted"
             />
           )}
 
           {filtered.map((effect) => (
             <EffectCircle
               key={effect.id}
-              emoji={EFFECT_THUMBNAILS[effect.name] ?? '✨'}
+              name={effect.name}
               label={effect.name}
               isSelected={selectedEffectId === effect.id}
               onClick={() => handlePick(effect.id)}
@@ -132,17 +131,15 @@ export function EffectPicker({
 }
 
 function EffectCircle({
-  emoji,
+  name,
   label,
   isSelected,
   onClick,
-  tone = 'default',
 }: {
-  emoji: string
+  name: string
   label: string
   isSelected: boolean
   onClick: () => void
-  tone?: 'default' | 'muted'
 }) {
   return (
     <button
@@ -150,20 +147,16 @@ function EffectCircle({
       aria-label={label}
       aria-pressed={isSelected}
       onClick={onClick}
-      className={cn('group flex flex-col items-center gap-1.5')}
+      className="group flex flex-col items-center gap-1.5"
     >
       <div
         className={cn(
           'relative aspect-square w-full overflow-hidden rounded-full border border-white/10',
-          'flex items-center justify-center text-2xl',
           'transition group-hover:scale-105',
-          tone === 'muted'
-            ? 'bg-white/5 text-white/80'
-            : 'bg-linear-to-br from-zinc-800 to-zinc-900 text-white',
           isSelected && 'ring-2 ring-white ring-offset-2 ring-offset-zinc-900',
         )}
       >
-        <span aria-hidden>{emoji}</span>
+        <EffectThumbnail name={name} className="rounded-none" />
         {isSelected && (
           <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/30">
             <span className="rounded-full bg-white/90 p-1 text-zinc-900">

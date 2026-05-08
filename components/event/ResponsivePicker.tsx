@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import {
   Popover,
   PopoverContent,
@@ -56,6 +57,23 @@ export function ResponsivePicker({
   contentClassName,
 }: ResponsivePickerProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)')
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // Pre-mount (server + first client paint): render the bare trigger only,
+  // no Radix wrapper. The conditional Sheet-vs-Popover branching below
+  // makes Radix call `useId()` differently across SSR and post-hydration
+  // states, which shifts ids for *every later* Radix-wrapped component on
+  // the page (ColorPicker, etc.) and triggers an `aria-controls` hydration
+  // mismatch. Holding off the wrapper until mount eliminates the variance:
+  // SSR and first paint are both "trigger only" — identical HTML — and the
+  // wrapper attaches via a normal client-side state update after hydration.
+  if (!mounted) {
+    return <>{trigger}</>
+  }
 
   if (isDesktop) {
     return (
