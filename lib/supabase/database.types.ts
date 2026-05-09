@@ -78,6 +78,30 @@ export type Database = {
           },
         ]
       }
+      cover_illustrations: {
+        Row: {
+          category: string
+          created_at: string
+          display_order: number
+          id: string
+          image_url: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          image_url: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          image_url?: string
+        }
+        Relationships: []
+      }
       date_options: {
         Row: {
           created_at: string
@@ -339,6 +363,10 @@ export type Database = {
           cost_per_person_text: string | null
           cover_image_source: string | null
           cover_image_url: string | null
+          cover_overlay_color: string | null
+          cover_overlay_enabled: boolean
+          cover_overlay_font_id: string | null
+          cover_overlay_text: string | null
           created_at: string
           description: string | null
           effect_id: string | null
@@ -377,6 +405,10 @@ export type Database = {
           cost_per_person_text?: string | null
           cover_image_source?: string | null
           cover_image_url?: string | null
+          cover_overlay_color?: string | null
+          cover_overlay_enabled?: boolean
+          cover_overlay_font_id?: string | null
+          cover_overlay_text?: string | null
           created_at?: string
           description?: string | null
           effect_id?: string | null
@@ -415,6 +447,10 @@ export type Database = {
           cost_per_person_text?: string | null
           cover_image_source?: string | null
           cover_image_url?: string | null
+          cover_overlay_color?: string | null
+          cover_overlay_enabled?: boolean
+          cover_overlay_font_id?: string | null
+          cover_overlay_text?: string | null
           created_at?: string
           description?: string | null
           effect_id?: string | null
@@ -446,6 +482,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "events_cover_overlay_font_id_fkey"
+            columns: ["cover_overlay_font_id"]
+            isOneToOne: false
+            referencedRelation: "font_presets"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "events_effect_id_fkey"
             columns: ["effect_id"]

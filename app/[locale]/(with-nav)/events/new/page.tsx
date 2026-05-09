@@ -3,6 +3,7 @@ import { setRequestLocale } from 'next-intl/server'
 import { EventEditorForm } from '@/components/event/EventEditorForm'
 import type { EffectRowMin } from '@/components/event/EffectPicker'
 import type { FontPresetForPicker } from '@/components/event/FontPicker'
+import type { CoverIllustration } from '@/components/event/cover-picker/LibraryTab'
 import type { ThemeRow } from '@/lib/schemas/theme'
 import { createClient } from '@/lib/supabase/server'
 
@@ -22,7 +23,7 @@ export default async function NewEventPage({
     redirect(`/${locale}/login?next=/${locale}/events/new`)
   }
 
-  const [themesRes, effectsRes, fontsRes] = await Promise.all([
+  const [themesRes, effectsRes, fontsRes, illustrationsRes] = await Promise.all([
     supabase
       .from('themes')
       .select(
@@ -41,11 +42,16 @@ export default async function NewEventPage({
       )
       .order('category')
       .order('name'),
+    supabase
+      .from('cover_illustrations')
+      .select('id,image_url,category')
+      .order('display_order', { ascending: true }),
   ])
 
   const themes = (themesRes.data ?? []) as unknown as ThemeRow[]
   const effects = (effectsRes.data ?? []) as EffectRowMin[]
   const fontPresets = (fontsRes.data ?? []) as FontPresetForPicker[]
+  const illustrations = (illustrationsRes.data ?? []) as CoverIllustration[]
 
   return (
     <EventEditorForm
@@ -53,6 +59,7 @@ export default async function NewEventPage({
       themes={themes}
       effects={effects}
       fontPresets={fontPresets}
+      illustrations={illustrations}
       locale={locale}
     />
   )

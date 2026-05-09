@@ -25,6 +25,8 @@ import {
   CoverImagePicker,
   type CoverSource,
 } from '@/components/event/CoverImagePicker'
+import { CoverOverlayEditor } from '@/components/event/CoverOverlayEditor'
+import type { CoverIllustration } from '@/components/event/cover-picker/LibraryTab'
 import { DeleteEventDialog } from '@/components/event/DeleteEventDialog'
 import { EditorRail } from '@/components/event/EditorRail'
 import { LazyEffectOverlay as EffectOverlay } from '@/components/event/LazyEffectOverlay'
@@ -52,12 +54,17 @@ export type EventEditorInitial = {
   text_color: string
   cover_image_url: string | null
   cover_image_source: string | null
+  cover_overlay_enabled: boolean
+  cover_overlay_text: string | null
+  cover_overlay_font_id: string | null
+  cover_overlay_color: string | null
 }
 
 type EventEditorFormProps = {
   themes: ThemeRow[]
   effects: EffectRowMin[]
   fontPresets: FontPresetForPicker[]
+  illustrations: CoverIllustration[]
   /** When editing an existing event. Omit for create mode. */
   initialEvent?: EventEditorInitial
   mode: 'create' | 'edit'
@@ -80,16 +87,17 @@ function pickDefaultFont(
   return fonts.find((f) => f.font_family === 'Inter') ?? fonts[0]
 }
 
-function normalizeCoverSource(
-  raw: string | null,
-): CoverSource | null {
-  return raw === 'library' || raw === 'upload' ? raw : null
+function normalizeCoverSource(raw: string | null): CoverSource | null {
+  return raw === 'illustration' || raw === 'gif' || raw === 'upload'
+    ? raw
+    : null
 }
 
 export function EventEditorForm({
   themes,
   effects,
   fontPresets,
+  illustrations,
   initialEvent,
   mode,
   locale,
@@ -114,6 +122,10 @@ export function EventEditorForm({
           cover_image_source: normalizeCoverSource(
             initialEvent.cover_image_source,
           ),
+          cover_overlay_enabled: initialEvent.cover_overlay_enabled,
+          cover_overlay_text: initialEvent.cover_overlay_text,
+          cover_overlay_font_id: initialEvent.cover_overlay_font_id,
+          cover_overlay_color: initialEvent.cover_overlay_color,
         }
       : {
           title: '',
@@ -123,6 +135,10 @@ export function EventEditorForm({
           text_color: '#ffffff',
           cover_image_url: null,
           cover_image_source: null,
+          cover_overlay_enabled: false,
+          cover_overlay_text: null,
+          cover_overlay_font_id: null,
+          cover_overlay_color: null,
         },
   })
 
@@ -135,6 +151,14 @@ export function EventEditorForm({
   const title = form.watch('title')
   const coverUrl = form.watch('cover_image_url')
   const coverSource = form.watch('cover_image_source')
+  const overlayEnabled = form.watch('cover_overlay_enabled') ?? false
+  const overlayText = form.watch('cover_overlay_text') ?? ''
+  const overlayFontId = form.watch('cover_overlay_font_id') ?? null
+  const overlayColor = form.watch('cover_overlay_color') ?? '#ffffff'
+
+  const overlayFont: FontPresetForPicker | null = overlayFontId
+    ? fontPresets.find((f) => f.id === overlayFontId) ?? null
+    : null
 
   const selectedTheme: ThemeRow =
     themes.find((th) => th.id === themeId) ?? defaultTheme
@@ -236,11 +260,33 @@ export function EventEditorForm({
             fontPresetId={fontPresetId}
           />
           <CoverArea
+            illustrations={illustrations}
             currentUrl={coverUrl}
             currentSource={normalizeCoverSource(coverSource)}
             onChange={(url, source) => {
               form.setValue('cover_image_url', url, { shouldDirty: true })
               form.setValue('cover_image_source', source, { shouldDirty: true })
+            }}
+            overlayEnabled={overlayEnabled}
+            overlayText={overlayText}
+            overlayFontId={overlayFontId}
+            overlayFont={overlayFont}
+            overlayColor={overlayColor}
+            fontPresets={fontPresets}
+            eventTitle={title || t('untitledTitle')}
+            onOverlayChange={(next) => {
+              form.setValue('cover_overlay_enabled', next.enabled, {
+                shouldDirty: true,
+              })
+              form.setValue('cover_overlay_text', next.text || null, {
+                shouldDirty: true,
+              })
+              form.setValue('cover_overlay_font_id', next.fontPresetId, {
+                shouldDirty: true,
+              })
+              form.setValue('cover_overlay_color', next.color, {
+                shouldDirty: true,
+              })
             }}
           />
         </section>
@@ -464,17 +510,41 @@ function DangerZone({
 // ----- Cover area (right column) ------------------------------------------
 
 function CoverArea({
+  illustrations,
   currentUrl,
   currentSource,
   onChange,
+  overlayEnabled,
+  overlayText,
+  overlayFontId,
+  overlayFont,
+  overlayColor,
+  fontPresets,
+  eventTitle,
+  onOverlayChange,
 }: {
+  illustrations: CoverIllustration[]
   currentUrl: string | null
   currentSource: CoverSource | null
   onChange: (url: string | null, source: CoverSource | null) => void
+  overlayEnabled: boolean
+  overlayText: string
+  overlayFontId: string | null
+  overlayFont: FontPresetForPicker | null
+  overlayColor: string
+  fontPresets: FontPresetForPicker[]
+  eventTitle: string
+  onOverlayChange: (next: {
+    enabled: boolean
+    text: string
+    fontPresetId: string | null
+    color: string
+  }) => void
 }) {
   return (
     <div className="space-y-4">
       <CoverImagePicker
+        illustrations={illustrations}
         currentUrl={currentUrl}
         currentSource={currentSource}
         onChange={onChange}
@@ -485,7 +555,15 @@ function CoverArea({
               aria-label="Change cover"
               className="block w-full overflow-hidden rounded-2xl ring-1 ring-white/10 transition hover:ring-white/30"
             >
-              <CoverImage url={currentUrl} alt="" aspect="1 / 1" />
+              <CoverImage
+                url={currentUrl}
+                alt=""
+                aspect="1 / 1"
+                overlayEnabled={overlayEnabled}
+                overlayText={overlayText || eventTitle}
+                overlayFont={overlayFont}
+                overlayColor={overlayColor}
+              />
             </button>
           ) : (
             <button
@@ -504,6 +582,21 @@ function CoverArea({
           )
         }
       />
+
+      {/* Cover overlay editor — sits directly under the cover so the live
+          preview above mirrors the controls below. Only shows once a cover
+          is selected; an overlay without a base image is meaningless. */}
+      {currentUrl && (
+        <CoverOverlayEditor
+          enabled={overlayEnabled}
+          text={overlayText}
+          fontPresetId={overlayFontId}
+          color={overlayColor}
+          fontPresets={fontPresets}
+          eventTitle={eventTitle}
+          onChange={onOverlayChange}
+        />
+      )}
 
       {/* RSVP options preview — illustrative only; live picker in Prompt 08.3 */}
       <div

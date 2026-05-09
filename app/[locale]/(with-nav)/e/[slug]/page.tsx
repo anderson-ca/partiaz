@@ -38,9 +38,11 @@ export default async function PublicEventPage({
     .from('events')
     .select(
       `id, slug, title, status, audience, text_color, cover_image_url,
+       cover_overlay_enabled, cover_overlay_text, cover_overlay_color,
        theme:themes(id,name,category,background_type,background_value,recommended_text_color,order_index),
        effect:effects(id,name,category,engine,config),
-       font_preset:font_presets(id,name,category,font_family,font_weight,letter_spacing,text_transform),
+       font_preset:font_presets!events_font_preset_id_fkey(id,name,category,font_family,font_weight,letter_spacing,text_transform),
+       overlay_font:font_presets!events_cover_overlay_font_id_fkey(font_family,font_weight,letter_spacing,text_transform),
        host:profiles!events_host_id_fkey(id,display_name,avatar_url)`,
     )
     .eq('slug', slug)
@@ -180,6 +182,10 @@ export default async function PublicEventPage({
                   alt={event.title}
                   aspect="1 / 1"
                   priority
+                  overlayEnabled={event.cover_overlay_enabled}
+                  overlayText={event.cover_overlay_text}
+                  overlayFont={event.overlay_font}
+                  overlayColor={event.cover_overlay_color}
                 />
               ) : (
                 <div

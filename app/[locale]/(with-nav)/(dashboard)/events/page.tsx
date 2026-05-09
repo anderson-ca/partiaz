@@ -39,7 +39,7 @@ export default async function DashboardPage({
       .select(
         `id, slug, title, status, text_color, cover_image_url,
          theme:themes(background_type, background_value),
-         font_preset:font_presets(font_family, font_weight, letter_spacing, text_transform)`,
+         font_preset:font_presets!events_font_preset_id_fkey(font_family, font_weight, letter_spacing, text_transform)`,
       )
       .eq('host_id', user.id)
       .order('created_at', { ascending: false }),

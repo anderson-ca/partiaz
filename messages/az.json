@@ -117,5 +117,38 @@
       "badType": "JPEG, PNG, WebP və ya GIF istifadə edin.",
       "network": "Yükləmə alınmadı. Yenidən cəhd edin."
     }
+  },
+  "cover": {
+    "tabs": {
+      "library": "Kitabxana",
+      "gifs": "GIF-lər",
+      "upload": "Yüklə"
+    },
+    "library": {
+      "searchPlaceholder": "İllüstrasiyalarda axtar…",
+      "categoryAll": "Hamısı",
+      "categoryWedding": "Toy",
+      "categoryBirthday": "Ad günü",
+      "categoryRamadan": "Ramazan",
+      "categoryChristmas": "Yeni il",
+      "categoryHalloween": "Halloween",
+      "emptyState": "Üz şəkli illüstrasiyaları tezliklə. Hələlik GIF seçə və ya öz şəklini yükləyə bilərsən."
+    },
+    "gifs": {
+      "searchPlaceholder": "GIF-lərdə axtar…",
+      "poweredBy": "GIPHY ilə",
+      "loading": "GIF-lər yüklənir…",
+      "error": "GIF axtarışı alınmadı. Yenidən cəhd edin.",
+      "noApiKey": "GIF axtarışı hələ qurulmayıb. Aktiv etmək üçün GIPHY_API_KEY əlavə edin.",
+      "empty": "‘{query}’ üçün GIF tapılmadı.",
+      "retry": "Yenidən"
+    },
+    "overlay": {
+      "toggle": "Mətn əlavə et",
+      "textLabel": "Mətn",
+      "textPlaceholder": "Mesajını yaz…",
+      "fontLabel": "Şrift",
+      "colorLabel": "Rəng"
+    }
   }
 }

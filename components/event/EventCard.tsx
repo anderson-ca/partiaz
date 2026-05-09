@@ -6,6 +6,7 @@ import { EventTitle, type FontPresetForRender } from '@/components/event/EventTi
 import { ThemeBackground } from '@/components/event/ThemeBackground'
 import { EventCardActions } from '@/components/event/EventCardActions'
 import { Pill } from '@/components/ui/pill'
+import { isVideoCoverUrl } from '@/lib/cover'
 import type { ThemeBackgroundValue } from '@/lib/schemas/theme'
 
 export type EventCardEvent = {
@@ -49,16 +50,32 @@ export async function EventCard({ event, isHost, locale }: EventCardProps) {
       />
 
       {/* Background layer: cover wins over theme when present, theme as
-          fallback. Decorative — clicks pass through to the Link. */}
+          fallback. Decorative — clicks pass through to the Link.
+          MP4 covers (Giphy GIF picks) render as muted-loop <video>; static
+          covers go through next/image. Overlay text is intentionally NOT
+          rendered here — the EventTitle below already names the event, and
+          stacking overlay text on top would be redundant. */}
       <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-2xl transition-transform duration-200 group-hover:scale-[1.02]">
         {event.cover_image_url ? (
-          <Image
-            src={event.cover_image_url}
-            alt=""
-            fill
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 384px"
-            className="object-cover"
-          />
+          isVideoCoverUrl(event.cover_image_url) ? (
+            <video
+              src={event.cover_image_url}
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+          ) : (
+            <Image
+              src={event.cover_image_url}
+              alt=""
+              fill
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 384px"
+              className="object-cover"
+            />
+          )
         ) : (
           <ThemeBackground theme={event.theme} className="absolute inset-0" />
         )}

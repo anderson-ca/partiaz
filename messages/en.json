@@ -117,5 +117,38 @@
       "badType": "Use JPEG, PNG, WebP, or GIF.",
       "network": "Upload failed. Try again."
     }
+  },
+  "cover": {
+    "tabs": {
+      "library": "Library",
+      "gifs": "GIFs",
+      "upload": "Upload"
+    },
+    "library": {
+      "searchPlaceholder": "Search illustrations…",
+      "categoryAll": "All",
+      "categoryWedding": "Wedding",
+      "categoryBirthday": "Birthday",
+      "categoryRamadan": "Ramadan",
+      "categoryChristmas": "Christmas",
+      "categoryHalloween": "Halloween",
+      "emptyState": "Cover illustrations coming soon. For now, try GIFs or upload your own."
+    },
+    "gifs": {
+      "searchPlaceholder": "Search GIFs…",
+      "poweredBy": "Powered by GIPHY",
+      "loading": "Loading GIFs…",
+      "error": "GIF search failed. Try again.",
+      "noApiKey": "GIF search isn't configured yet. Add a GIPHY_API_KEY to enable this tab.",
+      "empty": "No GIFs found for ‘{query}’.",
+      "retry": "Retry"
+    },
+    "overlay": {
+      "toggle": "Add text overlay",
+      "textLabel": "Overlay text",
+      "textPlaceholder": "Type a message…",
+      "fontLabel": "Font",
+      "colorLabel": "Color"
+    }
   }
 }

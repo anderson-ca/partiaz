@@ -11,6 +11,34 @@ import { createServiceClient } from '@/lib/supabase/service'
 const PG_UNIQUE_VIOLATION = '23505'
 const SLUG_RETRIES = 3
 
+/**
+ * Normalize the four cover_overlay_* fields:
+ *   • enabled === false → all three sub-fields write as null (drops stale
+ *     data so a re-toggle doesn't surface a previous-event's leftover)
+ *   • enabled === true + empty text → default text to the event title at
+ *     write time (avoids "enabled but no visible text" edge cases on render)
+ *
+ * Returns the slice ready to spread into an insert/update payload.
+ */
+function normalizeOverlay(input: EventInput, fallbackTitle: string) {
+  const enabled = input.cover_overlay_enabled === true
+  if (!enabled) {
+    return {
+      cover_overlay_enabled: false,
+      cover_overlay_text: null,
+      cover_overlay_font_id: null,
+      cover_overlay_color: null,
+    }
+  }
+  const trimmed = (input.cover_overlay_text ?? '').trim()
+  return {
+    cover_overlay_enabled: true,
+    cover_overlay_text: trimmed.length > 0 ? trimmed : fallbackTitle,
+    cover_overlay_font_id: input.cover_overlay_font_id ?? null,
+    cover_overlay_color: input.cover_overlay_color ?? null,
+  }
+}
+
 export type CreateEventResult =
   | { ok: true; slug: string }
   | { ok: false; error: string }
@@ -27,6 +55,9 @@ export async function createEvent(
   } = await supabase.auth.getUser()
   if (!user) return { ok: false, error: 'unauthenticated' }
 
+  const finalTitle = parsed.data.title || 'Untitled Event'
+  const overlay = normalizeOverlay(parsed.data, finalTitle)
+
   // 6-char base56 collisions are vanishingly rare (~30B possibilities), but
   // a unique-violation retry costs us nothing and makes the create path
   // robust under any future slug-space contraction.
@@ -36,7 +67,8 @@ export async function createEvent(
       .from('events')
       .insert({
         ...parsed.data,
-        title: parsed.data.title || 'Untitled Event',
+        ...overlay,
+        title: finalTitle,
         host_id: user.id,
         slug,
         status: 'draft',
@@ -71,11 +103,15 @@ export async function updateEvent(
   } = await supabase.auth.getUser()
   if (!user) return { ok: false, error: 'unauthenticated' }
 
+  const finalTitle = parsed.data.title || 'Untitled Event'
+  const overlay = normalizeOverlay(parsed.data, finalTitle)
+
   const { error } = await supabase
     .from('events')
     .update({
       ...parsed.data,
-      title: parsed.data.title || 'Untitled Event',
+      ...overlay,
+      title: finalTitle,
     })
     .eq('slug', slug)
     // Belt-and-suspenders: RLS already enforces this, but the explicit filter

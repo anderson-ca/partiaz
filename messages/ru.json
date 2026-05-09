@@ -117,5 +117,38 @@
       "badType": "Используйте JPEG, PNG, WebP или GIF.",
       "network": "Загрузка не удалась. Попробуйте ещё раз."
     }
+  },
+  "cover": {
+    "tabs": {
+      "library": "Библиотека",
+      "gifs": "GIF-ки",
+      "upload": "Загрузить"
+    },
+    "library": {
+      "searchPlaceholder": "Поиск иллюстраций…",
+      "categoryAll": "Все",
+      "categoryWedding": "Свадьба",
+      "categoryBirthday": "День рождения",
+      "categoryRamadan": "Рамадан",
+      "categoryChristmas": "Новый год",
+      "categoryHalloween": "Хэллоуин",
+      "emptyState": "Иллюстрации скоро появятся. Пока попробуй GIF или загрузи своё изображение."
+    },
+    "gifs": {
+      "searchPlaceholder": "Поиск GIF…",
+      "poweredBy": "Powered by GIPHY",
+      "loading": "Загружаем GIF…",
+      "error": "Не удалось найти GIF. Попробуйте ещё раз.",
+      "noApiKey": "Поиск GIF пока не настроен. Добавьте GIPHY_API_KEY, чтобы включить вкладку.",
+      "empty": "GIF по запросу «{query}» не найдены.",
+      "retry": "Повторить"
+    },
+    "overlay": {
+      "toggle": "Текст поверх обложки",
+      "textLabel": "Текст",
+      "textPlaceholder": "Напиши сообщение…",
+      "fontLabel": "Шрифт",
+      "colorLabel": "Цвет"
+    }
   }
 }
