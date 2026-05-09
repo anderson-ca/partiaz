@@ -28,7 +28,7 @@ export default async function EditEventPage({
   const { data: event, error } = await supabase
     .from('events')
     .select(
-      'slug,status,title,host_id,theme_id,effect_id,font_preset_id,text_color,cover_image_url,cover_image_source',
+      'id,slug,status,title,host_id,theme_id,effect_id,font_preset_id,text_color,cover_image_url,cover_image_source',
     )
     .eq('slug', slug)
     .maybeSingle()
@@ -66,6 +66,7 @@ export default async function EditEventPage({
   const fontPresets = (fontsRes.data ?? []) as FontPresetForPicker[]
 
   const initialEvent: EventEditorInitial = {
+    id: event.id,
     slug: event.slug,
     status: event.status as EventEditorInitial['status'],
     title: event.title,

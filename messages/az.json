@@ -29,7 +29,12 @@
     "pastComingSoon": "Tarix dəstəyi əlavə edildikdə keçmiş tədbirlər burada görünəcək.",
     "cardStatusDraft": "Qaralama",
     "cardStatusPublic": "Açıq",
-    "cardHostingBadge": "Təşkilatçı"
+    "cardHostingBadge": "Təşkilatçı",
+    "cardActions": {
+      "menuLabel": "Daha çox əməliyyat",
+      "edit": "Redaktə et",
+      "delete": "Sil"
+    }
   },
   "nav": {
     "signIn": "Daxil ol",
@@ -79,6 +84,18 @@
       "guestListTitle": "Qonaq siyahısı",
       "viewAll": "Hamısına bax",
       "noCover": "Üz şəkli yoxdur"
+    },
+    "delete": {
+      "title": "\"{title}\" silinsin?",
+      "body": "Bu, tədbiri və onunla bağlı bütün RSVP-ləri, şəkilləri, sorğuları və mesajları həmişəlik silir. Bunu geri qaytarmaq mümkün deyil.",
+      "confirm": "Tədbiri sil",
+      "cancel": "Ləğv et",
+      "deleting": "Silinir…",
+      "success": "Tədbir silindi",
+      "error": "Tədbiri silmək alınmadı. Yenidən cəhd edin.",
+      "dangerZoneTitle": "Təhlükəli zona",
+      "dangerZoneBody": "Silmə tədbiri və onunla bağlı hər şeyi — RSVP-ləri, şəkilləri, sorğuları və mesajları — yox edir.",
+      "dangerZoneButton": "Tədbiri sil"
     }
   },
   "coverPicker": {

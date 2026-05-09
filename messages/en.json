@@ -29,7 +29,12 @@
     "pastComingSoon": "Past events will appear here once date support is added.",
     "cardStatusDraft": "Draft",
     "cardStatusPublic": "Public",
-    "cardHostingBadge": "Hosting"
+    "cardHostingBadge": "Hosting",
+    "cardActions": {
+      "menuLabel": "More actions",
+      "edit": "Edit",
+      "delete": "Delete"
+    }
   },
   "nav": {
     "signIn": "Sign in",
@@ -79,6 +84,18 @@
       "guestListTitle": "Guest List",
       "viewAll": "View all",
       "noCover": "No cover image"
+    },
+    "delete": {
+      "title": "Delete \"{title}\"?",
+      "body": "This permanently deletes the event along with its RSVPs, photos, polls, and messages. This can't be undone.",
+      "confirm": "Delete event",
+      "cancel": "Cancel",
+      "deleting": "Deleting…",
+      "success": "Event deleted",
+      "error": "Couldn't delete the event. Try again.",
+      "dangerZoneTitle": "Danger zone",
+      "dangerZoneBody": "Deleting removes this event and everything tied to it — RSVPs, photos, polls, and messages.",
+      "dangerZoneButton": "Delete event"
     }
   },
   "coverPicker": {

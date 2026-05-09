@@ -4,6 +4,7 @@ import { Crown } from 'lucide-react'
 import { getTranslations } from 'next-intl/server'
 import { EventTitle, type FontPresetForRender } from '@/components/event/EventTitle'
 import { ThemeBackground } from '@/components/event/ThemeBackground'
+import { EventCardActions } from '@/components/event/EventCardActions'
 import { FLOATING_SURFACE } from '@/lib/ui/floating-surface'
 import type { ThemeBackgroundValue } from '@/lib/schemas/theme'
 import { cn } from '@/lib/utils'
@@ -32,30 +33,43 @@ export async function EventCard({ event, isHost, locale }: EventCardProps) {
   const t = await getTranslations('dashboard')
 
   return (
-    <Link
-      href={`/${locale}/e/${event.slug}`}
-      className="group relative block overflow-hidden rounded-2xl ring-1 ring-white/10 transition hover:scale-[1.02] hover:ring-white/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+    // Card root is a plain div now: the navigation Link is a SIBLING at z-0
+    // (not a parent), so the actions menu at z-20 can receive clicks without
+    // them bubbling into a navigation. Hover ring lives on the root via the
+    // `group` + group-hover trick on the Link layer below.
+    <div
+      className="group relative overflow-hidden rounded-2xl ring-1 ring-white/10 transition hover:ring-white/30"
       style={{ aspectRatio: '4 / 5' }}
     >
-      {/* Background layer: cover wins over theme when present, theme as
-          fallback. ThemeBackground's wrapper is already absolute inset-0. */}
-      {event.cover_image_url ? (
-        <Image
-          src={event.cover_image_url}
-          alt=""
-          fill
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 384px"
-          className="object-cover"
-        />
-      ) : (
-        <ThemeBackground theme={event.theme} className="absolute inset-0" />
-      )}
+      {/* Navigation layer — covers the card area but lives below decoration
+          and above nothing interactive, so the menu trigger at z-20 wins. */}
+      <Link
+        href={`/${locale}/e/${event.slug}`}
+        aria-label={event.title}
+        className="absolute inset-0 z-0 rounded-2xl transition-transform duration-200 group-hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+      />
 
-      {/* Bottom-up dark gradient for title legibility regardless of cover/theme */}
-      <div className="absolute inset-0 bg-linear-to-t from-black/65 via-black/0 to-black/0" />
+      {/* Background layer: cover wins over theme when present, theme as
+          fallback. Decorative — clicks pass through to the Link. */}
+      <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-2xl transition-transform duration-200 group-hover:scale-[1.02]">
+        {event.cover_image_url ? (
+          <Image
+            src={event.cover_image_url}
+            alt=""
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 384px"
+            className="object-cover"
+          />
+        ) : (
+          <ThemeBackground theme={event.theme} className="absolute inset-0" />
+        )}
+      </div>
+
+      {/* Bottom-up dark gradient for title legibility */}
+      <div className="pointer-events-none absolute inset-0 z-10 bg-linear-to-t from-black/65 via-black/0 to-black/0" />
 
       {/* Top-left status pill */}
-      <div className="absolute top-3 left-3 z-10">
+      <div className="pointer-events-none absolute top-3 left-3 z-10">
         <span
           className={cn(
             FLOATING_SURFACE,
@@ -69,9 +83,23 @@ export async function EventCard({ event, isHost, locale }: EventCardProps) {
         </span>
       </div>
 
-      {/* Top-right hosting badge */}
+      {/* Top-right actions menu — only when the viewer is the host. Lives at
+          z-20 so its trigger sits ABOVE the Link layer. */}
       {isHost && (
-        <div className="absolute top-3 right-3 z-10">
+        <div className="absolute top-2 right-2 z-20">
+          <EventCardActions
+            eventId={event.id}
+            eventTitle={event.title || t('cardStatusDraft')}
+            slug={event.slug}
+            locale={locale}
+          />
+        </div>
+      )}
+
+      {/* Bottom-left hosting badge — moved from top-right (where it would
+          collide with the menu) to sit just above the title. */}
+      {isHost && (
+        <div className="pointer-events-none absolute bottom-14 left-3 z-10">
           <span
             className={cn(
               FLOATING_SURFACE,
@@ -85,7 +113,7 @@ export async function EventCard({ event, isHost, locale }: EventCardProps) {
       )}
 
       {/* Title at the bottom */}
-      <div className="absolute right-3 bottom-3 left-3 z-10">
+      <div className="pointer-events-none absolute right-3 bottom-3 left-3 z-10">
         <EventTitle
           as="span"
           text={event.title}
@@ -94,6 +122,6 @@ export async function EventCard({ event, isHost, locale }: EventCardProps) {
           className="line-clamp-2 text-xl leading-tight md:text-2xl"
         />
       </div>
-    </Link>
+    </div>
   )
 }

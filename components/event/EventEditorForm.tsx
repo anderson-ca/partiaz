@@ -13,6 +13,7 @@ import {
   DollarSign,
   MapPin,
   Plus,
+  Trash2,
   Users,
 } from 'lucide-react'
 import { createEvent, updateEvent } from '@/app/actions/events'
@@ -23,6 +24,7 @@ import {
   CoverImagePicker,
   type CoverSource,
 } from '@/components/event/CoverImagePicker'
+import { DeleteEventDialog } from '@/components/event/DeleteEventDialog'
 import { EditorRail } from '@/components/event/EditorRail'
 import { LazyEffectOverlay as EffectOverlay } from '@/components/event/LazyEffectOverlay'
 import { PublishToggle } from '@/components/event/PublishToggle'
@@ -39,6 +41,7 @@ import type { ThemeRow } from '@/lib/schemas/theme'
 import { cn } from '@/lib/utils'
 
 export type EventEditorInitial = {
+  id: string
   slug: string
   status: 'draft' | 'published' | 'canceled'
   title: string
@@ -238,6 +241,17 @@ export function EventEditorForm({
             }}
           />
         </section>
+
+        {/* Danger zone — edit mode only. The deletion path lives at the
+            BOTTOM of the editor (well below save/publish) so it can't be
+            mis-tapped while configuring the event. */}
+        {mode === 'edit' && initialEvent && (
+          <DangerZone
+            eventId={initialEvent.id}
+            eventTitle={title || initialEvent.title || t('untitledTitle')}
+            locale={locale}
+          />
+        )}
       </div>
 
       {/* Floating editor rail */}
@@ -402,6 +416,49 @@ function PlaceholderRow({
       <span className="text-white/60">{icon}</span>
       <span>{children}</span>
     </div>
+  )
+}
+
+// ----- Danger zone (edit mode only) ---------------------------------------
+
+function DangerZone({
+  eventId,
+  eventTitle,
+  locale,
+}: {
+  eventId: string
+  eventTitle: string
+  locale: string
+}) {
+  const t = useTranslations('events.delete')
+  return (
+    <section className="mx-auto mt-12 max-w-5xl px-4 md:px-8 md:pr-28">
+      <div className="rounded-2xl border border-rose-500/30 bg-rose-950/20 p-5 backdrop-blur-md md:p-6">
+        <h2 className="text-sm font-medium text-rose-200">
+          {t('dangerZoneTitle')}
+        </h2>
+        <p className="mt-1 text-xs text-rose-200/70">
+          {t('dangerZoneBody')}
+        </p>
+        <div className="mt-4">
+          <DeleteEventDialog
+            eventId={eventId}
+            eventTitle={eventTitle}
+            locale={locale}
+            onSuccess="redirect"
+          >
+            <Button
+              type="button"
+              variant="outline"
+              className="gap-2 border-rose-500/40 bg-transparent text-rose-200 hover:bg-rose-500/15 hover:text-rose-100"
+            >
+              <Trash2 className="h-4 w-4" />
+              {t('dangerZoneButton')}
+            </Button>
+          </DeleteEventDialog>
+        </div>
+      </div>
+    </section>
   )
 }
 
