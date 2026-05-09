@@ -25,6 +25,7 @@ import {
 } from '@/components/event/CoverImagePicker'
 import { EditorRail } from '@/components/event/EditorRail'
 import { LazyEffectOverlay as EffectOverlay } from '@/components/event/LazyEffectOverlay'
+import { PublishToggle } from '@/components/event/PublishToggle'
 import type { EffectRowMin } from '@/components/event/EffectPicker'
 import { EventTitle } from '@/components/event/EventTitle'
 import {
@@ -39,6 +40,7 @@ import { cn } from '@/lib/utils'
 
 export type EventEditorInitial = {
   slug: string
+  status: 'draft' | 'published' | 'canceled'
   title: string
   theme_id: string
   effect_id: string | null
@@ -203,13 +205,14 @@ export function EventEditorForm({
 
       {/* Layer 2: page content */}
       <div className="relative z-20 min-h-screen pb-32 md:pb-12">
-        {/* Top bar — Save draft button */}
-        <header className="mx-auto flex max-w-5xl items-center justify-end px-4 pt-6 md:px-8 md:pr-28">
-          <Button
-            type="submit"
-            disabled={pending}
-            className="gap-2"
-          >
+        {/* Top bar — Save draft + Make it public */}
+        <header className="mx-auto flex max-w-5xl items-center justify-end gap-3 px-4 pt-6 md:px-8 md:pr-28">
+          <PublishToggle
+            mode={mode}
+            slug={initialEvent?.slug}
+            currentStatus={initialEvent?.status}
+          />
+          <Button type="submit" disabled={pending} className="gap-2">
             {pending ? t('saving') : t('saveDraft')}
           </Button>
         </header>

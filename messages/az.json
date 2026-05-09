@@ -25,10 +25,37 @@
       "saving": "Saxlanır…",
       "saveSuccess": "Saxlanıldı",
       "saveError": "Saxlamaq alınmadı. Yenidən cəhd edin.",
-      "editButton": "Redaktə et"
+      "editButton": "Redaktə et",
+      "makePublic": "Açıq et",
+      "makePublicConfirmTitle": "Tədbiri açıq edək?",
+      "makePublicConfirmBody": "Açıq olandan sonra linki olan hər kəs tədbiri görə biləcək.",
+      "makePublicConfirmAction": "Açıq et",
+      "makePublicCancel": "Ləğv et",
+      "publicLabel": "Açıq",
+      "revertToDraft": "Qaralamaya qaytar",
+      "savedThenPublish": "Əvvəlcə qaralamanı saxla",
+      "publishSuccess": "Açıq edildi",
+      "unpublishSuccess": "Qaralamaya qaytarıldı",
+      "publishError": "Statusu dəyişmək alınmadı. Yenidən cəhd edin."
     },
     "public": {
-      "notFound": "Tədbir tapılmadı"
+      "notFound": "Tədbir tapılmadı",
+      "dateTbd": "Tarix və vaxt müəyyən edilməyib",
+      "locationLocked": "Ünvanı görmək üçün RSVP",
+      "hostedBy": "Təşkilatçı",
+      "rsvpPrompt": "Cavabın nədir?",
+      "going": "Gedirəm",
+      "maybe": "Bəlkə",
+      "cantGo": "Gedə bilmirəm",
+      "rsvpComingSoon": "RSVP tezliklə",
+      "restrictedTitle": "Məhdud giriş",
+      "restrictedBody": "Yalnız RSVP edənlər tədbir fəaliyyətini və kimin gəldiyini görə bilər.",
+      "restrictedCta": "Giriş üçün RSVP",
+      "draftBannerHost": "Bu tədbir QARALAMADIR. Yalnız sən bu səhifəni görürsən.",
+      "draftBannerCta": "Açıq et →",
+      "guestListTitle": "Qonaq siyahısı",
+      "viewAll": "Hamısına bax",
+      "noCover": "Üz şəkli yoxdur"
     }
   },
   "coverPicker": {

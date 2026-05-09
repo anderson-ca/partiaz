@@ -86,3 +86,34 @@ export async function updateEvent(
   revalidatePath(`/events/${slug}/edit`)
   return { ok: true }
 }
+
+export type SetEventStatusResult =
+  | { ok: true }
+  | { ok: false; error: string }
+
+export async function setEventStatus(
+  slug: string,
+  status: 'draft' | 'published',
+): Promise<SetEventStatusResult> {
+  if (status !== 'draft' && status !== 'published') {
+    return { ok: false, error: 'invalid_status' }
+  }
+
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { ok: false, error: 'unauthenticated' }
+
+  const { error } = await supabase
+    .from('events')
+    .update({ status })
+    .eq('slug', slug)
+    .eq('host_id', user.id)
+
+  if (error) return { ok: false, error: error.message }
+
+  revalidatePath(`/e/${slug}`)
+  revalidatePath(`/events/${slug}/edit`)
+  return { ok: true }
+}

@@ -28,7 +28,7 @@ export default async function EditEventPage({
   const { data: event, error } = await supabase
     .from('events')
     .select(
-      'slug,title,host_id,theme_id,effect_id,font_preset_id,text_color,cover_image_url,cover_image_source',
+      'slug,status,title,host_id,theme_id,effect_id,font_preset_id,text_color,cover_image_url,cover_image_source',
     )
     .eq('slug', slug)
     .maybeSingle()
@@ -67,6 +67,7 @@ export default async function EditEventPage({
 
   const initialEvent: EventEditorInitial = {
     slug: event.slug,
+    status: event.status as EventEditorInitial['status'],
     title: event.title,
     theme_id: event.theme_id,
     effect_id: event.effect_id,

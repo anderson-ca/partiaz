@@ -25,10 +25,37 @@
       "saving": "Saving…",
       "saveSuccess": "Saved",
       "saveError": "Couldn't save. Try again.",
-      "editButton": "Edit"
+      "editButton": "Edit",
+      "makePublic": "Make it public",
+      "makePublicConfirmTitle": "Make this event public?",
+      "makePublicConfirmBody": "Once public, anyone with the link can see this event.",
+      "makePublicConfirmAction": "Make public",
+      "makePublicCancel": "Cancel",
+      "publicLabel": "Public",
+      "revertToDraft": "Revert to draft",
+      "savedThenPublish": "Save draft first",
+      "publishSuccess": "Published",
+      "unpublishSuccess": "Reverted to draft",
+      "publishError": "Couldn't change status. Try again."
     },
     "public": {
-      "notFound": "Event not found"
+      "notFound": "Event not found",
+      "dateTbd": "Date & Time TBD",
+      "locationLocked": "RSVP to see location",
+      "hostedBy": "Hosted by",
+      "rsvpPrompt": "How will you respond?",
+      "going": "Going",
+      "maybe": "Maybe",
+      "cantGo": "Can't go",
+      "rsvpComingSoon": "RSVP coming soon",
+      "restrictedTitle": "Restricted Access",
+      "restrictedBody": "Only RSVP'd guests can view event activity & see who's going.",
+      "restrictedCta": "RSVP for access",
+      "draftBannerHost": "This event is a DRAFT. Only you can see this page.",
+      "draftBannerCta": "Make it public →",
+      "guestListTitle": "Guest List",
+      "viewAll": "View all",
+      "noCover": "No cover image"
     }
   },
   "coverPicker": {

@@ -25,10 +25,37 @@
       "saving": "Сохраняем…",
       "saveSuccess": "Сохранено",
       "saveError": "Не удалось сохранить. Попробуйте ещё раз.",
-      "editButton": "Редактировать"
+      "editButton": "Редактировать",
+      "makePublic": "Сделать публичным",
+      "makePublicConfirmTitle": "Сделать событие публичным?",
+      "makePublicConfirmBody": "После этого любой по ссылке сможет увидеть событие.",
+      "makePublicConfirmAction": "Сделать публичным",
+      "makePublicCancel": "Отмена",
+      "publicLabel": "Публичное",
+      "revertToDraft": "Вернуть в черновик",
+      "savedThenPublish": "Сначала сохрани черновик",
+      "publishSuccess": "Опубликовано",
+      "unpublishSuccess": "Возвращено в черновик",
+      "publishError": "Не удалось изменить статус. Попробуйте ещё раз."
     },
     "public": {
-      "notFound": "Событие не найдено"
+      "notFound": "Событие не найдено",
+      "dateTbd": "Дата и время уточняются",
+      "locationLocked": "RSVP, чтобы увидеть локацию",
+      "hostedBy": "Организатор",
+      "rsvpPrompt": "Ответишь?",
+      "going": "Иду",
+      "maybe": "Может быть",
+      "cantGo": "Не смогу",
+      "rsvpComingSoon": "RSVP скоро будет",
+      "restrictedTitle": "Доступ ограничен",
+      "restrictedBody": "Только RSVP'нувшие гости видят активность события и кто идёт.",
+      "restrictedCta": "RSVP для доступа",
+      "draftBannerHost": "Это событие — ЧЕРНОВИК. Эту страницу видишь только ты.",
+      "draftBannerCta": "Сделать публичным →",
+      "guestListTitle": "Список гостей",
+      "viewAll": "Все",
+      "noCover": "Нет обложки"
     }
   },
   "coverPicker": {

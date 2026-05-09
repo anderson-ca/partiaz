@@ -1,17 +1,20 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { setRequestLocale, getTranslations } from 'next-intl/server'
+import { Calendar, Crown, Lock, Pencil } from 'lucide-react'
 import type { ISourceOptions } from '@tsparticles/engine'
-import { Button } from '@/components/ui/button'
 import { CoverImage } from '@/components/event/CoverImage'
-import { LazyEffectOverlay as EffectOverlay } from '@/components/event/LazyEffectOverlay'
 import { EventTitle } from '@/components/event/EventTitle'
+import { LazyEffectOverlay as EffectOverlay } from '@/components/event/LazyEffectOverlay'
+import { RestrictedAccessCard } from '@/components/event/RestrictedAccessCard'
+import { RsvpButtonsStub } from '@/components/event/RsvpButtonsStub'
 import { ThemeBackground } from '@/components/event/ThemeBackground'
+import { FLOATING_SURFACE } from '@/lib/ui/floating-surface'
 import type { ThemeBackgroundValue } from '@/lib/schemas/theme'
 import { createClient } from '@/lib/supabase/server'
+import { cn } from '@/lib/utils'
 
-// Stub public event page. Real layout (RSVP form, guest list, etc.) lands in
-// Prompt 09. The job here is to prove the create→render loop works.
+type EventAudience = 'private' | 'public_profile'
 
 export default async function PublicEventPage({
   params,
@@ -20,41 +23,54 @@ export default async function PublicEventPage({
 }) {
   const { locale, slug } = await params
   setRequestLocale(locale)
-  const t = await getTranslations('events')
+  const t = await getTranslations('events.public')
 
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // RLS handles visibility: drafts are visible only to the host;
-  // published events are visible to anyone (anon + authenticated).
-  // Joining the catalog tables in one query — public-readable per their RLS.
+  // Single-query fetch with joins on catalog tables + host profile. RLS
+  // handles visibility: drafts are visible only to the host; published are
+  // visible to anon + authenticated. Catalog tables are public-read so the
+  // joins resolve for anon viewers too.
   const { data: event, error } = await supabase
     .from('events')
     .select(
-      `slug,title,host_id,text_color,
+      `id, slug, title, status, audience, text_color, cover_image_url,
        theme:themes(id,name,category,background_type,background_value,recommended_text_color,order_index),
        effect:effects(id,name,category,engine,config),
        font_preset:font_presets(id,name,category,font_family,font_weight,letter_spacing,text_transform),
-       cover_image_url`,
+       host:profiles!events_host_id_fkey(id,display_name,avatar_url)`,
     )
     .eq('slug', slug)
     .maybeSingle()
 
-  if (error || !event || !event.theme || !event.font_preset) {
+  if (error || !event || !event.theme || !event.font_preset || !event.host) {
     notFound()
   }
 
-  const isOwner = !!user && user.id === event.host_id
+  const isHost = !!user && user.id === event.host.id
+  const isDraft = event.status === 'draft'
+  const audience = (event.audience ?? 'private') as EventAudience
+  // Restricted access: private event + viewer is not the host. Real RSVP'd
+  // users get the unrestricted view in Prompt 10; for now, every non-host
+  // visitor on a private event sees the locked card.
+  const restricted = audience === 'private' && !isHost
+
   const theme = {
     background_type: event.theme.background_type as ThemeBackgroundValue['type'],
     background_value: event.theme.background_value as ThemeBackgroundValue,
   }
 
+  const hostName = event.host.display_name ?? 'Anonymous'
+
   return (
     <>
+      {/* Layer 0: themed full-bleed background */}
       <ThemeBackground theme={theme} className="fixed inset-0" />
+
+      {/* Layer 1: ambient effect overlay (lazy chunk) */}
       <EffectOverlay
         effect={
           event.effect
@@ -62,7 +78,9 @@ export default async function PublicEventPage({
                 id: event.effect.id,
                 name: event.effect.name,
                 engine:
-                  event.effect.engine === 'tsparticles' ? 'tsparticles' : 'css',
+                  event.effect.engine === 'tsparticles'
+                    ? 'tsparticles'
+                    : 'css',
                 config: event.effect.config as ISourceOptions,
               }
             : null
@@ -70,33 +88,204 @@ export default async function PublicEventPage({
         className="fixed inset-0"
       />
 
-      <main className="relative z-20 mx-auto flex min-h-screen max-w-md flex-col items-center justify-center gap-8 px-4 py-12 text-center">
-        {event.cover_image_url && (
-          <div className="w-full">
-            <CoverImage url={event.cover_image_url} alt="" aspect="1 / 1" priority />
+      {/* Edit FAB — host-only, top-right */}
+      {isHost && (
+        <Link
+          href={`/${locale}/events/${slug}/edit`}
+          aria-label={t('hostedBy')}
+          className={cn(
+            FLOATING_SURFACE,
+            'fixed top-4 right-4 z-30 flex h-11 w-11 items-center justify-center rounded-full transition hover:bg-zinc-800/95',
+          )}
+        >
+          <Pencil className="h-4 w-4 text-white" />
+        </Link>
+      )}
+
+      <main className="relative z-20 mx-auto w-full max-w-5xl px-4 pt-16 pb-16 md:px-8 md:pt-12">
+        {/* Draft banner — host viewing their own draft */}
+        {isHost && isDraft && (
+          <div
+            className={cn(
+              FLOATING_SURFACE,
+              'mb-6 flex flex-wrap items-center justify-between gap-2 rounded-full px-4 py-2 text-sm',
+            )}
+          >
+            <span className="text-white/80">{t('draftBannerHost')}</span>
+            <Link
+              href={`/${locale}/events/${slug}/edit`}
+              className="text-white underline-offset-4 hover:underline"
+            >
+              {t('draftBannerCta')}
+            </Link>
           </div>
         )}
 
-        <EventTitle
-          text={event.title}
-          fontPreset={{
-            font_family: event.font_preset.font_family,
-            font_weight: event.font_preset.font_weight,
-            letter_spacing: event.font_preset.letter_spacing,
-            text_transform: event.font_preset.text_transform,
-          }}
-          textColor={event.text_color}
-          className="text-4xl leading-tight sm:text-5xl"
-        />
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] md:gap-12">
+          {/* LEFT: title + details */}
+          <div className="order-2 space-y-6 md:order-1">
+            <EventTitle
+              text={event.title}
+              fontPreset={{
+                font_family: event.font_preset.font_family,
+                font_weight: event.font_preset.font_weight,
+                letter_spacing: event.font_preset.letter_spacing,
+                text_transform: event.font_preset.text_transform,
+              }}
+              textColor={event.text_color}
+              className="text-5xl leading-tight tracking-tight md:text-6xl"
+            />
 
-        {isOwner && (
-          <Button asChild variant="outline" className="bg-white/10 text-white border-white/20 hover:bg-white/20">
-            <Link href={`/${locale}/events/${slug}/edit`}>
-              {t('editor.editButton')}
-            </Link>
-          </Button>
-        )}
+            <DetailRow icon={<Calendar className="h-4 w-4" />}>
+              {t('dateTbd')}
+            </DetailRow>
+            {/* Location row hidden under restricted access card on private
+                events — show on the bare layout for hosts and public events. */}
+            {!restricted && (
+              <DetailRow icon={<Lock className="h-4 w-4" />}>
+                {t('locationLocked')}
+              </DetailRow>
+            )}
+
+            <div className="flex items-center gap-3">
+              <HostAvatar name={hostName} avatarUrl={event.host.avatar_url} />
+              <div className="leading-tight">
+                <div className="text-xs uppercase tracking-wide text-white/60">
+                  {t('hostedBy')}
+                </div>
+                <div className="flex items-center gap-1.5 text-sm font-medium text-white">
+                  <Crown className="h-3.5 w-3.5 text-yellow-300" />
+                  {hostName}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* RIGHT: cover + RSVP + guest list */}
+          <div className="order-1 space-y-6 md:order-2">
+            <div className="overflow-hidden rounded-2xl ring-1 ring-white/10">
+              {event.cover_image_url ? (
+                <CoverImage
+                  url={event.cover_image_url}
+                  alt={event.title}
+                  aspect="1 / 1"
+                  priority
+                />
+              ) : (
+                <div
+                  className="flex w-full items-center justify-center bg-black/30 text-sm text-white/50 backdrop-blur-md"
+                  style={{ aspectRatio: '1 / 1' }}
+                >
+                  {t('noCover')}
+                </div>
+              )}
+            </div>
+
+            {/* RSVP / Restricted overlay */}
+            <div className={cn(FLOATING_SURFACE, 'rounded-2xl p-5')}>
+              <h2 className="mb-4 text-center text-sm font-medium text-white/80">
+                {t('rsvpPrompt')}
+              </h2>
+              <RsvpButtonsStub />
+            </div>
+
+            {restricted ? (
+              <RestrictedAccessCard />
+            ) : (
+              <GuestListPlaceholder />
+            )}
+          </div>
+        </div>
       </main>
     </>
+  )
+}
+
+// ----- Atoms ---------------------------------------------------------------
+
+function DetailRow({
+  icon,
+  children,
+}: {
+  icon: React.ReactNode
+  children: React.ReactNode
+}) {
+  return (
+    <div
+      data-todo="08.1"
+      className="flex items-center gap-2 text-base text-white/80"
+    >
+      <span className="text-white/60">{icon}</span>
+      <span>{children}</span>
+    </div>
+  )
+}
+
+function HostAvatar({
+  name,
+  avatarUrl,
+}: {
+  name: string
+  avatarUrl: string | null
+}) {
+  if (avatarUrl) {
+    // Avoid next/image — host avatars come from arbitrary URLs that aren't
+    // in remotePatterns. Plain <img> is fine for a 36px element.
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={avatarUrl}
+        alt=""
+        className="h-9 w-9 rounded-full bg-black/20 object-cover ring-1 ring-white/20"
+      />
+    )
+  }
+  // Fallback: initials on a colored circle. Color derived from name length
+  // so it's stable per-host without hashing.
+  const initial = name.slice(0, 1).toUpperCase()
+  return (
+    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-linear-to-br from-fuchsia-400 to-violet-600 text-sm font-semibold text-white ring-1 ring-white/20">
+      {initial}
+    </span>
+  )
+}
+
+async function GuestListPlaceholder() {
+  const t = await getTranslations('events.public')
+  return (
+    <div
+      data-todo="10"
+      className={cn(FLOATING_SURFACE, 'rounded-2xl p-4')}
+    >
+      <div className="mb-3 flex items-center justify-between">
+        <span className="text-sm font-medium text-white">
+          {t('guestListTitle')}
+        </span>
+        <button
+          type="button"
+          className="text-xs text-white/70 hover:text-white"
+          disabled
+        >
+          {t('viewAll')}
+        </button>
+      </div>
+      <div className="flex -space-x-2">
+        {[
+          'from-pink-400 to-rose-600',
+          'from-cyan-400 to-blue-600',
+          'from-amber-400 to-orange-600',
+        ].map((g, i) => (
+          <span
+            key={i}
+            className={cn(
+              'inline-flex h-9 w-9 items-center justify-center rounded-full bg-linear-to-br text-xs font-semibold text-white ring-2 ring-zinc-900',
+              g,
+            )}
+          >
+            ?
+          </span>
+        ))}
+      </div>
+    </div>
   )
 }
