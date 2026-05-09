@@ -7,7 +7,12 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
+  /* Inter is loaded by next/font/google in lib/fonts.ts and exposes the
+     `--font-inter` variable on <html> via the className applied in
+     [locale]/layout.tsx. The fallback chain matches next/font's expected
+     behavior during font-display: swap and covers the case where the font
+     fails to load entirely. */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono);
   --font-heading: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
