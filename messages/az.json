@@ -1,7 +1,11 @@
 {
   "common": {
     "hello": "Salam",
-    "logIn": "Daxil ol"
+    "logIn": "Daxil ol",
+    "saving": "Saxlanır…",
+    "deleting": "Silinir…",
+    "sending": "Göndərilir…",
+    "loading": "Yüklənir…"
   },
   "auth": {
     "login": {
@@ -81,6 +85,7 @@
       "restrictedCta": "Giriş üçün RSVP",
       "draftBannerHost": "Bu tədbir QARALAMADIR. Yalnız sən bu səhifəni görürsən.",
       "draftBannerCta": "Açıq et →",
+      "editAriaLabel": "Tədbiri redaktə et",
       "guestListTitle": "Qonaq siyahısı",
       "viewAll": "Hamısına bax",
       "noCover": "Üz şəkli yoxdur"

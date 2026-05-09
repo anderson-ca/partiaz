@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { ChevronDown, Globe } from 'lucide-react'
+import { ChevronDown, Globe, Loader2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { setEventStatus } from '@/app/actions/events'
@@ -122,12 +122,13 @@ function PublishConfirm({
   onConfirm: (slug: string) => void
 }) {
   const t = useTranslations('events.editor')
+  const tCommon = useTranslations('common')
   const [open, setOpen] = useState(false)
 
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
-        <Button type="button" className="gap-2">
+        <Button type="button">
           <Globe className="h-4 w-4" />
           {t('makePublic')}
         </Button>
@@ -144,10 +145,7 @@ function PublishConfirm({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel
-            className="border-white/20 bg-transparent text-white hover:bg-white/10"
-            disabled={pending}
-          >
+          <AlertDialogCancel variant="outline" disabled={pending}>
             {t('makePublicCancel')}
           </AlertDialogCancel>
           <AlertDialogAction
@@ -158,7 +156,8 @@ function PublishConfirm({
               setOpen(false)
             }}
           >
-            {t('makePublicConfirmAction')}
+            {pending && <Loader2 className="h-4 w-4 animate-spin" />}
+            {pending ? tCommon('saving') : t('makePublicConfirmAction')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
@@ -183,7 +182,7 @@ function PublicPill({
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 px-3 py-1.5 text-sm font-medium text-emerald-300 ring-1 ring-emerald-400/30 transition hover:bg-emerald-500/25"
+          className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 px-3 py-1.5 text-sm font-medium text-emerald-300 ring-1 ring-emerald-400/30 transition-all duration-150 hover:bg-emerald-500/25 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/40"
         >
           <Globe className="h-3.5 w-3.5" />
           {t('publicLabel')}
@@ -203,7 +202,7 @@ function PublicPill({
             onRevert(slug)
             setOpen(false)
           }}
-          className="block w-full rounded-lg px-3 py-2 text-left text-sm text-white transition hover:bg-white/10 disabled:opacity-50"
+          className="block w-full rounded-lg px-3 py-2 text-left text-sm text-white transition-colors hover:bg-white/10 disabled:opacity-50"
         >
           {t('revertToDraft')}
         </button>

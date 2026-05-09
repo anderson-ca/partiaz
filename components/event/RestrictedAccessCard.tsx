@@ -3,6 +3,7 @@
 import { Lock } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
+import { Button } from '@/components/ui/button'
 import { FLOATING_SURFACE } from '@/lib/ui/floating-surface'
 import { cn } from '@/lib/utils'
 
@@ -27,13 +28,13 @@ export function RestrictedAccessCard() {
         {t('restrictedTitle')}
       </h3>
       <p className="mt-1 text-sm text-white/70">{t('restrictedBody')}</p>
-      <button
+      <Button
         type="button"
         onClick={() => toast(t('rsvpComingSoon'))}
-        className="mt-4 w-full rounded-full bg-white px-4 py-2 text-sm font-medium text-zinc-900 transition hover:bg-white/90"
+        className="mt-4 w-full"
       >
         {t('restrictedCta')}
-      </button>
+      </Button>
     </div>
   )
 }

@@ -11,6 +11,7 @@ import {
   Calendar,
   Crown,
   DollarSign,
+  Loader2,
   MapPin,
   Plus,
   Trash2,
@@ -94,6 +95,7 @@ export function EventEditorForm({
   locale,
 }: EventEditorFormProps) {
   const t = useTranslations('events.editor')
+  const tCommon = useTranslations('common')
   const router = useRouter()
 
   const defaultTheme = useMemo(() => pickDefaultTheme(themes), [themes])
@@ -215,8 +217,9 @@ export function EventEditorForm({
             slug={initialEvent?.slug}
             currentStatus={initialEvent?.status}
           />
-          <Button type="submit" disabled={pending} className="gap-2">
-            {pending ? t('saving') : t('saveDraft')}
+          <Button type="submit" disabled={pending}>
+            {pending && <Loader2 className="h-4 w-4 animate-spin" />}
+            {pending ? tCommon('saving') : t('saveDraft')}
           </Button>
         </header>
 
@@ -447,11 +450,7 @@ function DangerZone({
             locale={locale}
             onSuccess="redirect"
           >
-            <Button
-              type="button"
-              variant="outline"
-              className="gap-2 border-rose-500/40 bg-transparent text-rose-200 hover:bg-rose-500/15 hover:text-rose-100"
-            >
+            <Button type="button" variant="destructive" size="lg">
               <Trash2 className="h-4 w-4" />
               {t('dangerZoneButton')}
             </Button>

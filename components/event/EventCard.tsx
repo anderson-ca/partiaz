@@ -5,9 +5,8 @@ import { getTranslations } from 'next-intl/server'
 import { EventTitle, type FontPresetForRender } from '@/components/event/EventTitle'
 import { ThemeBackground } from '@/components/event/ThemeBackground'
 import { EventCardActions } from '@/components/event/EventCardActions'
-import { FLOATING_SURFACE } from '@/lib/ui/floating-surface'
+import { Pill } from '@/components/ui/pill'
 import type { ThemeBackgroundValue } from '@/lib/schemas/theme'
-import { cn } from '@/lib/utils'
 
 export type EventCardEvent = {
   id: string
@@ -70,17 +69,14 @@ export async function EventCard({ event, isHost, locale }: EventCardProps) {
 
       {/* Top-left status pill */}
       <div className="pointer-events-none absolute top-3 left-3 z-10">
-        <span
-          className={cn(
-            FLOATING_SURFACE,
-            'inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-medium uppercase tracking-wide',
-            event.status === 'draft' ? 'text-white/80' : 'text-emerald-300',
-          )}
+        <Pill
+          variant={event.status === 'draft' ? 'muted' : 'success'}
+          className="text-[10px] uppercase tracking-wide"
         >
           {event.status === 'draft'
             ? t('cardStatusDraft')
             : t('cardStatusPublic')}
-        </span>
+        </Pill>
       </div>
 
       {/* Top-right actions menu — only when the viewer is the host. Lives at
@@ -100,15 +96,10 @@ export async function EventCard({ event, isHost, locale }: EventCardProps) {
           collide with the menu) to sit just above the title. */}
       {isHost && (
         <div className="pointer-events-none absolute bottom-14 left-3 z-10">
-          <span
-            className={cn(
-              FLOATING_SURFACE,
-              'inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-medium',
-            )}
-          >
+          <Pill variant="info" className="text-[10px]">
             <Crown className="h-3 w-3 text-yellow-300" />
             {t('cardHostingBadge')}
-          </span>
+          </Pill>
         </div>
       )}
 

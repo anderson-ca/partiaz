@@ -40,7 +40,7 @@ export function EventCardActions({
           <button
             type="button"
             aria-label={t('menuLabel')}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white/90 backdrop-blur-md ring-1 ring-white/15 transition hover:bg-black/60 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white/90 ring-1 ring-white/15 backdrop-blur-md transition-all duration-150 hover:bg-black/60 hover:text-white active:scale-[0.95] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/40"
           >
             <MoreVertical className="h-4 w-4" />
           </button>

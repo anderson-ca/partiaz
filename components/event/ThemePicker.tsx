@@ -82,7 +82,11 @@ export function ThemePicker({
         <ScrollArea className="w-full">
           <TabsList className="flex w-max min-w-full justify-start gap-1 bg-transparent px-3 py-2">
             {CATEGORIES.map((cat) => (
-              <TabsTrigger key={cat} value={cat} className="capitalize">
+              <TabsTrigger
+                key={cat}
+                value={cat}
+                className="rounded-full border-0 px-3 py-1 text-sm capitalize text-white/60 transition-all duration-150 hover:bg-white/5 hover:text-white data-[state=active]:bg-white data-[state=active]:text-zinc-900 data-[state=active]:shadow-none"
+              >
                 {cat}
               </TabsTrigger>
             ))}

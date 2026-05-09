@@ -10,6 +10,7 @@ import {
   TabsTrigger,
 } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
+import { Pill } from '@/components/ui/pill'
 import { cn } from '@/lib/utils'
 
 type Counts = {
@@ -44,7 +45,7 @@ export function EventTabs({
 
   return (
     <Tabs defaultValue="hosting" className="w-full">
-      <TabsList className="mb-6 inline-flex h-auto gap-1 rounded-full border border-white/10 bg-zinc-950/40 p-1 backdrop-blur-xl">
+      <TabsList className="mb-6 inline-flex h-auto gap-2 rounded-full bg-white/5 p-1 backdrop-blur-sm">
         <TabPillTrigger value="upcoming" label={t('tabUpcoming')} count={counts.upcoming} />
         <TabPillTrigger value="hosting" label={t('tabHosting')} count={counts.hosting} />
         <TabPillTrigger value="past" label={t('tabPast')} count={counts.past} />
@@ -96,22 +97,21 @@ function TabPillTrigger({
     <TabsTrigger
       value={value}
       className={cn(
-        // Pill styling — overrides shadcn Tabs' default underline look.
-        'gap-2 rounded-full border-0 px-4 py-1.5 text-sm text-white/70 transition',
-        'hover:text-white',
-        'data-[state=active]:bg-white data-[state=active]:text-zinc-900 data-[state=active]:shadow-none',
+        // Quiet, translucent pill aesthetic — matches the rest of the app's
+        // button language. Override shadcn's default underline-style trigger.
+        'gap-2 rounded-full border-0 px-4 py-2 text-sm font-medium text-white/60 transition-all duration-150',
+        'hover:bg-white/5 hover:text-white',
+        'data-[state=active]:bg-white/10 data-[state=active]:text-white data-[state=active]:shadow-none',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/40',
       )}
     >
       <span>{label}</span>
-      <span
-        className={cn(
-          'rounded-full px-1.5 py-0.5 text-[10px] font-semibold leading-none',
-          'bg-white/10 text-white/70',
-          'group-data-[state=active]:bg-zinc-900/10 group-data-[state=active]:text-zinc-900',
-        )}
+      <Pill
+        variant="muted"
+        className="px-1.5 py-0.5 text-[10px] leading-none"
       >
         {count}
-      </span>
+      </Pill>
     </TabsTrigger>
   )
 }
@@ -124,7 +124,7 @@ function EmptyEventsState({ locale }: { locale: string }) {
         <CalendarPlus className="h-6 w-6" />
       </span>
       <h3 className="text-lg font-semibold text-white">{t('emptyTitle')}</h3>
-      <Button asChild>
+      <Button asChild size="lg">
         <Link href={`/${locale}/events/new`}>{t('emptyCta')}</Link>
       </Button>
     </div>

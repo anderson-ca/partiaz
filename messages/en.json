@@ -1,7 +1,11 @@
 {
   "common": {
     "hello": "Hello",
-    "logIn": "Log in"
+    "logIn": "Log in",
+    "saving": "Saving…",
+    "deleting": "Deleting…",
+    "sending": "Sending…",
+    "loading": "Loading…"
   },
   "auth": {
     "login": {
@@ -81,6 +85,7 @@
       "restrictedCta": "RSVP for access",
       "draftBannerHost": "This event is a DRAFT. Only you can see this page.",
       "draftBannerCta": "Make it public →",
+      "editAriaLabel": "Edit event",
       "guestListTitle": "Guest List",
       "viewAll": "View all",
       "noCover": "No cover image"

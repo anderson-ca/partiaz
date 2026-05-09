@@ -50,7 +50,7 @@ export function LocaleSwitcher() {
           type="button"
           aria-label={t('languageMenuLabel')}
           disabled={pending}
-          className="flex h-9 w-9 items-center justify-center rounded-full text-white transition hover:bg-white/10 focus-visible:bg-white/10 focus-visible:outline-none disabled:opacity-50"
+          className="flex h-9 w-9 items-center justify-center rounded-full text-white transition-all duration-150 hover:bg-white/10 active:scale-[0.95] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/40 disabled:opacity-50"
         >
           <Globe className="h-4 w-4" />
         </button>

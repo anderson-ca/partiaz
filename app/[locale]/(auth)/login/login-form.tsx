@@ -1,6 +1,7 @@
 'use client'
 
 import { useActionState } from 'react'
+import { Loader2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
 import { createClient } from '@/lib/supabase/client'
@@ -16,6 +17,7 @@ type LoginFormProps = {
 
 export function LoginForm({ next }: LoginFormProps) {
   const t = useTranslations('auth.login')
+  const tCommon = useTranslations('common')
   const [state, formAction, pending] = useActionState(
     sendMagicLink,
     initialState,
@@ -63,7 +65,8 @@ export function LoginForm({ next }: LoginFormProps) {
           className="w-full"
           disabled={pending || state.status === 'sent'}
         >
-          {t('magicLinkButton')}
+          {pending && <Loader2 className="h-4 w-4 animate-spin" />}
+          {pending ? tCommon('sending') : t('magicLinkButton')}
         </Button>
         {state.status === 'sent' && (
           <p className="mt-3 text-sm text-emerald-400">{t('checkEmail')}</p>
@@ -84,7 +87,7 @@ export function LoginForm({ next }: LoginFormProps) {
       <Button
         type="button"
         variant="outline"
-        className="w-full gap-2 border-white/20 bg-transparent text-white hover:bg-white/5 hover:text-white"
+        className="w-full"
         onClick={handleGoogle}
       >
         <GoogleGIcon />

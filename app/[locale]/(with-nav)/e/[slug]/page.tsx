@@ -89,14 +89,19 @@ export default async function PublicEventPage({
       />
 
       {/* Edit FAB — host-only. Sits below the navbar (top-20) so it doesn't
-          collide with the navbar's user controls in the top-right corner. */}
+          collide with the navbar's user controls in the top-right corner.
+          Mirrors the new Button language (transitions, focus ring, active
+          press) without using the Button primitive — the FAB has bespoke
+          backdrop styling that doesn't fit the variant palette. */}
       {isHost && (
         <Link
           href={`/${locale}/events/${slug}/edit`}
-          aria-label={t('hostedBy')}
+          aria-label={t('editAriaLabel')}
           className={cn(
             FLOATING_SURFACE,
-            'fixed top-20 right-4 z-30 flex h-11 w-11 items-center justify-center rounded-full transition hover:bg-zinc-800/95',
+            'fixed top-20 right-4 z-30 flex h-11 w-11 items-center justify-center rounded-full',
+            'transition-all duration-150 hover:bg-zinc-800/95 active:scale-[0.95]',
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/40',
           )}
         >
           <Pencil className="h-4 w-4 text-white" />
@@ -114,9 +119,11 @@ export default async function PublicEventPage({
               )}
             >
               <span className="text-white/80">{t('draftBannerHost')}</span>
+              {/* Pill-info CTA — visually echoes Pill but with hover/active
+                  states because it's actually clickable. */}
               <Link
                 href={`/${locale}/events/${slug}/edit`}
-                className="shrink-0 text-white underline-offset-4 hover:underline"
+                className="inline-flex shrink-0 items-center gap-1 rounded-full bg-violet-500/15 px-2.5 py-1 text-xs font-medium text-violet-300 transition-all duration-150 hover:bg-violet-500/25 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/40"
               >
                 {t('draftBannerCta')}
               </Link>

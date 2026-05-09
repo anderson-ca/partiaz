@@ -59,7 +59,7 @@ export function UserMenu({
         <button
           type="button"
           aria-label={displayName ?? 'Account'}
-          className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full ring-1 ring-white/15 transition hover:ring-white/30 focus-visible:outline-none focus-visible:ring-white/40"
+          className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full ring-1 ring-white/15 transition-all duration-150 hover:ring-white/30 active:scale-[0.95] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/40"
         >
           {avatarUrl ? (
             // Avatar URLs come from arbitrary providers (Google, manual
@@ -117,7 +117,7 @@ export function UserMenu({
               signOut(locale)
             })
           }}
-          className="gap-2 rounded-lg px-2 py-1.5 text-sm text-white focus:bg-white/10 focus:text-white"
+          className="gap-2 rounded-lg px-2 py-1.5 text-sm text-rose-300 focus:bg-rose-500/10 focus:text-rose-200"
         >
           <LogOut className="h-4 w-4" />
           {t('signOut')}

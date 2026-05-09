@@ -1,7 +1,11 @@
 {
   "common": {
     "hello": "Привет",
-    "logIn": "Войти"
+    "logIn": "Войти",
+    "saving": "Сохраняем…",
+    "deleting": "Удаляем…",
+    "sending": "Отправляем…",
+    "loading": "Загрузка…"
   },
   "auth": {
     "login": {
@@ -81,6 +85,7 @@
       "restrictedCta": "RSVP для доступа",
       "draftBannerHost": "Это событие — ЧЕРНОВИК. Эту страницу видишь только ты.",
       "draftBannerCta": "Сделать публичным →",
+      "editAriaLabel": "Редактировать событие",
       "guestListTitle": "Список гостей",
       "viewAll": "Все",
       "noCover": "Нет обложки"

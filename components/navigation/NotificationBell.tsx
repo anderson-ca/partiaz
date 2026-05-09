@@ -13,7 +13,7 @@ export function NotificationBell({ className }: { className?: string }) {
       aria-label={t('notificationsComingSoon')}
       onClick={() => toast(t('notificationsComingSoon'))}
       className={cn(
-        'flex h-9 w-9 items-center justify-center rounded-full text-white transition hover:bg-white/10 focus-visible:bg-white/10 focus-visible:outline-none',
+        'flex h-9 w-9 items-center justify-center rounded-full text-white transition-all duration-150 hover:bg-white/10 active:scale-[0.95] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/40',
         className,
       )}
     >

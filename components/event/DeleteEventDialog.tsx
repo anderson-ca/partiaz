@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { useRouter } from 'next/navigation'
+import { Loader2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { deleteEvent } from '@/app/actions/events'
@@ -50,6 +51,7 @@ export function DeleteEventDialog({
   onOpenChange,
 }: DeleteEventDialogProps) {
   const t = useTranslations('events.delete')
+  const tCommon = useTranslations('common')
   const router = useRouter()
   const [pending, startTransition] = React.useTransition()
 
@@ -85,21 +87,19 @@ export function DeleteEventDialog({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel
-            className="border-white/20 bg-transparent text-white hover:bg-white/10"
-            disabled={pending}
-          >
+          <AlertDialogCancel variant="outline" disabled={pending}>
             {t('cancel')}
           </AlertDialogCancel>
           <AlertDialogAction
+            variant="destructive"
             disabled={pending}
-            className="bg-rose-600 text-white hover:bg-rose-500 focus-visible:ring-rose-400/40"
             onClick={(e) => {
               e.preventDefault()
               handleConfirm()
             }}
           >
-            {pending ? t('deleting') : t('confirm')}
+            {pending && <Loader2 className="h-4 w-4 animate-spin" />}
+            {pending ? tCommon('deleting') : t('confirm')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
