@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
     "db:push": "supabase db push",
-    "db:types": "supabase gen types typescript --linked > lib/supabase/database.types.ts"
+    "db:types": "supabase gen types typescript --linked > lib/supabase/database.types.ts",
+    "process-theme-videos": "tsx --env-file=.env.local scripts/process-theme-videos.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -51,6 +52,7 @@
     "shadcn": "^4.7.0",
     "supabase": "^2.98.2",
     "tailwindcss": "^4",
+    "tsx": "^4.21.0",
     "typescript": "^5"
   }
 }
