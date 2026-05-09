@@ -1,7 +1,9 @@
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { Button } from '@/components/ui/button'
 import { routing } from '@/i18n/routing'
+import { createClient } from '@/lib/supabase/server'
 
 export default async function HomePage({
   params,
@@ -10,6 +12,18 @@ export default async function HomePage({
 }) {
   const { locale } = await params
   setRequestLocale(locale)
+
+  // Authed users go straight to their dashboard. The unauthed landing
+  // content below is the bland-Inter-on-white scaffold from prompt 01 —
+  // a real marketing/welcome surface is its own future prompt.
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (user) {
+    redirect(`/${locale}/events`)
+  }
+
   const t = await getTranslations('common')
 
   return (
