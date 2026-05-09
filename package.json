@@ -11,7 +11,8 @@
     "format": "prettier --write .",
     "db:push": "supabase db push",
     "db:types": "supabase gen types typescript --linked > lib/supabase/database.types.ts",
-    "process-theme-videos": "tsx --env-file=.env.local scripts/process-theme-videos.ts"
+    "process-theme-videos": "tsx --env-file=.env.local scripts/process-theme-videos.ts",
+    "prune-theme-videos": "tsx --env-file=.env.local scripts/prune-theme-videos.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

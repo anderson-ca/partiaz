@@ -36,3 +36,20 @@ Pexels filenames like `6546653-hd_1920_1080_30fps.mp4` are slugified by extracti
 ### Failure handling
 
 A failed file is reported at the end of the run. Re-run the script with the same arguments — successful files are skipped (existing local outputs), and failed ones retry from scratch.
+
+## prune-theme-videos
+
+Curate the uploaded set down to a subset, using `.theme-videos-output/posters/` as the source of truth.
+
+### Workflow
+
+1. Run `process-theme-videos` to compress + upload all source files.
+2. Open `.theme-videos-output/posters/` in Finder, set icon view, and **delete** the JPGs you don't want in the catalog.
+3. Run `pnpm prune-theme-videos`. It removes:
+   - the matching videos from `.theme-videos-output/videos/`
+   - any video or poster in the `theme-videos` bucket whose slug is no longer in the local posters folder
+4. The script prints a final paste-ready summary of what's left — that goes into the seed prompt.
+
+### Safety
+
+Refuses to run if the posters folder is empty (would otherwise wipe the bucket). Idempotent — safe to re-run after further deletions.
