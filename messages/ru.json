@@ -17,6 +17,15 @@
     "signOut": "Выйти",
     "greeting": "Привет, {email}"
   },
+  "nav": {
+    "signIn": "Войти",
+    "signOut": "Выйти",
+    "settings": "Настройки",
+    "settingsComingSoon": "Настройки скоро",
+    "helpComingSoon": "Помощь скоро",
+    "notificationsComingSoon": "Уведомления скоро",
+    "languageMenuLabel": "Язык"
+  },
   "events": {
     "editor": {
       "untitledTitle": "Без названия",

@@ -13,6 +13,15 @@ export const FLOATING_SURFACE =
   'border border-white/10 bg-zinc-900/95 text-white shadow-2xl backdrop-blur-xl'
 
 /**
+ * Glass styling for page-spanning chrome bars (navbar, footer, etc.) — distinct
+ * from FLOATING_SURFACE which is tuned for popovers. NAV_SURFACE is more
+ * transparent so the themed page background reads through, and uses a
+ * subtle border-bottom instead of a full ring.
+ */
+export const NAV_SURFACE =
+  'bg-zinc-950/40 backdrop-blur-xl border-b border-white/5'
+
+/**
  * Companion mapping for shadcn neutral tokens when used INSIDE a
  * FLOATING_SURFACE container. Use these instead of `text-foreground` /
  * `bg-muted` / `ring-foreground` / `text-destructive` etc., which would

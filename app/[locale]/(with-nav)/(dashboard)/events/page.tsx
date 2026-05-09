@@ -3,7 +3,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { redirect } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { createClient } from '@/lib/supabase/server'
-import { signOut } from './actions'
+import { signOut } from '@/app/actions/auth'
 
 export default async function EventsPage({
   params,

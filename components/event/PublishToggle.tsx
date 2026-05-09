@@ -46,15 +46,17 @@ export function PublishToggle({
   const router = useRouter()
   const [pending, startTransition] = useTransition()
 
-  // ----- Mode = create: button disabled with hint ---------------------------
+  // ----- Mode = create: button disabled with inline hint -------------------
+  // Hint sits LEFT of the button (single-line) so the editor header's
+  // "Save draft" sibling baseline-aligns cleanly with this control.
   if (mode === 'create') {
     return (
-      <div className="flex flex-col items-end gap-1">
+      <div className="flex items-center gap-2">
+        <span className="text-xs text-white/60">{t('savedThenPublish')}</span>
         <Button type="button" variant="outline" disabled className="gap-2">
           <Globe className="h-4 w-4" />
           {t('makePublic')}
         </Button>
-        <span className="text-xs text-white/60">{t('savedThenPublish')}</span>
       </div>
     )
   }

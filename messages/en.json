@@ -17,6 +17,15 @@
     "signOut": "Sign out",
     "greeting": "Hello, {email}"
   },
+  "nav": {
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "settings": "Settings",
+    "settingsComingSoon": "Settings coming soon",
+    "helpComingSoon": "Help coming soon",
+    "notificationsComingSoon": "Notifications coming soon",
+    "languageMenuLabel": "Language"
+  },
   "events": {
     "editor": {
       "untitledTitle": "Untitled Event",

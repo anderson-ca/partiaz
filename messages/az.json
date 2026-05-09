@@ -17,6 +17,15 @@
     "signOut": "Çıxış",
     "greeting": "Salam, {email}"
   },
+  "nav": {
+    "signIn": "Daxil ol",
+    "signOut": "Çıxış",
+    "settings": "Tənzimləmələr",
+    "settingsComingSoon": "Tənzimləmələr tezliklə",
+    "helpComingSoon": "Yardım tezliklə",
+    "notificationsComingSoon": "Bildirişlər tezliklə",
+    "languageMenuLabel": "Dil"
+  },
   "events": {
     "editor": {
       "untitledTitle": "Adsız tədbir",

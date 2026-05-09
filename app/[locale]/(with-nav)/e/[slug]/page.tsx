@@ -88,14 +88,15 @@ export default async function PublicEventPage({
         className="fixed inset-0"
       />
 
-      {/* Edit FAB — host-only, top-right */}
+      {/* Edit FAB — host-only. Sits below the navbar (top-20) so it doesn't
+          collide with the navbar's user controls in the top-right corner. */}
       {isHost && (
         <Link
           href={`/${locale}/events/${slug}/edit`}
           aria-label={t('hostedBy')}
           className={cn(
             FLOATING_SURFACE,
-            'fixed top-4 right-4 z-30 flex h-11 w-11 items-center justify-center rounded-full transition hover:bg-zinc-800/95',
+            'fixed top-20 right-4 z-30 flex h-11 w-11 items-center justify-center rounded-full transition hover:bg-zinc-800/95',
           )}
         >
           <Pencil className="h-4 w-4 text-white" />
@@ -105,19 +106,21 @@ export default async function PublicEventPage({
       <main className="relative z-20 mx-auto w-full max-w-5xl px-4 pt-16 pb-16 md:px-8 md:pt-12">
         {/* Draft banner — host viewing their own draft */}
         {isHost && isDraft && (
-          <div
-            className={cn(
-              FLOATING_SURFACE,
-              'mb-6 flex flex-wrap items-center justify-between gap-2 rounded-full px-4 py-2 text-sm',
-            )}
-          >
-            <span className="text-white/80">{t('draftBannerHost')}</span>
-            <Link
-              href={`/${locale}/events/${slug}/edit`}
-              className="text-white underline-offset-4 hover:underline"
+          <div className="mb-6 flex justify-center">
+            <div
+              className={cn(
+                FLOATING_SURFACE,
+                'inline-flex max-w-full items-center gap-3 rounded-full px-4 py-2 text-sm',
+              )}
             >
-              {t('draftBannerCta')}
-            </Link>
+              <span className="text-white/80">{t('draftBannerHost')}</span>
+              <Link
+                href={`/${locale}/events/${slug}/edit`}
+                className="shrink-0 text-white underline-offset-4 hover:underline"
+              >
+                {t('draftBannerCta')}
+              </Link>
+            </div>
           </div>
         )}
 
