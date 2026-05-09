@@ -17,6 +17,20 @@
     "signOut": "Çıxış",
     "greeting": "Salam, {email}"
   },
+  "dashboard": {
+    "welcomeBack": "Xoş gəldin, {name}!",
+    "eventsCount": "{count, plural, =0 {Hələ tədbirin yoxdur.} other {# tədbirin var.}}",
+    "tabUpcoming": "Gələcək",
+    "tabHosting": "Təşkil edirəm",
+    "tabPast": "Keçmiş",
+    "emptyTitle": "Hələ tədbir yoxdur",
+    "emptyCta": "İlk tədbirini yarat",
+    "newEventTile": "Yeni tədbir",
+    "pastComingSoon": "Tarix dəstəyi əlavə edildikdə keçmiş tədbirlər burada görünəcək.",
+    "cardStatusDraft": "Qaralama",
+    "cardStatusPublic": "Açıq",
+    "cardHostingBadge": "Təşkilatçı"
+  },
   "nav": {
     "signIn": "Daxil ol",
     "signOut": "Çıxış",

@@ -1,11 +1,15 @@
-import Link from 'next/link'
-import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { redirect } from 'next/navigation'
-import { Button } from '@/components/ui/button'
+import { setRequestLocale, getTranslations } from 'next-intl/server'
+import {
+  EventCard,
+  type EventCardEvent,
+} from '@/components/event/EventCard'
+import { NewEventTile } from '@/components/event/NewEventTile'
+import { EventTabs } from '@/components/dashboard/EventTabs'
+import type { ThemeBackgroundValue } from '@/lib/schemas/theme'
 import { createClient } from '@/lib/supabase/server'
-import { signOut } from '@/app/actions/auth'
 
-export default async function EventsPage({
+export default async function DashboardPage({
   params,
 }: {
   params: Promise<{ locale: string }>
@@ -18,28 +22,107 @@ export default async function EventsPage({
     data: { user },
   } = await supabase.auth.getUser()
   if (!user) {
-    redirect(`/${locale}/login`)
+    redirect(`/${locale}/login?next=/${locale}/events`)
   }
 
-  const t = await getTranslations('auth')
-  const signOutWithLocale = signOut.bind(null, locale)
+  const t = await getTranslations('dashboard')
+
+  // Single auth call already happened; both fetches now run concurrently.
+  const [{ data: profile }, { data: rawEvents }] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('display_name')
+      .eq('id', user.id)
+      .single(),
+    supabase
+      .from('events')
+      .select(
+        `id, slug, title, status, text_color, cover_image_url,
+         theme:themes(background_type, background_value),
+         font_preset:font_presets(font_family, font_weight, letter_spacing, text_transform)`,
+      )
+      .eq('host_id', user.id)
+      .order('created_at', { ascending: false }),
+  ])
+
+  // Cast to our expected shape; Supabase's generated types lose the literal
+  // unions on text-with-CHECK columns (status, background_type).
+  const events: EventCardEvent[] = (rawEvents ?? [])
+    .filter((e) => e.theme && e.font_preset)
+    .map((e) => ({
+      id: e.id,
+      slug: e.slug,
+      title: e.title || t('cardStatusDraft'),
+      status: e.status as EventCardEvent['status'],
+      text_color: e.text_color,
+      cover_image_url: e.cover_image_url,
+      theme: {
+        background_type: e.theme!
+          .background_type as ThemeBackgroundValue['type'],
+        background_value: e.theme!.background_value as ThemeBackgroundValue,
+      },
+      font_preset: e.font_preset!,
+    }))
+
+  const hosting = events
+  // Upcoming (today) = published; date-based filtering lands when starts_at
+  // wires up in Prompt 08.1.
+  const upcoming = events.filter((e) => e.status === 'published')
+
+  const counts = {
+    upcoming: upcoming.length,
+    hosting: hosting.length,
+    past: 0,
+  }
+
+  // Pre-render the cards on the server so EventTabs (Client Component) can
+  // pass them as children without becoming async itself.
+  const upcomingCards =
+    upcoming.length > 0
+      ? upcoming.map((e) => (
+          <EventCard
+            key={e.id}
+            event={e}
+            isHost={true}
+            locale={locale}
+          />
+        ))
+      : null
+  const hostingCards =
+    hosting.length > 0
+      ? hosting.map((e) => (
+          <EventCard
+            key={e.id}
+            event={e}
+            isHost={true}
+            locale={locale}
+          />
+        ))
+      : null
+
+  const firstName =
+    profile?.display_name?.split(' ')[0] ?? user.email?.split('@')[0] ?? 'there'
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-md flex-col items-center justify-center gap-6 px-4 py-12 text-center">
-      <h1 className="text-2xl font-semibold tracking-tight">
-        {t('greeting', { email: user.email ?? '' })}
-      </h1>
-      <form action={signOutWithLocale}>
-        <Button type="submit" variant="outline">
-          {t('signOut')}
-        </Button>
-      </form>
-      <Link
-        href={`/${locale}/dev/themes`}
-        className="text-xs text-muted-foreground underline-offset-4 hover:underline"
-      >
-        Theme catalog
-      </Link>
-    </main>
+    <div className="min-h-screen bg-linear-to-br from-violet-950 via-indigo-950 to-zinc-950">
+      <div className="mx-auto max-w-6xl px-4 py-8 md:px-8 md:py-12">
+        <header className="mb-8 md:mb-12">
+          <h1 className="text-4xl font-semibold tracking-tight text-white md:text-5xl">
+            {t('welcomeBack', { name: firstName })}
+          </h1>
+          <p className="mt-2 text-lg text-white/60">
+            {t('eventsCount', { count: events.length })}
+          </p>
+        </header>
+
+        <EventTabs
+          counts={counts}
+          upcomingCards={upcomingCards}
+          hostingCards={hostingCards}
+          newEventTile={<NewEventTile locale={locale} />}
+          locale={locale}
+        />
+      </div>
+    </div>
   )
 }

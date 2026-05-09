@@ -17,6 +17,20 @@
     "signOut": "Выйти",
     "greeting": "Привет, {email}"
   },
+  "dashboard": {
+    "welcomeBack": "С возвращением, {name}!",
+    "eventsCount": "{count, plural, =0 {У тебя пока нет событий.} one {У тебя # событие.} few {У тебя # события.} many {У тебя # событий.} other {У тебя # событий.}}",
+    "tabUpcoming": "Предстоящие",
+    "tabHosting": "Организую",
+    "tabPast": "Прошедшие",
+    "emptyTitle": "Событий пока нет",
+    "emptyCta": "Создать первое событие",
+    "newEventTile": "Новое событие",
+    "pastComingSoon": "Прошедшие события появятся здесь, когда добавим поддержку дат.",
+    "cardStatusDraft": "Черновик",
+    "cardStatusPublic": "Публичное",
+    "cardHostingBadge": "Организатор"
+  },
   "nav": {
     "signIn": "Войти",
     "signOut": "Выйти",
