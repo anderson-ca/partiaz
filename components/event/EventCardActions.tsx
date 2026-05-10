@@ -54,7 +54,7 @@ export function EventCardActions({
             asChild
             className="text-white focus:bg-white/10 focus:text-white"
           >
-            <Link href={`/${locale}/e/${slug}/edit`} className="gap-2">
+            <Link href={`/${locale}/events/${slug}/edit`} className="gap-2">
               <Pencil className="h-4 w-4" />
               {t('edit')}
             </Link>
