@@ -20,6 +20,13 @@ const nextConfig: NextConfig = {
         pathname: '/flagged/photo-**',
       },
       {
+        // Unsplash vector illustrations (cover_illustrations seed). Distinct
+        // path namespace from /photo-**; needs its own pattern.
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+        pathname: '/vector-**',
+      },
+      {
         // Supabase Storage public objects: event-covers and any future
         // public bucket. Hostname is project-ref scoped so this whitelist
         // is per-environment safe.
