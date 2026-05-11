@@ -34,14 +34,32 @@ export default async function EditEventPage({
     .eq('slug', slug)
     .maybeSingle()
 
-  // notFound covers: row missing, RLS-hidden draft of another user, or any
-  // query error. We deliberately don't distinguish 403 from 404 — exposing
-  // "this event exists but isn't yours" is a small information leak.
-  if (error || !event || event.host_id !== user.id) {
+  if (error || !event) {
     notFound()
   }
 
-  const [themesRes, effectsRes, fontsRes, illustrationsRes] = await Promise.all([
+  // Edit-page access: primary host or co-host only. RLS on the SELECT
+  // policies for `events` allows authenticated users to read published
+  // events broadly, so an explicit membership gate is required here — we
+  // don't want a random signed-in user landing on the editor of someone
+  // else's published event. RLS will still enforce server-side, but the
+  // page-level gate gives us a clean 404 instead of a render-then-fail.
+  const isHost = event.host_id === user.id
+  let isCohost = false
+  if (!isHost) {
+    const { data: cohostRow } = await supabase
+      .from('event_cohosts')
+      .select('user_id')
+      .eq('event_id', event.id)
+      .eq('user_id', user.id)
+      .maybeSingle()
+    isCohost = !!cohostRow
+  }
+  if (!isHost && !isCohost) {
+    notFound()
+  }
+
+  const [themesRes, effectsRes, fontsRes, illustrationsRes, cohostsRes] = await Promise.all([
     supabase
       .from('themes')
       .select(
@@ -64,6 +82,12 @@ export default async function EditEventPage({
       .from('cover_illustrations')
       .select('id,image_url,category')
       .order('display_order', { ascending: true }),
+    supabase
+      .from('event_cohosts')
+      .select(
+        'user_id, profile:profiles!event_cohosts_user_id_fkey(display_name, avatar_url)',
+      )
+      .eq('event_id', event.id),
   ])
 
   const themes = (themesRes.data ?? []) as unknown as ThemeRow[]
@@ -71,11 +95,21 @@ export default async function EditEventPage({
   const fontPresets = (fontsRes.data ?? []) as FontPresetForPicker[]
   const illustrations = (illustrationsRes.data ?? []) as CoverIllustration[]
 
+  const cohosts = (cohostsRes.data ?? [])
+    .filter((r) => r.profile)
+    .map((r) => ({
+      user_id: r.user_id,
+      display_name: r.profile!.display_name,
+      avatar_url: r.profile!.avatar_url,
+    }))
+
   const initialEvent: EventEditorInitial = {
     id: event.id,
     slug: event.slug,
     status: event.status as EventEditorInitial['status'],
     title: event.title,
+    host_id: event.host_id,
+    cohosts,
     theme_id: event.theme_id,
     effect_id: event.effect_id,
     font_preset_id: event.font_preset_id,
@@ -101,6 +135,7 @@ export default async function EditEventPage({
       fontPresets={fontPresets}
       illustrations={illustrations}
       initialEvent={initialEvent}
+      currentUserId={user.id}
       locale={locale}
     />
   )

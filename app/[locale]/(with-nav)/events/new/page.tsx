@@ -60,6 +60,7 @@ export default async function NewEventPage({
       effects={effects}
       fontPresets={fontPresets}
       illustrations={illustrations}
+      currentUserId={user.id}
       locale={locale}
     />
   )

@@ -1,6 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { Crown } from 'lucide-react'
+import { Crown, Users } from 'lucide-react'
 import { getTranslations } from 'next-intl/server'
 import { EventTitle, type FontPresetForRender } from '@/components/event/EventTitle'
 import { ThemeBackground } from '@/components/event/ThemeBackground'
@@ -18,6 +18,9 @@ export type EventCardEvent = {
   text_color: string
   cover_image_url: string | null
   starts_at: string | null
+  /** True when the viewer is a co-host of this event (not the primary host).
+   *  Drives the bottom-left badge: "Hosting" vs "Co-hosting". */
+  isCohosting?: boolean
   theme: {
     background_type: ThemeBackgroundValue['type']
     background_value: ThemeBackgroundValue
@@ -33,6 +36,7 @@ type EventCardProps = {
 
 export async function EventCard({ event, isHost, locale }: EventCardProps) {
   const t = await getTranslations('dashboard')
+  const tCohosts = await getTranslations('cohosts')
   const tRel = await getTranslations('events.dateRelative')
 
   // Decision per [09.84] report-back: the date pill replaces the status pill
@@ -121,17 +125,24 @@ export async function EventCard({ event, isHost, locale }: EventCardProps) {
             eventTitle={event.title || t('cardStatusDraft')}
             slug={event.slug}
             locale={locale}
+            isCohosting={event.isCohosting}
           />
         </div>
       )}
 
-      {/* Bottom-left hosting badge — moved from top-right (where it would
-          collide with the menu) to sit just above the title. */}
+      {/* Bottom-left hosting badge — swaps to "Co-hosting" with a different
+          icon when the viewer is a co-host (not the primary host). */}
       {isHost && (
         <div className="pointer-events-none absolute bottom-14 left-3 z-10">
           <Pill variant="info" className="text-[10px]">
-            <Crown className="h-3 w-3 text-yellow-300" />
-            {t('cardHostingBadge')}
+            {event.isCohosting ? (
+              <Users className="h-3 w-3" />
+            ) : (
+              <Crown className="h-3 w-3 text-yellow-300" />
+            )}
+            {event.isCohosting
+              ? tCohosts('cardHostingBadge')
+              : t('cardHostingBadge')}
           </Pill>
         </div>
       )}

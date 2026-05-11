@@ -222,6 +222,133 @@ function extractStoragePath(url: string): string | null {
   }
 }
 
+// ─── Co-hosts (09.85) ─────────────────────────────────────────────────────
+
+export type CoHostCandidate = {
+  id: string
+  display_name: string | null
+  avatar_url: string | null
+}
+
+export type LookupCoHostResult =
+  | { ok: true; candidate: CoHostCandidate }
+  | { ok: false; error: 'unauthorized' | 'not_primary_host' | 'user_not_found' | 'cannot_add_self' }
+
+/**
+ * Email → profile lookup, scoped to an event the caller hosts.
+ *
+ * Drives the "find user" step of the Add Co-host dialog. The DB function
+ * (`find_cohost_candidate`) is SECURITY DEFINER + scoped to an event the
+ * caller owns, so this doesn't leak account-existence to the general
+ * authenticated bucket.
+ */
+export async function lookupCoHostByEmail(
+  eventId: string,
+  email: string,
+): Promise<LookupCoHostResult> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { ok: false, error: 'unauthorized' }
+
+  const { data: rows, error } = await supabase.rpc('find_cohost_candidate', {
+    p_event_id: eventId,
+    p_email: email,
+  })
+  if (error) return { ok: false, error: 'unauthorized' }
+  // RPC returns [] if either no user matches OR caller isn't the host. We
+  // disambiguate with a cheap host check so the dialog can render the right
+  // message ("not the primary host" vs "no such user").
+  if (!rows || rows.length === 0) {
+    const { data: e } = await supabase
+      .from('events')
+      .select('host_id')
+      .eq('id', eventId)
+      .maybeSingle()
+    if (!e || e.host_id !== user.id) return { ok: false, error: 'not_primary_host' }
+    return { ok: false, error: 'user_not_found' }
+  }
+
+  const row = rows[0]
+  if (row.id === user.id) return { ok: false, error: 'cannot_add_self' }
+  return {
+    ok: true,
+    candidate: {
+      id: row.id,
+      display_name: row.display_name,
+      avatar_url: row.avatar_url,
+    },
+  }
+}
+
+export type AddCoHostResult =
+  | { ok: true; cohost: CoHostCandidate }
+  | { ok: false; error: 'unauthorized' | 'not_primary_host' | 'cannot_add_self' | 'already_cohost' | 'user_not_found' | 'insert_failed' }
+
+/**
+ * Adds a profile as a co-host of an event. Performs the email→profile
+ * lookup inside the action so callers pass `email` straight from the form
+ * (no two-step round trip required) — the dialog uses `lookupCoHostByEmail`
+ * separately for its preview step.
+ */
+export async function addCoHost(
+  eventId: string,
+  email: string,
+): Promise<AddCoHostResult> {
+  const lookup = await lookupCoHostByEmail(eventId, email)
+  if (!lookup.ok) return { ok: false, error: lookup.error }
+
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from('event_cohosts')
+    .insert({ event_id: eventId, user_id: lookup.candidate.id })
+
+  if (error) {
+    if (error.code === PG_UNIQUE_VIOLATION) {
+      return { ok: false, error: 'already_cohost' }
+    }
+    return { ok: false, error: 'insert_failed' }
+  }
+
+  const locale = await getLocale()
+  revalidatePath(`/${locale}/events/${eventId}/edit`)
+  return { ok: true, cohost: lookup.candidate }
+}
+
+export type RemoveCoHostResult = { ok: true } | { ok: false; error: 'unauthorized' | 'delete_failed' }
+
+/**
+ * Remove a co-host. Authorization is RLS-enforced:
+ * `event_cohosts_host_or_self_delete` lets either the primary host (any
+ * row) OR the co-host themselves (their own row) execute the delete. So
+ * this action serves both the host's "X" button and the co-host's "Leave"
+ * button without code-side branching.
+ */
+export async function removeCoHost(
+  eventId: string,
+  userId: string,
+): Promise<RemoveCoHostResult> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { ok: false, error: 'unauthorized' }
+
+  const { error } = await supabase
+    .from('event_cohosts')
+    .delete()
+    .eq('event_id', eventId)
+    .eq('user_id', userId)
+
+  if (error) return { ok: false, error: 'delete_failed' }
+
+  const locale = await getLocale()
+  revalidatePath(`/${locale}/events/${eventId}/edit`)
+  revalidatePath(`/${locale}/events`)
+  return { ok: true }
+}
+
 export type SetEventStatusResult =
   | { ok: true }
   | { ok: false; error: 'invalid_status' | 'unauthenticated' | 'missing_start_at' | 'db' }

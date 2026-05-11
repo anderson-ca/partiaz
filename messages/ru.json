@@ -147,6 +147,40 @@
       "network": "Загрузка не удалась. Попробуйте ещё раз."
     }
   },
+  "cohosts": {
+    "sectionTitle": "Соорганизаторы",
+    "sectionDescription": "Соорганизаторы могут редактировать событие, но не могут его удалить.",
+    "emptyState": "Соорганизаторов пока нет.",
+    "saveFirstHint": "Сохрани событие, чтобы добавить соорганизаторов.",
+    "addButton": "Добавить соорганизатора",
+    "dialogTitle": "Добавить соорганизатора",
+    "dialogDescription": "Введи email пользователя parti.az. Он получит доступ к редактированию события.",
+    "emailPlaceholder": "его.email@пример.ru",
+    "searchButton": "Найти пользователя",
+    "confirmAddButton": "Добавить как соорганизатора",
+    "cancel": "Отмена",
+    "removeConfirmTitle": "Убрать {name} из соорганизаторов?",
+    "removeConfirmDescription": "Он потеряет доступ к редактированию события.",
+    "removeConfirmAction": "Убрать",
+    "leaveConfirmTitle": "Выйти из соорганизаторов?",
+    "leaveConfirmDescription": "Ты потеряешь доступ к редактированию события.",
+    "leaveConfirmAction": "Выйти",
+    "addSuccess": "Соорганизатор добавлен",
+    "removeSuccess": "Соорганизатор удалён",
+    "leaveSuccess": "Ты вышел из соорганизаторов",
+    "cardHostingBadge": "Соорганизатор",
+    "publicAndOne": "и {name}",
+    "publicAndMany": "и ещё {count}",
+    "errors": {
+      "user_not_found": "Пользователя с таким email нет. Попроси его зарегистрироваться.",
+      "cannot_add_self": "Ты уже организатор.",
+      "already_cohost": "{name} уже соорганизатор.",
+      "not_primary_host": "Только главный организатор может добавлять соорганизаторов.",
+      "insert_failed": "Не удалось добавить. Попробуй ещё раз.",
+      "delete_failed": "Не удалось убрать. Попробуй ещё раз.",
+      "unauthorized": "Ты не вошёл в аккаунт."
+    }
+  },
   "cover": {
     "tabs": {
       "library": "Библиотека",

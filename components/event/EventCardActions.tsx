@@ -19,6 +19,10 @@ type EventCardActionsProps = {
   eventTitle: string
   slug: string
   locale: string
+  /** True when the viewer is a co-host (not the primary host). Co-hosts can
+   *  edit but cannot delete — DB-side RLS would refuse the delete anyway,
+   *  but hiding the menu item up front gives cleaner UX. */
+  isCohosting?: boolean
 }
 
 export function EventCardActions({
@@ -26,6 +30,7 @@ export function EventCardActions({
   eventTitle,
   slug,
   locale,
+  isCohosting = false,
 }: EventCardActionsProps) {
   const t = useTranslations('dashboard.cardActions')
   // Dialog open state lives outside the DropdownMenu so that closing the menu
@@ -59,17 +64,19 @@ export function EventCardActions({
               {t('edit')}
             </Link>
           </DropdownMenuItem>
-          <DropdownMenuItem
-            variant="destructive"
-            className="gap-2 text-rose-300 focus:bg-rose-500/15 focus:text-rose-200"
-            onSelect={(e) => {
-              e.preventDefault()
-              setDialogOpen(true)
-            }}
-          >
-            <Trash2 className="h-4 w-4" />
-            {t('delete')}
-          </DropdownMenuItem>
+          {!isCohosting && (
+            <DropdownMenuItem
+              variant="destructive"
+              className="gap-2 text-rose-300 focus:bg-rose-500/15 focus:text-rose-200"
+              onSelect={(e) => {
+                e.preventDefault()
+                setDialogOpen(true)
+              }}
+            >
+              <Trash2 className="h-4 w-4" />
+              {t('delete')}
+            </DropdownMenuItem>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
 

@@ -27,44 +27,67 @@ export default async function DashboardPage({
 
   const t = await getTranslations('dashboard')
 
-  // Single auth call already happened; both fetches now run concurrently.
-  const [{ data: profile }, { data: rawEvents }] = await Promise.all([
-    supabase
-      .from('profiles')
-      .select('display_name')
-      .eq('id', user.id)
-      .single(),
-    supabase
-      .from('events')
-      .select(
-        `id, slug, title, status, text_color, cover_image_url, starts_at,
-         theme:themes(background_type, background_value),
-         font_preset:font_presets!events_font_preset_id_fkey(font_family, font_weight, letter_spacing, text_transform)`,
-      )
-      .eq('host_id', user.id)
-      .order('starts_at', { ascending: true, nullsFirst: false })
-      .order('created_at', { ascending: false }),
-  ])
+  // Three fetches in parallel: profile (for the welcome name), owned events,
+  // and co-hosting events (joined via an INNER on event_cohosts so the same
+  // events row arrives flagged with the membership).
+  const EVENT_COLUMNS = `id, slug, title, status, host_id, text_color, cover_image_url, starts_at,
+       theme:themes(background_type, background_value),
+       font_preset:font_presets!events_font_preset_id_fkey(font_family, font_weight, letter_spacing, text_transform)`
+
+  const [{ data: profile }, { data: ownedEvents }, { data: cohostedEvents }] =
+    await Promise.all([
+      supabase
+        .from('profiles')
+        .select('display_name')
+        .eq('id', user.id)
+        .single(),
+      supabase
+        .from('events')
+        .select(EVENT_COLUMNS)
+        .eq('host_id', user.id)
+        .order('starts_at', { ascending: true, nullsFirst: false })
+        .order('created_at', { ascending: false }),
+      supabase
+        .from('events')
+        .select(
+          `${EVENT_COLUMNS}, event_cohosts!inner(user_id)`,
+        )
+        .eq('event_cohosts.user_id', user.id)
+        .neq('host_id', user.id)
+        .order('starts_at', { ascending: true, nullsFirst: false })
+        .order('created_at', { ascending: false }),
+    ])
 
   // Cast to our expected shape; Supabase's generated types lose the literal
-  // unions on text-with-CHECK columns (status, background_type).
-  const events: EventCardEvent[] = (rawEvents ?? [])
-    .filter((e) => e.theme && e.font_preset)
-    .map((e) => ({
-      id: e.id,
-      slug: e.slug,
-      title: e.title || t('cardStatusDraft'),
-      status: e.status as EventCardEvent['status'],
-      text_color: e.text_color,
-      cover_image_url: e.cover_image_url,
-      starts_at: e.starts_at,
-      theme: {
-        background_type: e.theme!
-          .background_type as ThemeBackgroundValue['type'],
-        background_value: e.theme!.background_value as ThemeBackgroundValue,
-      },
-      font_preset: e.font_preset!,
-    }))
+  // unions on text-with-CHECK columns (status, background_type). Tag each
+  // row with `isCohosting` so the EventCard can swap the hosting badge.
+  const toEventCard = (
+    e: NonNullable<typeof ownedEvents>[number] & { isCohosting?: boolean },
+    isCohosting: boolean,
+  ): EventCardEvent => ({
+    id: e.id,
+    slug: e.slug,
+    title: e.title || t('cardStatusDraft'),
+    status: e.status as EventCardEvent['status'],
+    text_color: e.text_color,
+    cover_image_url: e.cover_image_url,
+    starts_at: e.starts_at,
+    isCohosting,
+    theme: {
+      background_type: e.theme!.background_type as ThemeBackgroundValue['type'],
+      background_value: e.theme!.background_value as ThemeBackgroundValue,
+    },
+    font_preset: e.font_preset!,
+  })
+
+  const events: EventCardEvent[] = [
+    ...(ownedEvents ?? [])
+      .filter((e) => e.theme && e.font_preset)
+      .map((e) => toEventCard(e, false)),
+    ...(cohostedEvents ?? [])
+      .filter((e) => e.theme && e.font_preset)
+      .map((e) => toEventCard(e, true)),
+  ]
 
   const now = Date.now()
   const hosting = events

@@ -147,6 +147,40 @@
       "network": "Upload failed. Try again."
     }
   },
+  "cohosts": {
+    "sectionTitle": "Co-hosts",
+    "sectionDescription": "Co-hosts can edit the event but cannot delete it.",
+    "emptyState": "No co-hosts yet.",
+    "saveFirstHint": "Save the event first to add co-hosts.",
+    "addButton": "Add co-host",
+    "dialogTitle": "Add a co-host",
+    "dialogDescription": "Enter the email of someone already on parti.az. They'll get edit access to this event.",
+    "emailPlaceholder": "their.email@example.com",
+    "searchButton": "Find user",
+    "confirmAddButton": "Add as co-host",
+    "cancel": "Cancel",
+    "removeConfirmTitle": "Remove {name} as co-host?",
+    "removeConfirmDescription": "They'll lose access to edit this event.",
+    "removeConfirmAction": "Remove",
+    "leaveConfirmTitle": "Leave as co-host?",
+    "leaveConfirmDescription": "You'll lose access to edit this event.",
+    "leaveConfirmAction": "Leave",
+    "addSuccess": "Co-host added",
+    "removeSuccess": "Co-host removed",
+    "leaveSuccess": "You've left as co-host",
+    "cardHostingBadge": "Co-hosting",
+    "publicAndOne": "& {name}",
+    "publicAndMany": "& {count} others",
+    "errors": {
+      "user_not_found": "No user with that email. Ask them to sign up first.",
+      "cannot_add_self": "You're already the host.",
+      "already_cohost": "{name} is already a co-host.",
+      "not_primary_host": "Only the primary host can add co-hosts.",
+      "insert_failed": "Could not add co-host. Try again.",
+      "delete_failed": "Could not remove. Try again.",
+      "unauthorized": "You're not signed in."
+    }
+  },
   "cover": {
     "tabs": {
       "library": "Library",

@@ -26,6 +26,7 @@ export default async function PublicEventPage({
   setRequestLocale(locale)
   const t = await getTranslations('events.public')
   const tFields = await getTranslations('events.fields')
+  const tCohosts = await getTranslations('cohosts')
 
   const supabase = await createClient()
   const {
@@ -46,7 +47,8 @@ export default async function PublicEventPage({
        effect:effects(id,name,category,engine,config),
        font_preset:font_presets!events_font_preset_id_fkey(id,name,category,font_family,font_weight,letter_spacing,text_transform),
        overlay_font:font_presets!events_cover_overlay_font_id_fkey(font_family,font_weight,letter_spacing,text_transform),
-       host:profiles!events_host_id_fkey(id,display_name,avatar_url)`,
+       host:profiles!events_host_id_fkey(id,display_name,avatar_url),
+       cohosts:event_cohosts(user_id,profile:profiles!event_cohosts_user_id_fkey(display_name,avatar_url))`,
     )
     .eq('slug', slug)
     .maybeSingle()
@@ -69,6 +71,28 @@ export default async function PublicEventPage({
   }
 
   const hostName = event.host.display_name ?? 'Anonymous'
+
+  // Flatten the joined event_cohosts shape into [{ display_name, avatar }]
+  // for the HostBlock component. Drop rows where the profile FK didn't
+  // resolve (theoretically impossible given the ON DELETE CASCADE chain,
+  // but defensive).
+  const cohostsForRender = (event.cohosts ?? [])
+    .filter((c) => c.profile)
+    .map((c) => ({
+      user_id: c.user_id,
+      display_name: c.profile!.display_name ?? 'Anonymous',
+      avatar_url: c.profile!.avatar_url,
+    }))
+
+  // Pre-format the "& X" label here where the cohost data is in scope —
+  // next-intl validates ICU vars at the `t()` call site, so deferring to
+  // the HostBlock with raw template strings would throw.
+  const cohostSuffix =
+    cohostsForRender.length === 0
+      ? null
+      : cohostsForRender.length === 1
+        ? tCohosts('publicAndOne', { name: cohostsForRender[0].display_name })
+        : tCohosts('publicAndMany', { count: cohostsForRender.length })
 
   return (
     <>
@@ -201,18 +225,13 @@ export default async function PublicEventPage({
               </p>
             )}
 
-            <div className="flex items-center gap-3">
-              <HostAvatar name={hostName} avatarUrl={event.host.avatar_url} />
-              <div className="leading-tight">
-                <div className="text-xs uppercase tracking-wide text-white/60">
-                  {t('hostedBy')}
-                </div>
-                <div className="flex items-center gap-1.5 text-sm font-medium text-white">
-                  <Crown className="h-3.5 w-3.5 text-yellow-300" />
-                  {hostName}
-                </div>
-              </div>
-            </div>
+            <HostBlock
+              hostName={hostName}
+              hostAvatarUrl={event.host.avatar_url}
+              cohosts={cohostsForRender}
+              hostedByLabel={t('hostedBy')}
+              cohostSuffix={cohostSuffix}
+            />
           </div>
 
           {/* RIGHT: cover + RSVP + guest list */}
@@ -300,6 +319,74 @@ function HostAvatar({
   const initial = name.slice(0, 1).toUpperCase()
   return (
     <span className="flex h-9 w-9 items-center justify-center rounded-full bg-linear-to-br from-fuchsia-400 to-violet-600 text-sm font-semibold text-white ring-1 ring-white/20">
+      {initial}
+    </span>
+  )
+}
+
+function HostBlock({
+  hostName,
+  hostAvatarUrl,
+  cohosts,
+  hostedByLabel,
+  cohostSuffix,
+}: {
+  hostName: string
+  hostAvatarUrl: string | null
+  cohosts: Array<{ user_id: string; display_name: string; avatar_url: string | null }>
+  hostedByLabel: string
+  cohostSuffix: string | null
+}) {
+  return (
+    <div className="flex items-center gap-3">
+      <HostAvatar name={hostName} avatarUrl={hostAvatarUrl} />
+      <div className="leading-tight">
+        <div className="text-xs uppercase tracking-wide text-white/60">
+          {hostedByLabel}
+        </div>
+        <div className="flex flex-wrap items-center gap-1.5 text-sm font-medium text-white">
+          <Crown className="h-3.5 w-3.5 text-yellow-300" />
+          <span>{hostName}</span>
+          {cohosts.length > 0 && cohostSuffix && (
+            <>
+              <div className="flex -space-x-2">
+                {cohosts.slice(0, 3).map((ch) => (
+                  <SmallAvatar
+                    key={ch.user_id}
+                    name={ch.display_name}
+                    avatarUrl={ch.avatar_url}
+                  />
+                ))}
+              </div>
+              <span className="text-white/70">{cohostSuffix}</span>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function SmallAvatar({
+  name,
+  avatarUrl,
+}: {
+  name: string
+  avatarUrl: string | null
+}) {
+  if (avatarUrl) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={avatarUrl}
+        alt=""
+        className="h-6 w-6 rounded-full bg-black/20 object-cover ring-2 ring-zinc-950"
+      />
+    )
+  }
+  const initial = name.slice(0, 1).toUpperCase()
+  return (
+    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-linear-to-br from-violet-400 to-fuchsia-600 text-[10px] font-semibold text-white ring-2 ring-zinc-950">
       {initial}
     </span>
   )

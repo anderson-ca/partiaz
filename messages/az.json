@@ -147,6 +147,40 @@
       "network": "Yükləmə alınmadı. Yenidən cəhd edin."
     }
   },
+  "cohosts": {
+    "sectionTitle": "Köməkçi təşkilatçılar",
+    "sectionDescription": "Köməkçi təşkilatçılar tədbiri redaktə edə bilər, amma silə bilməz.",
+    "emptyState": "Hələ köməkçi təşkilatçı yoxdur.",
+    "saveFirstHint": "Köməkçi əlavə etmək üçün əvvəlcə tədbiri saxla.",
+    "addButton": "Köməkçi əlavə et",
+    "dialogTitle": "Köməkçi təşkilatçı əlavə et",
+    "dialogDescription": "parti.az-da olan birinin e-poçtunu yaz. Bu tədbiri redaktə edə biləcək.",
+    "emailPlaceholder": "onun.epoctu@nümunə.az",
+    "searchButton": "İstifadəçini tap",
+    "confirmAddButton": "Köməkçi kimi əlavə et",
+    "cancel": "Ləğv et",
+    "removeConfirmTitle": "{name} köməkçilikdən çıxarılsın?",
+    "removeConfirmDescription": "Bu tədbiri redaktə etmək hüququnu itirəcək.",
+    "removeConfirmAction": "Çıxar",
+    "leaveConfirmTitle": "Köməkçilikdən çıxmaq?",
+    "leaveConfirmDescription": "Bu tədbiri redaktə etmək hüququnu itirəcəksən.",
+    "leaveConfirmAction": "Çıx",
+    "addSuccess": "Köməkçi əlavə olundu",
+    "removeSuccess": "Köməkçi çıxarıldı",
+    "leaveSuccess": "Köməkçilikdən çıxdın",
+    "cardHostingBadge": "Köməkçi",
+    "publicAndOne": "və {name}",
+    "publicAndMany": "və daha {count} nəfər",
+    "errors": {
+      "user_not_found": "Bu e-poçtla istifadəçi yoxdur. Əvvəlcə qeydiyyatdan keçməsini xahiş et.",
+      "cannot_add_self": "Onsuz da təşkilatçı sənsən.",
+      "already_cohost": "{name} artıq köməkçidir.",
+      "not_primary_host": "Yalnız əsas təşkilatçı köməkçi əlavə edə bilər.",
+      "insert_failed": "Köməkçi əlavə olunmadı. Yenidən cəhd et.",
+      "delete_failed": "Çıxarmaq alınmadı. Yenidən cəhd et.",
+      "unauthorized": "Daxil olmamısan."
+    }
+  },
   "cover": {
     "tabs": {
       "library": "Kitabxana",

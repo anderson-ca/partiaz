@@ -16,6 +16,7 @@ import {
   CoverImagePicker,
   type CoverSource,
 } from '@/components/event/CoverImagePicker'
+import { CoHostManager, type CoHost } from '@/components/event/CoHostManager'
 import { CoverOverlayEditor } from '@/components/event/CoverOverlayEditor'
 import type { CoverIllustration } from '@/components/event/cover-picker/LibraryTab'
 import { DateTimePicker } from '@/components/event/DateTimePicker'
@@ -43,6 +44,7 @@ export type EventEditorInitial = {
   slug: string
   status: 'draft' | 'published' | 'canceled'
   title: string
+  host_id: string
   theme_id: string
   effect_id: string | null
   font_preset_id: string
@@ -58,6 +60,7 @@ export type EventEditorInitial = {
   location_text: string | null
   location_address: string | null
   description: string | null
+  cohosts: CoHost[]
 }
 
 type EventEditorFormProps = {
@@ -67,6 +70,9 @@ type EventEditorFormProps = {
   illustrations: CoverIllustration[]
   /** When editing an existing event. Omit for create mode. */
   initialEvent?: EventEditorInitial
+  /** Logged-in user id. Used by CoHostManager to decide whether the viewer
+   *  is the primary host (full controls) or just a co-host (leave-only). */
+  currentUserId: string
   mode: 'create' | 'edit'
   /** Locale for redirect after create. */
   locale: string
@@ -99,6 +105,7 @@ export function EventEditorForm({
   fontPresets,
   illustrations,
   initialEvent,
+  currentUserId,
   mode,
   locale,
 }: EventEditorFormProps) {
@@ -307,16 +314,31 @@ export function EventEditorForm({
           />
         </section>
 
-        {/* Danger zone — edit mode only. The deletion path lives at the
-            BOTTOM of the editor (well below save/publish) so it can't be
-            mis-tapped while configuring the event. */}
+        {/* Co-hosts — edit mode only. In create mode the event doesn't
+            exist yet so there's nothing to attach cohosts to; we show a
+            small hint there instead. */}
         {mode === 'edit' && initialEvent && (
-          <DangerZone
+          <CoHostsSection
             eventId={initialEvent.id}
-            eventTitle={title || initialEvent.title || t('untitledTitle')}
-            locale={locale}
+            primaryHostId={initialEvent.host_id}
+            currentUserId={currentUserId}
+            cohosts={initialEvent.cohosts}
           />
         )}
+        {mode === 'create' && <CoHostsCreateHint />}
+
+        {/* Danger zone — edit mode only AND only the primary host. Co-hosts
+            can edit but not delete; the danger zone is therefore
+            primary-host-only territory. */}
+        {mode === 'edit' &&
+          initialEvent &&
+          initialEvent.host_id === currentUserId && (
+            <DangerZone
+              eventId={initialEvent.id}
+              eventTitle={title || initialEvent.title || t('untitledTitle')}
+              locale={locale}
+            />
+          )}
       </div>
 
       {/* Floating editor rail */}
@@ -533,6 +555,42 @@ function EventMetaFields({ form, locale }: EventMetaFieldsProps) {
         }
       />
     </div>
+  )
+}
+
+// ----- Co-hosts wrapper ---------------------------------------------------
+
+function CoHostsSection({
+  eventId,
+  primaryHostId,
+  currentUserId,
+  cohosts,
+}: {
+  eventId: string
+  primaryHostId: string
+  currentUserId: string
+  cohosts: CoHost[]
+}) {
+  return (
+    <section className="mx-auto mt-8 max-w-5xl px-4 md:px-8 md:pr-28">
+      <CoHostManager
+        eventId={eventId}
+        primaryHostId={primaryHostId}
+        currentUserId={currentUserId}
+        cohosts={cohosts}
+      />
+    </section>
+  )
+}
+
+function CoHostsCreateHint() {
+  const t = useTranslations('cohosts')
+  return (
+    <section className="mx-auto mt-8 max-w-5xl px-4 md:px-8 md:pr-28">
+      <p className="rounded-2xl bg-black/30 p-4 text-sm text-white/60 ring-1 ring-white/10 backdrop-blur-md">
+        {t('saveFirstHint')}
+      </p>
+    </section>
   )
 }
 

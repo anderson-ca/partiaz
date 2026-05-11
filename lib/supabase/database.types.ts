@@ -827,7 +827,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      find_cohost_candidate: {
+        Args: { p_email: string; p_event_id: string }
+        Returns: {
+          avatar_url: string
+          display_name: string
+          id: string
+        }[]
+      }
+      is_event_host_or_cohost: {
+        Args: { p_event_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
