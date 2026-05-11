@@ -21,12 +21,16 @@ type RsvpCtaProps = {
   currentGuest: CurrentGuest | null
   /** Pre-fill for first-time RSVP (logged-in user's display_name). */
   defaultName?: string
+  allowMaybe: boolean
+  requireNames: boolean
 }
 
 export function RsvpCta({
   eventSlug,
   currentGuest,
   defaultName,
+  allowMaybe,
+  requireNames,
 }: RsvpCtaProps) {
   const t = useTranslations('rsvp')
   const [open, setOpen] = React.useState(false)
@@ -43,9 +47,16 @@ export function RsvpCta({
     ? currentGuest.email ?? currentGuest.phone ?? ''
     : ''
 
+  // If the host has since disabled Maybe but the guest's stored status is
+  // 'maybe', drop the pre-fill so the dialog opens with no status selected
+  // — forcing them to pick Yes or No before re-submit.
+  const initialStatus: RsvpStatus =
+    status === 'pending' || (status === 'maybe' && !allowMaybe)
+      ? 'yes'
+      : status
   const initial = currentGuest
     ? {
-        status: status === 'pending' ? ('yes' as RsvpStatus) : status,
+        status: initialStatus,
         name: currentGuest.name,
         contact: contactForEdit,
         message: currentGuest.guest_message ?? '',
@@ -77,6 +88,8 @@ export function RsvpCta({
         eventSlug={eventSlug}
         initial={initial}
         defaultName={defaultName}
+        allowMaybe={allowMaybe}
+        requireNames={requireNames}
       />
     </div>
   )

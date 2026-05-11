@@ -18,6 +18,10 @@ import {
 } from '@/components/event/CoverImagePicker'
 import { CoHostManager, type CoHost } from '@/components/event/CoHostManager'
 import {
+  EventSettingsPanel,
+  type EventSettingsValues,
+} from '@/components/event/EventSettingsPanel'
+import {
   GuestListPanel,
   type GuestRow,
 } from '@/components/event/GuestListPanel'
@@ -65,6 +69,11 @@ export type EventEditorInitial = {
   location_address: string | null
   description: string | null
   capacity: number | null
+  show_guest_count: boolean
+  show_guest_names: boolean
+  allow_maybe: boolean
+  require_names: boolean
+  location_hidden_until_rsvp: boolean
   cohosts: CoHost[]
   guests: GuestRow[]
 }
@@ -144,6 +153,11 @@ export function EventEditorForm({
           location_text: initialEvent.location_text,
           location_address: initialEvent.location_address,
           description: initialEvent.description,
+          show_guest_count: initialEvent.show_guest_count,
+          show_guest_names: initialEvent.show_guest_names,
+          allow_maybe: initialEvent.allow_maybe,
+          require_names: initialEvent.require_names,
+          location_hidden_until_rsvp: initialEvent.location_hidden_until_rsvp,
         }
       : {
           title: '',
@@ -162,6 +176,11 @@ export function EventEditorForm({
           location_text: null,
           location_address: null,
           description: null,
+          show_guest_count: true,
+          show_guest_names: true,
+          allow_maybe: true,
+          require_names: true,
+          location_hidden_until_rsvp: false,
         },
   })
 
@@ -332,6 +351,13 @@ export function EventEditorForm({
           />
         )}
         {mode === 'create' && <CoHostsCreateHint />}
+
+        {/* Event settings — edit-mode only. Toggles save when the main
+            Save button is clicked; no separate save UI on the panel. */}
+        {mode === 'edit' && initialEvent && (
+          <SettingsSection form={form} />
+        )}
+        {mode === 'create' && <SettingsCreateHint />}
 
         {/* Guest list panel — edit mode only (no guests exist yet on a
             never-saved draft). Available to both host and co-hosts. */}
@@ -602,6 +628,50 @@ function CoHostsSection({
 
 function CoHostsCreateHint() {
   const t = useTranslations('cohosts')
+  return (
+    <section className="mx-auto mt-8 max-w-5xl px-4 md:px-8 md:pr-28">
+      <p className="rounded-2xl bg-black/30 p-4 text-sm text-white/60 ring-1 ring-white/10 backdrop-blur-md">
+        {t('saveFirstHint')}
+      </p>
+    </section>
+  )
+}
+
+// ----- Event settings wrapper ---------------------------------------------
+
+function SettingsSection({
+  form,
+}: {
+  form: ReturnType<typeof useForm<EventInput>>
+}) {
+  // RHF subscribes per-field; reading all five here re-renders the section
+  // (and ONLY the section) when any toggle flips.
+  const values: EventSettingsValues = {
+    show_guest_count: form.watch('show_guest_count') ?? true,
+    show_guest_names: form.watch('show_guest_names') ?? true,
+    allow_maybe: form.watch('allow_maybe') ?? true,
+    require_names: form.watch('require_names') ?? true,
+    location_hidden_until_rsvp:
+      form.watch('location_hidden_until_rsvp') ?? false,
+  }
+  return (
+    <section className="mx-auto mt-8 max-w-5xl px-4 md:px-8 md:pr-28">
+      <EventSettingsPanel
+        values={values}
+        onChange={(next) => {
+          for (const [key, value] of Object.entries(next)) {
+            form.setValue(key as keyof EventInput, value as never, {
+              shouldDirty: true,
+            })
+          }
+        }}
+      />
+    </section>
+  )
+}
+
+function SettingsCreateHint() {
+  const t = useTranslations('events.settings')
   return (
     <section className="mx-auto mt-8 max-w-5xl px-4 md:px-8 md:pr-28">
       <p className="rounded-2xl bg-black/30 p-4 text-sm text-white/60 ring-1 ring-white/10 backdrop-blur-md">

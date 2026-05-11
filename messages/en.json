@@ -119,6 +119,25 @@
       "viewAll": "View all",
       "noCover": "No cover image"
     },
+    "settings": {
+      "panelTitle": "Event settings",
+      "saveFirstHint": "Save the event first to configure settings.",
+      "groupVisibility": "Guest visibility",
+      "groupRsvpForm": "RSVP form",
+      "showGuestCountLabel": "Show guest count publicly",
+      "showGuestCountSubLabel": "Visitors see how many people are coming",
+      "showGuestNamesLabel": "Show guest names publicly",
+      "showGuestNamesSubLabel": "Visitors see who's coming, not just the count",
+      "locationHiddenLabel": "Hide location until RSVP",
+      "locationHiddenSubLabel": "Only guests who say Yes see the address",
+      "allowMaybeLabel": "Allow 'Maybe' responses",
+      "allowMaybeSubLabel": "Off = guests pick only Yes or No",
+      "requireNamesLabel": "Require guest names",
+      "requireNamesSubLabel": "Off = guests can RSVP anonymously"
+    },
+    "location": {
+      "hiddenUntilRsvp": "Location shared after RSVP"
+    },
     "delete": {
       "title": "Delete \"{title}\"?",
       "body": "This permanently deletes the event along with its RSVPs, photos, polls, and messages. This can't be undone.",
@@ -165,6 +184,7 @@
     "dialogTitleEdit": "Update your RSVP",
     "nameLabel": "Your name",
     "namePlaceholder": "How should we list you?",
+    "nameOptionalPlaceholder": "Anonymous (optional)",
     "contactLabel": "Email or phone (optional)",
     "contactPlaceholder": "So the host can reach you",
     "messageLabel": "Message to host (optional)",
@@ -174,10 +194,12 @@
     "cancel": "Cancel",
     "successToast": "RSVP saved",
     "updateToast": "RSVP updated",
+    "anonymousFallback": "Anonymous",
     "errors": {
       "event_full": "This event is at capacity. Try Maybe or Can't make it instead.",
       "event_not_published": "This event isn't open for RSVPs yet.",
       "event_not_found": "Event not found.",
+      "maybe_not_allowed": "This event isn't accepting Maybe responses.",
       "invalid_input": "Please check your information and try again.",
       "server_error": "Something went wrong. Try again."
     },

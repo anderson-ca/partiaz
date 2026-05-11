@@ -29,6 +29,7 @@ export default async function PublicEventPage({
   const t = await getTranslations('events.public')
   const tFields = await getTranslations('events.fields')
   const tCohosts = await getTranslations('cohosts')
+  const tEventLocation = await getTranslations('events.location')
 
   const supabase = await createClient()
   const {
@@ -45,7 +46,8 @@ export default async function PublicEventPage({
       `id, slug, title, status, audience, text_color, cover_image_url,
        cover_overlay_enabled, cover_overlay_text, cover_overlay_color,
        starts_at, ends_at, location_text, location_address, description,
-       capacity, show_guest_count, show_guest_names,
+       capacity, show_guest_count, show_guest_names, allow_maybe,
+       require_names, location_hidden_until_rsvp,
        theme:themes(id,name,category,background_type,background_value,recommended_text_color,order_index),
        effect:effects(id,name,category,engine,config),
        font_preset:font_presets!events_font_preset_id_fkey(id,name,category,font_family,font_weight,letter_spacing,text_transform),
@@ -119,6 +121,15 @@ export default async function PublicEventPage({
   const viewerDisplayName = viewerProfile?.display_name ?? undefined
   const isCohost = cohostsForRender.some((c) => c.user_id === user?.id)
   const canSeeAllGuests = isHost || isCohost
+
+  // Per-event location gating. Hosts/co-hosts always see the address
+  // (they need to manage the event); anyone who has RSVP'd 'yes' sees it;
+  // otherwise the toggle decides. The placeholder reveals AFTER yes RSVP.
+  const canSeeLocation =
+    !event.location_hidden_until_rsvp ||
+    isHost ||
+    isCohost ||
+    currentGuest?.rsvp === 'yes'
 
   return (
     <>
@@ -223,21 +234,32 @@ export default async function PublicEventPage({
               </DetailRow>
             )}
 
-            {/* Location row. Public events show address inline; private+
-                restricted viewers see the locked placeholder. */}
+            {/* Location row. Three states:
+                  • Has address + viewer can see → show inline
+                  • Has address + viewer can't see (location_hidden gated
+                    and not yet a yes-RSVP) → "shared after RSVP" placeholder
+                  • No address set → generic locked placeholder
+                Restricted-private viewers (from the old audience model)
+                see nothing here. */}
             {restricted ? null : event.location_text || event.location_address ? (
-              <DetailRow icon={<MapPin className="h-4 w-4" />}>
-                <div className="leading-tight">
-                  {event.location_text && (
-                    <div>{event.location_text}</div>
-                  )}
-                  {event.location_address && (
-                    <div className="text-sm text-white/60">
-                      {event.location_address}
-                    </div>
-                  )}
-                </div>
-              </DetailRow>
+              canSeeLocation ? (
+                <DetailRow icon={<MapPin className="h-4 w-4" />}>
+                  <div className="leading-tight">
+                    {event.location_text && (
+                      <div>{event.location_text}</div>
+                    )}
+                    {event.location_address && (
+                      <div className="text-sm text-white/60">
+                        {event.location_address}
+                      </div>
+                    )}
+                  </div>
+                </DetailRow>
+              ) : (
+                <DetailRow icon={<Lock className="h-4 w-4" />}>
+                  {tEventLocation('hiddenUntilRsvp')}
+                </DetailRow>
+              )
             ) : (
               <DetailRow icon={<Lock className="h-4 w-4" />}>
                 {t('locationLocked')}
@@ -295,6 +317,8 @@ export default async function PublicEventPage({
                   eventSlug={slug}
                   currentGuest={currentGuest}
                   defaultName={viewerDisplayName}
+                  allowMaybe={event.allow_maybe ?? true}
+                  requireNames={event.require_names ?? true}
                 />
               </div>
             )}

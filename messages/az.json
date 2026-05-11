@@ -119,6 +119,25 @@
       "viewAll": "Hamısına bax",
       "noCover": "Üz şəkli yoxdur"
     },
+    "settings": {
+      "panelTitle": "Tədbir parametrləri",
+      "saveFirstHint": "Parametrləri qurmaq üçün əvvəlcə tədbiri saxla.",
+      "groupVisibility": "Qonaq görünürlüyü",
+      "groupRsvpForm": "RSVP forması",
+      "showGuestCountLabel": "Qonaq sayını açıq göstər",
+      "showGuestCountSubLabel": "Ziyarətçilər neçə nəfərin gələcəyini görür",
+      "showGuestNamesLabel": "Qonaq adlarını açıq göstər",
+      "showGuestNamesSubLabel": "Ziyarətçilər kimin gələcəyini görür, təkcə sayı deyil",
+      "locationHiddenLabel": "RSVP-yə qədər ünvanı gizlət",
+      "locationHiddenSubLabel": "Yalnız Bəli deyənlər ünvanı görür",
+      "allowMaybeLabel": "‘Bəlkə’ cavabına icazə ver",
+      "allowMaybeSubLabel": "Söndürülsə = qonaqlar yalnız Bəli və ya Yox seçir",
+      "requireNamesLabel": "Qonaq adı tələb et",
+      "requireNamesSubLabel": "Söndürülsə = qonaqlar anonim cavab verə bilər"
+    },
+    "location": {
+      "hiddenUntilRsvp": "Ünvan RSVP-dən sonra paylaşılır"
+    },
     "delete": {
       "title": "\"{title}\" silinsin?",
       "body": "Bu, tədbiri və onunla bağlı bütün RSVP-ləri, şəkilləri, sorğuları və mesajları həmişəlik silir. Bunu geri qaytarmaq mümkün deyil.",
@@ -165,6 +184,7 @@
     "dialogTitleEdit": "RSVP-nu yenilə",
     "nameLabel": "Adın",
     "namePlaceholder": "Səni necə yazaq?",
+    "nameOptionalPlaceholder": "Anonim (istəyə görə)",
     "contactLabel": "E-poçt və ya telefon (istəyə görə)",
     "contactPlaceholder": "Təşkilatçı səninlə əlaqə saxlaya bilsin",
     "messageLabel": "Təşkilatçıya mesaj (istəyə görə)",
@@ -174,10 +194,12 @@
     "cancel": "Ləğv et",
     "successToast": "RSVP qeyd olundu",
     "updateToast": "RSVP yeniləndi",
+    "anonymousFallback": "Anonim",
     "errors": {
       "event_full": "Tədbir doludur. Bəlkə və ya Gedə bilmirəm seç.",
       "event_not_published": "Bu tədbir hələ RSVP üçün açıq deyil.",
       "event_not_found": "Tədbir tapılmadı.",
+      "maybe_not_allowed": "Bu tədbir ‘Bəlkə’ cavabını qəbul etmir.",
       "invalid_input": "Məlumatlarını yoxla və yenidən cəhd et.",
       "server_error": "Nəsə alınmadı. Yenidən cəhd et."
     },

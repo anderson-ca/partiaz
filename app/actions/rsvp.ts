@@ -3,7 +3,7 @@
 import 'server-only'
 import { cookies } from 'next/headers'
 import { revalidatePath } from 'next/cache'
-import { getLocale } from 'next-intl/server'
+import { getLocale, getTranslations } from 'next-intl/server'
 import {
   COOKIE_MAX_AGE_SEC,
   COOKIE_PREFIX,
@@ -33,6 +33,7 @@ export type SubmitRsvpResult =
         | 'event_not_found'
         | 'event_not_published'
         | 'event_full'
+        | 'maybe_not_allowed'
         | 'invalid_input'
         | 'server_error'
     }
@@ -73,9 +74,9 @@ function splitContact(raw: string | undefined): {
  * before any service-role call.
  */
 export async function submitRsvp(input: RsvpInput): Promise<SubmitRsvpResult> {
-  // ─── 1. Validate input ────────────────────────────────────────────────
-  const name = input.name?.trim() ?? ''
-  if (name.length < 1 || name.length > 100) {
+  // ─── 1. Cheap input shape validation (event-specific gates run later) ─
+  const rawName = input.name?.trim() ?? ''
+  if (rawName.length > 100) {
     return { ok: false, error: 'invalid_input' }
   }
   const message = input.message?.trim() ?? ''
@@ -86,16 +87,34 @@ export async function submitRsvp(input: RsvpInput): Promise<SubmitRsvpResult> {
     return { ok: false, error: 'invalid_input' }
   }
 
-  // ─── 2. Resolve the event ─────────────────────────────────────────────
+  // ─── 2. Resolve the event + per-event RSVP toggles ────────────────────
   const supabase = await createClient()
   const { data: event } = await supabase
     .from('events')
-    .select('id, status, capacity')
+    .select('id, status, capacity, allow_maybe, require_names')
     .eq('slug', input.eventSlug)
     .maybeSingle()
   if (!event) return { ok: false, error: 'event_not_found' }
   if (event.status !== 'published') {
     return { ok: false, error: 'event_not_published' }
+  }
+
+  // ─── Per-event policy enforcement ─────────────────────────────────────
+  // Defense-in-depth — the UI already hides the Maybe button and marks the
+  // name field optional based on these toggles, but the server is the
+  // source of truth.
+  if (input.status === 'maybe' && !event.allow_maybe) {
+    return { ok: false, error: 'maybe_not_allowed' }
+  }
+  let name = rawName
+  if (name.length === 0) {
+    if (event.require_names) return { ok: false, error: 'invalid_input' }
+    // require_names = false → server-side anonymous fallback in the
+    // viewer's locale. Stored as the literal "Anonymous" (or local
+    // equivalent) so the guest list panel reads naturally without sentinel
+    // values to decode.
+    const tCommon = await getTranslations('rsvp')
+    name = tCommon('anonymousFallback')
   }
 
   const {

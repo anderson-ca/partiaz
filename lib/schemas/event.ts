@@ -45,6 +45,15 @@ export const eventInputSchema = z
     location_text: z.string().max(255).nullable().optional(),
     location_address: z.string().max(255).nullable().optional(),
     description: z.string().max(2000).nullable().optional(),
+
+    // Event-settings booleans (added in 10.1 — schema columns existed since
+    // Prompt 03 but were unwired). All optional so updateEvent calls that
+    // don't touch settings leave them untouched on the server side.
+    show_guest_count: z.boolean().optional(),
+    show_guest_names: z.boolean().optional(),
+    allow_maybe: z.boolean().optional(),
+    require_names: z.boolean().optional(),
+    location_hidden_until_rsvp: z.boolean().optional(),
   })
   // Cross-field: end must come after start. The check tolerates either
   // value being null (drafts in progress); only enforces ordering when both

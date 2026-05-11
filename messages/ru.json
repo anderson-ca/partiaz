@@ -119,6 +119,25 @@
       "viewAll": "Все",
       "noCover": "Нет обложки"
     },
+    "settings": {
+      "panelTitle": "Настройки события",
+      "saveFirstHint": "Сначала сохрани событие, чтобы настроить параметры.",
+      "groupVisibility": "Видимость гостей",
+      "groupRsvpForm": "Форма RSVP",
+      "showGuestCountLabel": "Показывать количество гостей публично",
+      "showGuestCountSubLabel": "Посетители видят, сколько людей идёт",
+      "showGuestNamesLabel": "Показывать имена гостей публично",
+      "showGuestNamesSubLabel": "Посетители видят, кто идёт, а не только количество",
+      "locationHiddenLabel": "Скрывать локацию до RSVP",
+      "locationHiddenSubLabel": "Только те, кто ответил Иду, видят адрес",
+      "allowMaybeLabel": "Разрешить ответ ‘Может быть’",
+      "allowMaybeSubLabel": "Выключено = гости выбирают только Иду или Не смогу",
+      "requireNamesLabel": "Требовать имя гостя",
+      "requireNamesSubLabel": "Выключено = гости могут ответить анонимно"
+    },
+    "location": {
+      "hiddenUntilRsvp": "Адрес откроется после RSVP"
+    },
     "delete": {
       "title": "Удалить «{title}»?",
       "body": "Событие будет удалено навсегда вместе с RSVP, фотографиями, опросами и сообщениями. Это действие нельзя отменить.",
@@ -165,6 +184,7 @@
     "dialogTitleEdit": "Обновить RSVP",
     "nameLabel": "Твоё имя",
     "namePlaceholder": "Как тебя записать?",
+    "nameOptionalPlaceholder": "Аноним (по желанию)",
     "contactLabel": "Email или телефон (по желанию)",
     "contactPlaceholder": "Чтобы организатор мог связаться",
     "messageLabel": "Сообщение организатору (по желанию)",
@@ -174,10 +194,12 @@
     "cancel": "Отмена",
     "successToast": "RSVP сохранён",
     "updateToast": "RSVP обновлён",
+    "anonymousFallback": "Аноним",
     "errors": {
       "event_full": "Все места заняты. Выбери Может быть или Не смогу.",
       "event_not_published": "Это событие пока не открыто для RSVP.",
       "event_not_found": "Событие не найдено.",
+      "maybe_not_allowed": "Это событие не принимает ответ ‘Может быть’.",
       "invalid_input": "Проверь данные и попробуй ещё раз.",
       "server_error": "Что-то пошло не так. Попробуй ещё раз."
     },

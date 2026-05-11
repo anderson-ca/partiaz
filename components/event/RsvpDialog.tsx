@@ -41,6 +41,13 @@ type RsvpDialogProps = {
   /** Pre-fill for first-time RSVP — name from auth profile if present.
    *  Ignored when `initial` is set. */
   defaultName?: string
+  /** Per-event toggle. When false, the Maybe button isn't rendered and the
+   *  default initial status is forced to Yes by the parent. */
+  allowMaybe: boolean
+  /** Per-event toggle. When false, the name field reads as optional with
+   *  an "Anonymous (optional)" placeholder; server fills 'Anonymous' on
+   *  empty submission. */
+  requireNames: boolean
 }
 
 export function RsvpDialog({
@@ -49,6 +56,8 @@ export function RsvpDialog({
   eventSlug,
   initial,
   defaultName,
+  allowMaybe,
+  requireNames,
 }: RsvpDialogProps) {
   const t = useTranslations('rsvp')
   const isEdit = initial !== null
@@ -77,7 +86,14 @@ export function RsvpDialog({
 
   function handleSubmit() {
     const trimmed = name.trim()
-    if (trimmed.length < 1 || trimmed.length > 100) {
+    // Name is required client-side only when the host has the
+    // require_names toggle on. The server applies a locale-aware
+    // 'Anonymous' fallback when it's off and the field is empty.
+    if (requireNames && trimmed.length < 1) {
+      setNameError(t('errors.invalid_input'))
+      return
+    }
+    if (trimmed.length > 100) {
       setNameError(t('errors.invalid_input'))
       return
     }
@@ -117,9 +133,16 @@ export function RsvpDialog({
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Status — three large pill buttons, single-select */}
-          <div className="grid grid-cols-3 gap-2">
+          {/* Status — pill buttons, single-select. Maybe is hidden when
+              the host has disabled it via the settings panel. */}
+          <div
+            className={cn(
+              'grid gap-2',
+              allowMaybe ? 'grid-cols-3' : 'grid-cols-2',
+            )}
+          >
             {(['yes', 'maybe', 'no'] as const).map((s) => {
+              if (s === 'maybe' && !allowMaybe) return null
               const active = status === s
               return (
                 <button
@@ -154,9 +177,14 @@ export function RsvpDialog({
               id="rsvp-name"
               type="text"
               maxLength={100}
+              required={requireNames}
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder={t('namePlaceholder')}
+              placeholder={
+                requireNames
+                  ? t('namePlaceholder')
+                  : t('nameOptionalPlaceholder')
+              }
               className="w-full rounded-md border border-white/15 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/40 focus-visible:border-violet-400/60 focus-visible:ring-2 focus-visible:ring-violet-400/40"
             />
             {nameError && (

@@ -32,6 +32,32 @@ When future prompts reference standard setup patterns, remember these specifics 
 - **`pnpm-workspace.yaml`** includes an `allowBuilds` list. Append package names there if pnpm complains about unapproved native build scripts during install.
 - **`turbopack.root`** is pinned to `__dirname` in `next.config.ts` to avoid workspace-root warnings.
 
+### Schema name realities
+
+Some Prompt 03 column names diverge from intuitive guesses. Use the real names — schema renames "for clarity" aren't worth the migration cost.
+
+**`guests` table:**
+- `rsvp` — enum status field (NOT `rsvp_status`)
+- `claimed_user_id` — FK to authenticated user's profile (NOT `profile_id`)
+- `responded_at` — bumped on each RSVP update (NOT `updated_at`)
+- `guest_message` — guest's optional note to host (added in Prompt 10)
+- `invite_token` — globally unique, used for anon identity via httpOnly cookie
+
+**`events` table:**
+- `starts_at` / `ends_at` — plural (NOT `start_at` / `end_at`)
+- `location_text` — venue name (NOT `location_name`)
+- `location_address` — street address (added in Prompt 09.84)
+- `location_hidden_until_rsvp` — defaults to `false` (was `true` until 10.1's backfill)
+- Two FKs to `font_presets` (`font_preset_id`, `cover_overlay_font_id`). PostgREST joins MUST disambiguate via `font_presets!events_font_preset_id_fkey` etc. — see "PostgREST FK disambiguation" below if you hit it.
+
+**`event_cohosts` table:**
+- Composite PK on `(event_id, user_id)` — no synthetic `id` column
+- `user_id` (NOT `profile_id`) is the FK into `profiles`
+
+**Reserved-but-unwired columns** (don't propose features on them without checking PRODUCT_SPEC and asking — schema exists but UI doesn't):
+- `events.event_password`, `events.is_tbd`, `events.audience='public_profile'`
+- `guests.plus_one_count`, `guests.host_notes`, `guests.invited_at`
+
 ### Tailwind v4 utility renames (vs v3)
 
 Verified against the official upgrade guide: https://tailwindcss.com/docs/upgrade-guide. The IDE flags v3 names with a `suggestCanonicalClasses` warning on every edit — use the v4 names from the start to avoid review noise.

@@ -29,7 +29,7 @@ export default async function EditEventPage({
   const { data: event, error } = await supabase
     .from('events')
     .select(
-      'id,slug,status,title,host_id,theme_id,effect_id,font_preset_id,text_color,cover_image_url,cover_image_source,cover_overlay_enabled,cover_overlay_text,cover_overlay_font_id,cover_overlay_color,starts_at,ends_at,location_text,location_address,description,capacity',
+      'id,slug,status,title,host_id,theme_id,effect_id,font_preset_id,text_color,cover_image_url,cover_image_source,cover_overlay_enabled,cover_overlay_text,cover_overlay_font_id,cover_overlay_color,starts_at,ends_at,location_text,location_address,description,capacity,show_guest_count,show_guest_names,allow_maybe,require_names,location_hidden_until_rsvp',
     )
     .eq('slug', slug)
     .maybeSingle()
@@ -144,6 +144,11 @@ export default async function EditEventPage({
     location_address: event.location_address,
     description: event.description,
     capacity: event.capacity,
+    show_guest_count: event.show_guest_count,
+    show_guest_names: event.show_guest_names,
+    allow_maybe: event.allow_maybe,
+    require_names: event.require_names,
+    location_hidden_until_rsvp: event.location_hidden_until_rsvp,
     guests,
   }
 
