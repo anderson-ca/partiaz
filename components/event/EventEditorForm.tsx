@@ -17,6 +17,10 @@ import {
   type CoverSource,
 } from '@/components/event/CoverImagePicker'
 import { CoHostManager, type CoHost } from '@/components/event/CoHostManager'
+import {
+  GuestListPanel,
+  type GuestRow,
+} from '@/components/event/GuestListPanel'
 import { CoverOverlayEditor } from '@/components/event/CoverOverlayEditor'
 import type { CoverIllustration } from '@/components/event/cover-picker/LibraryTab'
 import { DateTimePicker } from '@/components/event/DateTimePicker'
@@ -60,7 +64,9 @@ export type EventEditorInitial = {
   location_text: string | null
   location_address: string | null
   description: string | null
+  capacity: number | null
   cohosts: CoHost[]
+  guests: GuestRow[]
 }
 
 type EventEditorFormProps = {
@@ -326,6 +332,17 @@ export function EventEditorForm({
           />
         )}
         {mode === 'create' && <CoHostsCreateHint />}
+
+        {/* Guest list panel — edit mode only (no guests exist yet on a
+            never-saved draft). Available to both host and co-hosts. */}
+        {mode === 'edit' && initialEvent && (
+          <section className="mx-auto mt-8 max-w-5xl px-4 md:px-8 md:pr-28">
+            <GuestListPanel
+              guests={initialEvent.guests}
+              capacity={initialEvent.capacity}
+            />
+          </section>
+        )}
 
         {/* Danger zone — edit mode only AND only the primary host. Co-hosts
             can edit but not delete; the danger zone is therefore

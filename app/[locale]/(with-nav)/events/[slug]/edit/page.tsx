@@ -29,7 +29,7 @@ export default async function EditEventPage({
   const { data: event, error } = await supabase
     .from('events')
     .select(
-      'id,slug,status,title,host_id,theme_id,effect_id,font_preset_id,text_color,cover_image_url,cover_image_source,cover_overlay_enabled,cover_overlay_text,cover_overlay_font_id,cover_overlay_color,starts_at,ends_at,location_text,location_address,description',
+      'id,slug,status,title,host_id,theme_id,effect_id,font_preset_id,text_color,cover_image_url,cover_image_source,cover_overlay_enabled,cover_overlay_text,cover_overlay_font_id,cover_overlay_color,starts_at,ends_at,location_text,location_address,description,capacity',
     )
     .eq('slug', slug)
     .maybeSingle()
@@ -59,7 +59,7 @@ export default async function EditEventPage({
     notFound()
   }
 
-  const [themesRes, effectsRes, fontsRes, illustrationsRes, cohostsRes] = await Promise.all([
+  const [themesRes, effectsRes, fontsRes, illustrationsRes, cohostsRes, guestsRes] = await Promise.all([
     supabase
       .from('themes')
       .select(
@@ -88,6 +88,13 @@ export default async function EditEventPage({
         'user_id, profile:profiles!event_cohosts_user_id_fkey(display_name, avatar_url)',
       )
       .eq('event_id', event.id),
+    supabase
+      .from('guests')
+      .select(
+        'id, name, rsvp, email, phone, guest_message, claimed_user_id, responded_at',
+      )
+      .eq('event_id', event.id)
+      .order('responded_at', { ascending: false, nullsFirst: false }),
   ])
 
   const themes = (themesRes.data ?? []) as unknown as ThemeRow[]
@@ -102,6 +109,17 @@ export default async function EditEventPage({
       display_name: r.profile!.display_name,
       avatar_url: r.profile!.avatar_url,
     }))
+
+  const guests = (guestsRes.data ?? []).map((g) => ({
+    id: g.id,
+    name: g.name,
+    rsvp: g.rsvp as 'yes' | 'no' | 'maybe' | 'pending',
+    email: g.email,
+    phone: g.phone,
+    guest_message: g.guest_message,
+    claimed_user_id: g.claimed_user_id,
+    responded_at: g.responded_at,
+  }))
 
   const initialEvent: EventEditorInitial = {
     id: event.id,
@@ -125,6 +143,8 @@ export default async function EditEventPage({
     location_text: event.location_text,
     location_address: event.location_address,
     description: event.description,
+    capacity: event.capacity,
+    guests,
   }
 
   return (

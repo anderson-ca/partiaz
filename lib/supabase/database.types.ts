@@ -567,6 +567,7 @@ export type Database = {
           created_at: string
           email: string | null
           event_id: string
+          guest_message: string | null
           host_notes: string | null
           id: string
           invite_token: string
@@ -582,6 +583,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           event_id: string
+          guest_message?: string | null
           host_notes?: string | null
           id?: string
           invite_token: string
@@ -597,6 +599,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           event_id?: string
+          guest_message?: string | null
           host_notes?: string | null
           id?: string
           invite_token?: string

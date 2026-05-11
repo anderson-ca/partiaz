@@ -147,6 +147,66 @@
       "network": "Загрузка не удалась. Попробуйте ещё раз."
     }
   },
+  "rsvp": {
+    "cta": "RSVP",
+    "ctaEdit": "Изменить RSVP",
+    "yourStatus": {
+      "yes": "Ты идёшь",
+      "no": "Ты не можешь прийти",
+      "maybe": "Возможно, ты придёшь",
+      "pending": "Ты ещё не ответил"
+    },
+    "statusButtons": {
+      "yes": "Иду",
+      "maybe": "Может быть",
+      "no": "Не смогу"
+    },
+    "dialogTitle": "RSVP",
+    "dialogTitleEdit": "Обновить RSVP",
+    "nameLabel": "Твоё имя",
+    "namePlaceholder": "Как тебя записать?",
+    "contactLabel": "Email или телефон (по желанию)",
+    "contactPlaceholder": "Чтобы организатор мог связаться",
+    "messageLabel": "Сообщение организатору (по желанию)",
+    "messagePlaceholder": "Что добавить? Ограничения по еде, что-то приносишь и т.д.",
+    "submitButton": "Отправить RSVP",
+    "updateButton": "Обновить RSVP",
+    "cancel": "Отмена",
+    "successToast": "RSVP сохранён",
+    "updateToast": "RSVP обновлён",
+    "errors": {
+      "event_full": "Все места заняты. Выбери Может быть или Не смогу.",
+      "event_not_published": "Это событие пока не открыто для RSVP.",
+      "event_not_found": "Событие не найдено.",
+      "invalid_input": "Проверь данные и попробуй ещё раз.",
+      "server_error": "Что-то пошло не так. Попробуй ещё раз."
+    },
+    "guestList": {
+      "panelTitle": "Гости",
+      "filterAll": "Все",
+      "filterGoing": "Иду",
+      "filterMaybe": "Может быть",
+      "filterNo": "Не смогу",
+      "filterPending": "Без ответа",
+      "loggedInBadge": "Аккаунт",
+      "messageBadge": "Сообщение",
+      "emptyState": "RSVP пока нет. Поделись ссылкой на событие.",
+      "removeConfirmTitle": "Убрать {name}?",
+      "removeConfirmDescription": "Это удалит его RSVP. Он сможет ответить заново по той же ссылке.",
+      "removeAction": "Убрать",
+      "removeSuccess": "Гость удалён",
+      "removeError": "Не удалось убрать. Попробуй ещё раз.",
+      "capacityIndicator": "{going} / {capacity} идут",
+      "capacityWarning": "{going} идут, но лимит {capacity}."
+    },
+    "publicSummary": {
+      "countGoing": "{count, plural, =0 {Пока никто не идёт} one {# человек идёт} few {# человека идут} many {# человек идут} other {# человек идут}}",
+      "countMaybe": "{count, plural, one {# может быть} few {# может быть} many {# может быть} other {# может быть}}",
+      "countNo": "{count, plural, one {# не сможет} few {# не смогут} many {# не смогут} other {# не смогут}}",
+      "viewAllGuests": "Все гости",
+      "andMore": "+ ещё {count}"
+    }
+  },
   "cohosts": {
     "sectionTitle": "Соорганизаторы",
     "sectionDescription": "Соорганизаторы могут редактировать событие, но не могут его удалить.",

@@ -7,8 +7,10 @@ import { CoverImage } from '@/components/event/CoverImage'
 import { EventTitle } from '@/components/event/EventTitle'
 import { LazyEffectOverlay as EffectOverlay } from '@/components/event/LazyEffectOverlay'
 import { RestrictedAccessCard } from '@/components/event/RestrictedAccessCard'
-import { RsvpButtonsStub } from '@/components/event/RsvpButtonsStub'
+import { RsvpCta } from '@/components/event/RsvpCta'
 import { ThemeBackground } from '@/components/event/ThemeBackground'
+import { getGuestSummary } from '@/app/actions/guest-summary'
+import { getCurrentGuestForEvent } from '@/app/actions/rsvp'
 import { formatLongDate, type AppLocale } from '@/lib/dates'
 import { FLOATING_SURFACE } from '@/lib/ui/floating-surface'
 import type { ThemeBackgroundValue } from '@/lib/schemas/theme'
@@ -43,6 +45,7 @@ export default async function PublicEventPage({
       `id, slug, title, status, audience, text_color, cover_image_url,
        cover_overlay_enabled, cover_overlay_text, cover_overlay_color,
        starts_at, ends_at, location_text, location_address, description,
+       capacity, show_guest_count, show_guest_names,
        theme:themes(id,name,category,background_type,background_value,recommended_text_color,order_index),
        effect:effects(id,name,category,engine,config),
        font_preset:font_presets!events_font_preset_id_fkey(id,name,category,font_family,font_weight,letter_spacing,text_transform),
@@ -93,6 +96,29 @@ export default async function PublicEventPage({
       : cohostsForRender.length === 1
         ? tCohosts('publicAndOne', { name: cohostsForRender[0].display_name })
         : tCohosts('publicAndMany', { count: cohostsForRender.length })
+
+  // ─── RSVP data ─────────────────────────────────────────────────────────
+  // Skip the cookie/lookup work when the event isn't open for RSVPs (draft).
+  // The guest summary still runs because hosts viewing their draft like to
+  // see the counts; but for drafts there are typically no rows anyway.
+  const isPublished = event.status === 'published'
+
+  const [currentGuest, guestSummary, viewerProfile] = await Promise.all([
+    isPublished ? getCurrentGuestForEvent(slug) : Promise.resolve(null),
+    getGuestSummary(event.id, !!event.show_guest_names),
+    user
+      ? supabase
+          .from('profiles')
+          .select('display_name')
+          .eq('id', user.id)
+          .maybeSingle()
+          .then((r) => r.data)
+      : Promise.resolve(null),
+  ])
+
+  const viewerDisplayName = viewerProfile?.display_name ?? undefined
+  const isCohost = cohostsForRender.some((c) => c.user_id === user?.id)
+  const canSeeAllGuests = isHost || isCohost
 
   return (
     <>
@@ -258,18 +284,31 @@ export default async function PublicEventPage({
               )}
             </div>
 
-            {/* RSVP / Restricted overlay */}
-            <div className={cn(FLOATING_SURFACE, 'rounded-2xl p-5')}>
-              <h2 className="mb-4 text-center text-sm font-medium text-white/80">
-                {t('rsvpPrompt')}
-              </h2>
-              <RsvpButtonsStub />
-            </div>
+            {/* RSVP card — real flow as of [10]. Draft events skip this
+                entirely; the host already sees the draft banner up top. */}
+            {isPublished && !restricted && (
+              <div className={cn(FLOATING_SURFACE, 'rounded-2xl p-5')}>
+                <h2 className="mb-4 text-center text-sm font-medium text-white/80">
+                  {t('rsvpPrompt')}
+                </h2>
+                <RsvpCta
+                  eventSlug={slug}
+                  currentGuest={currentGuest}
+                  defaultName={viewerDisplayName}
+                />
+              </div>
+            )}
 
             {restricted ? (
               <RestrictedAccessCard />
             ) : (
-              <GuestListPlaceholder />
+              <GuestSummaryBlock
+                eventSlug={slug}
+                showCount={!!event.show_guest_count}
+                showNames={!!event.show_guest_names}
+                summary={guestSummary}
+                canSeeAllGuests={canSeeAllGuests}
+              />
             )}
           </div>
         </div>
@@ -392,42 +431,86 @@ function SmallAvatar({
   )
 }
 
-async function GuestListPlaceholder() {
-  const t = await getTranslations('events.public')
+async function GuestSummaryBlock({
+  eventSlug,
+  showCount,
+  showNames,
+  summary,
+  canSeeAllGuests,
+}: {
+  eventSlug: string
+  showCount: boolean
+  showNames: boolean
+  summary: { going: number; maybe: number; no: number; goingNames: string[] }
+  canSeeAllGuests: boolean
+}) {
+  const t = await getTranslations('rsvp.publicSummary')
+
+  // Both toggles off → hide the block entirely. Host/co-host always get a
+  // "View all guests" affordance regardless of public visibility, since
+  // they edit the event downstream.
+  if (!showCount && !showNames && !canSeeAllGuests) return null
+
+  const VISIBLE_NAMES = 12
+  const namesToShow = showNames ? summary.goingNames.slice(0, VISIBLE_NAMES) : []
+  const overflow = showNames
+    ? Math.max(summary.goingNames.length - VISIBLE_NAMES, 0)
+    : 0
+
   return (
-    <div
-      data-todo="10"
-      className={cn(FLOATING_SURFACE, 'rounded-2xl p-4')}
-    >
-      <div className="mb-3 flex items-center justify-between">
-        <span className="text-sm font-medium text-white">
-          {t('guestListTitle')}
-        </span>
-        <button
-          type="button"
-          className="text-xs text-white/70 hover:text-white"
-          disabled
-        >
-          {t('viewAll')}
-        </button>
-      </div>
-      <div className="flex -space-x-2">
-        {[
-          'from-pink-400 to-rose-600',
-          'from-cyan-400 to-blue-600',
-          'from-amber-400 to-orange-600',
-        ].map((g, i) => (
-          <span
-            key={i}
-            className={cn(
-              'inline-flex h-9 w-9 items-center justify-center rounded-full bg-linear-to-br text-xs font-semibold text-white ring-2 ring-zinc-900',
-              g,
-            )}
+    <div className={cn(FLOATING_SURFACE, 'rounded-2xl p-4 text-sm')}>
+      {showCount && (
+        <div className="space-y-1 text-white/80">
+          <div>{t('countGoing', { count: summary.going })}</div>
+          {summary.maybe > 0 && (
+            <div className="text-white/60">
+              {t('countMaybe', { count: summary.maybe })}
+            </div>
+          )}
+          {summary.no > 0 && (
+            <div className="text-white/60">
+              {t('countNo', { count: summary.no })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {showNames && namesToShow.length > 0 && (
+        <ul className="mt-3 flex flex-wrap gap-1.5">
+          {namesToShow.map((n, i) => (
+            <li
+              key={`${n}-${i}`}
+              className="rounded-full bg-white/10 px-2.5 py-1 text-xs text-white/90"
+            >
+              {n}
+            </li>
+          ))}
+          {overflow > 0 && (
+            <li className="rounded-full bg-white/5 px-2.5 py-1 text-xs text-white/60">
+              {t('andMore', { count: overflow })}
+            </li>
+          )}
+        </ul>
+      )}
+
+      {canSeeAllGuests && (
+        <div className="mt-3">
+          <Link
+            href={`/${(await getLocaleForLink())}/events/${eventSlug}/edit#guests`}
+            className="text-xs text-violet-300 hover:text-violet-200"
           >
-            ?
-          </span>
-        ))}
-      </div>
+            {t('viewAllGuests')}
+          </Link>
+        </div>
+      )}
     </div>
   )
 }
+
+async function getLocaleForLink() {
+  // Centralizes the locale lookup so the GuestSummaryBlock doesn't need the
+  // locale plumbed through as a prop. next-intl's getLocale is server-only.
+  const { getLocale } = await import('next-intl/server')
+  return getLocale()
+}
+

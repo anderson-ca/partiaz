@@ -147,6 +147,66 @@
       "network": "Upload failed. Try again."
     }
   },
+  "rsvp": {
+    "cta": "RSVP",
+    "ctaEdit": "Edit RSVP",
+    "yourStatus": {
+      "yes": "You're going",
+      "no": "You can't make it",
+      "maybe": "You might come",
+      "pending": "You haven't responded"
+    },
+    "statusButtons": {
+      "yes": "Going",
+      "maybe": "Maybe",
+      "no": "Can't make it"
+    },
+    "dialogTitle": "RSVP",
+    "dialogTitleEdit": "Update your RSVP",
+    "nameLabel": "Your name",
+    "namePlaceholder": "How should we list you?",
+    "contactLabel": "Email or phone (optional)",
+    "contactPlaceholder": "So the host can reach you",
+    "messageLabel": "Message to host (optional)",
+    "messagePlaceholder": "Anything to add? Dietary restrictions, bringing a dish, etc.",
+    "submitButton": "Send RSVP",
+    "updateButton": "Update RSVP",
+    "cancel": "Cancel",
+    "successToast": "RSVP saved",
+    "updateToast": "RSVP updated",
+    "errors": {
+      "event_full": "This event is at capacity. Try Maybe or Can't make it instead.",
+      "event_not_published": "This event isn't open for RSVPs yet.",
+      "event_not_found": "Event not found.",
+      "invalid_input": "Please check your information and try again.",
+      "server_error": "Something went wrong. Try again."
+    },
+    "guestList": {
+      "panelTitle": "Guests",
+      "filterAll": "All",
+      "filterGoing": "Going",
+      "filterMaybe": "Maybe",
+      "filterNo": "Can't make it",
+      "filterPending": "Pending",
+      "loggedInBadge": "Account",
+      "messageBadge": "Message",
+      "emptyState": "No RSVPs yet. Share the event link to invite people.",
+      "removeConfirmTitle": "Remove {name}?",
+      "removeConfirmDescription": "This deletes their RSVP. They can RSVP again with the same link.",
+      "removeAction": "Remove",
+      "removeSuccess": "Guest removed",
+      "removeError": "Could not remove guest. Try again.",
+      "capacityIndicator": "{going} / {capacity} going",
+      "capacityWarning": "You have {going} going but capacity is {capacity}."
+    },
+    "publicSummary": {
+      "countGoing": "{count, plural, =0 {No one going yet} =1 {1 going} other {# going}}",
+      "countMaybe": "{count, plural, =1 {1 maybe} other {# maybe}}",
+      "countNo": "{count, plural, =1 {1 can't make it} other {# can't make it}}",
+      "viewAllGuests": "View all guests",
+      "andMore": "+{count} more"
+    }
+  },
   "cohosts": {
     "sectionTitle": "Co-hosts",
     "sectionDescription": "Co-hosts can edit the event but cannot delete it.",

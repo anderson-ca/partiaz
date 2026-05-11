@@ -147,6 +147,66 @@
       "network": "Yükləmə alınmadı. Yenidən cəhd edin."
     }
   },
+  "rsvp": {
+    "cta": "RSVP",
+    "ctaEdit": "RSVP-nu dəyiş",
+    "yourStatus": {
+      "yes": "Gəlirsən",
+      "no": "Gələ bilmirsən",
+      "maybe": "Bəlkə gələrsən",
+      "pending": "Hələ cavab vermisən"
+    },
+    "statusButtons": {
+      "yes": "Gedirəm",
+      "maybe": "Bəlkə",
+      "no": "Gedə bilmirəm"
+    },
+    "dialogTitle": "RSVP",
+    "dialogTitleEdit": "RSVP-nu yenilə",
+    "nameLabel": "Adın",
+    "namePlaceholder": "Səni necə yazaq?",
+    "contactLabel": "E-poçt və ya telefon (istəyə görə)",
+    "contactPlaceholder": "Təşkilatçı səninlə əlaqə saxlaya bilsin",
+    "messageLabel": "Təşkilatçıya mesaj (istəyə görə)",
+    "messagePlaceholder": "Əlavə demək istədiyin? Yemək məhdudiyyətləri, gətirdiklərin və s.",
+    "submitButton": "RSVP göndər",
+    "updateButton": "RSVP-nu yenilə",
+    "cancel": "Ləğv et",
+    "successToast": "RSVP qeyd olundu",
+    "updateToast": "RSVP yeniləndi",
+    "errors": {
+      "event_full": "Tədbir doludur. Bəlkə və ya Gedə bilmirəm seç.",
+      "event_not_published": "Bu tədbir hələ RSVP üçün açıq deyil.",
+      "event_not_found": "Tədbir tapılmadı.",
+      "invalid_input": "Məlumatlarını yoxla və yenidən cəhd et.",
+      "server_error": "Nəsə alınmadı. Yenidən cəhd et."
+    },
+    "guestList": {
+      "panelTitle": "Qonaqlar",
+      "filterAll": "Hamısı",
+      "filterGoing": "Gedir",
+      "filterMaybe": "Bəlkə",
+      "filterNo": "Gəlmir",
+      "filterPending": "Cavabsız",
+      "loggedInBadge": "Hesab",
+      "messageBadge": "Mesaj",
+      "emptyState": "Hələ RSVP yoxdur. Tədbir linkini paylaş.",
+      "removeConfirmTitle": "{name} silinsin?",
+      "removeConfirmDescription": "Bu, onun RSVP-sini silir. Eyni linklə yenidən cavab verə bilər.",
+      "removeAction": "Sil",
+      "removeSuccess": "Qonaq silindi",
+      "removeError": "Qonağı silmək alınmadı. Yenidən cəhd et.",
+      "capacityIndicator": "{going} / {capacity} gəlir",
+      "capacityWarning": "{going} gəlir, amma yer limiti {capacity}-dır."
+    },
+    "publicSummary": {
+      "countGoing": "{count, plural, =0 {Hələ heç kim gəlmir} other {# nəfər gəlir}}",
+      "countMaybe": "{count, plural, other {# bəlkə}}",
+      "countNo": "{count, plural, other {# gəlmir}}",
+      "viewAllGuests": "Bütün qonaqlara bax",
+      "andMore": "+{count} daha"
+    }
+  },
   "cohosts": {
     "sectionTitle": "Köməkçi təşkilatçılar",
     "sectionDescription": "Köməkçi təşkilatçılar tədbiri redaktə edə bilər, amma silə bilməz.",
