@@ -376,6 +376,7 @@ export type Database = {
           host_id: string
           id: string
           is_tbd: boolean
+          location_address: string | null
           location_hidden_until_rsvp: boolean
           location_text: string | null
           location_url: string | null
@@ -418,6 +419,7 @@ export type Database = {
           host_id: string
           id?: string
           is_tbd?: boolean
+          location_address?: string | null
           location_hidden_until_rsvp?: boolean
           location_text?: string | null
           location_url?: string | null
@@ -460,6 +462,7 @@ export type Database = {
           host_id?: string
           id?: string
           is_tbd?: boolean
+          location_address?: string | null
           location_hidden_until_rsvp?: boolean
           location_text?: string | null
           location_url?: string | null

@@ -27,6 +27,7 @@ type EventTabsProps = {
   counts: Counts
   upcomingCards: React.ReactNode | null
   hostingCards: React.ReactNode | null
+  pastCards: React.ReactNode | null
   newEventTile: React.ReactNode
   locale: string
 }
@@ -38,6 +39,7 @@ export function EventTabs({
   counts,
   upcomingCards,
   hostingCards,
+  pastCards,
   newEventTile,
   locale,
 }: EventTabsProps) {
@@ -74,11 +76,15 @@ export function EventTabs({
       </TabsContent>
 
       <TabsContent value="past">
-        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-white/5 bg-white/5 px-6 py-16 text-center backdrop-blur-sm">
-          <p className="max-w-sm text-sm text-white/60">
-            {t('pastComingSoon')}
-          </p>
-        </div>
+        {counts.past === 0 ? (
+          <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-white/5 bg-white/5 px-6 py-16 text-center backdrop-blur-sm">
+            <p className="max-w-sm text-sm text-white/60">
+              {t('pastEmpty')}
+            </p>
+          </div>
+        ) : (
+          <div className={GRID_CLASS}>{pastCards}</div>
+        )}
       </TabsContent>
     </Tabs>
   )

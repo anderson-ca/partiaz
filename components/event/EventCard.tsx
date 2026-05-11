@@ -7,6 +7,7 @@ import { ThemeBackground } from '@/components/event/ThemeBackground'
 import { EventCardActions } from '@/components/event/EventCardActions'
 import { Pill } from '@/components/ui/pill'
 import { isVideoCoverUrl } from '@/lib/cover'
+import { bucketCardDate, type AppLocale } from '@/lib/dates'
 import type { ThemeBackgroundValue } from '@/lib/schemas/theme'
 
 export type EventCardEvent = {
@@ -16,6 +17,7 @@ export type EventCardEvent = {
   status: 'draft' | 'published' | 'canceled'
   text_color: string
   cover_image_url: string | null
+  starts_at: string | null
   theme: {
     background_type: ThemeBackgroundValue['type']
     background_value: ThemeBackgroundValue
@@ -31,6 +33,21 @@ type EventCardProps = {
 
 export async function EventCard({ event, isHost, locale }: EventCardProps) {
   const t = await getTranslations('dashboard')
+  const tRel = await getTranslations('events.dateRelative')
+
+  // Decision per [09.84] report-back: the date pill replaces the status pill
+  // in the top-left. Hosts only see these cards on their own dashboard, so
+  // the Draft/Public distinction is less useful at-a-glance than "when is
+  // this happening?". Drafts without a date show a muted "No date yet" pill
+  // so the empty-state is still visually distinct.
+  const datePill = renderDatePill({
+    startsAt: event.starts_at,
+    locale: locale as AppLocale,
+    noDateLabel: t('cardNoDate'),
+    todayLabel: tRel('today'),
+    tomorrowLabel: tRel('tomorrow'),
+    yesterdayLabel: tRel('yesterday'),
+  })
 
   return (
     // Card root is a plain div now: the navigation Link is a SIBLING at z-0
@@ -88,15 +105,10 @@ export async function EventCard({ event, isHost, locale }: EventCardProps) {
       {/* Bottom-up dark gradient for title legibility */}
       <div className="pointer-events-none absolute inset-0 z-10 bg-linear-to-t from-black/65 via-black/0 to-black/0" />
 
-      {/* Top-left status pill */}
+      {/* Top-left date pill */}
       <div className="pointer-events-none absolute top-3 left-3 z-10">
-        <Pill
-          variant={event.status === 'draft' ? 'muted' : 'success'}
-          className="text-[10px] uppercase tracking-wide"
-        >
-          {event.status === 'draft'
-            ? t('cardStatusDraft')
-            : t('cardStatusPublic')}
+        <Pill variant={datePill.variant} className="text-[10px] tracking-wide">
+          {datePill.label}
         </Pill>
       </div>
 
@@ -136,4 +148,47 @@ export async function EventCard({ event, isHost, locale }: EventCardProps) {
       </div>
     </div>
   )
+}
+
+// ----- Date pill rendering -------------------------------------------------
+
+type DatePillVariant = 'default' | 'muted' | 'success' | 'info'
+
+type RenderDatePillArgs = {
+  startsAt: string | null
+  locale: AppLocale
+  noDateLabel: string
+  todayLabel: string
+  tomorrowLabel: string
+  yesterdayLabel: string
+}
+
+function renderDatePill({
+  startsAt,
+  locale,
+  noDateLabel,
+  todayLabel,
+  tomorrowLabel,
+  yesterdayLabel,
+}: RenderDatePillArgs): { label: string; variant: DatePillVariant } {
+  if (!startsAt) return { label: noDateLabel, variant: 'muted' }
+  const bucket = bucketCardDate(startsAt, locale)
+  switch (bucket.kind) {
+    case 'today':
+      return { label: `${todayLabel}, ${bucket.time}`, variant: 'success' }
+    case 'tomorrow':
+      return { label: `${tomorrowLabel}, ${bucket.time}`, variant: 'info' }
+    case 'yesterday':
+      return { label: `${yesterdayLabel}, ${bucket.time}`, variant: 'muted' }
+    case 'past_relative':
+      return {
+        label: new Intl.RelativeTimeFormat(locale, { numeric: 'auto' }).format(
+          -bucket.days,
+          'day',
+        ),
+        variant: 'muted',
+      }
+    case 'absolute':
+      return { label: bucket.label, variant: 'default' }
+  }
 }

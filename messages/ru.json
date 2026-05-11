@@ -30,10 +30,11 @@
     "emptyTitle": "Событий пока нет",
     "emptyCta": "Создать первое событие",
     "newEventTile": "Новое событие",
-    "pastComingSoon": "Прошедшие события появятся здесь, когда добавим поддержку дат.",
+    "pastEmpty": "Прошедших событий пока нет.",
     "cardStatusDraft": "Черновик",
     "cardStatusPublic": "Публичное",
     "cardHostingBadge": "Организатор",
+    "cardNoDate": "Без даты",
     "cardActions": {
       "menuLabel": "Ещё действия",
       "edit": "Редактировать",
@@ -68,7 +69,35 @@
       "savedThenPublish": "Сначала сохрани черновик",
       "publishSuccess": "Опубликовано",
       "unpublishSuccess": "Возвращено в черновик",
-      "publishError": "Не удалось изменить статус. Попробуйте ещё раз."
+      "publishError": "Не удалось изменить статус. Попробуйте ещё раз.",
+      "missingStartAtError": "Добавь дату и время перед публикацией."
+    },
+    "fields": {
+      "startLabel": "Дата и время",
+      "endLabel": "Время окончания",
+      "addEndTime": "+ Добавить время окончания",
+      "removeEndTime": "Убрать время окончания",
+      "clearDate": "Очистить дату",
+      "done": "Готово",
+      "datePickerPlaceholder": "Выбери дату и время",
+      "timeLabel": "Время",
+      "locationNameLabel": "Место",
+      "locationNamePlaceholder": "Квартира, офис и т.д.",
+      "locationAddressLabel": "Адрес",
+      "locationAddressPlaceholder": "Улица, дом, район…",
+      "descriptionLabel": "Описание",
+      "descriptionPlaceholder": "О чём событие? Дресс-код, что взять, чего ждать…",
+      "descriptionCharCount": "{used} / {max}",
+      "until": "до"
+    },
+    "validation": {
+      "endBeforeStart": "Время окончания должно быть позже начала",
+      "descriptionTooLong": "Описание не должно превышать 2000 символов"
+    },
+    "dateRelative": {
+      "today": "Сегодня",
+      "tomorrow": "Завтра",
+      "yesterday": "Вчера"
     },
     "public": {
       "notFound": "Событие не найдено",

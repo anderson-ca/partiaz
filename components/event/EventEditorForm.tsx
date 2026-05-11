@@ -7,16 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import type { ISourceOptions } from '@tsparticles/engine'
-import {
-  Calendar,
-  Crown,
-  DollarSign,
-  Loader2,
-  MapPin,
-  Plus,
-  Trash2,
-  Users,
-} from 'lucide-react'
+import { Loader2, Trash2 } from 'lucide-react'
 import { createEvent, updateEvent } from '@/app/actions/events'
 import { Button } from '@/components/ui/button'
 import { ColorPicker } from '@/components/event/ColorPicker'
@@ -27,8 +18,11 @@ import {
 } from '@/components/event/CoverImagePicker'
 import { CoverOverlayEditor } from '@/components/event/CoverOverlayEditor'
 import type { CoverIllustration } from '@/components/event/cover-picker/LibraryTab'
+import { DateTimePicker } from '@/components/event/DateTimePicker'
 import { DeleteEventDialog } from '@/components/event/DeleteEventDialog'
+import { DescriptionInput } from '@/components/event/DescriptionInput'
 import { EditorRail } from '@/components/event/EditorRail'
+import { LocationInput } from '@/components/event/LocationInput'
 import { LazyEffectOverlay as EffectOverlay } from '@/components/event/LazyEffectOverlay'
 import { PublishToggle } from '@/components/event/PublishToggle'
 import type { EffectRowMin } from '@/components/event/EffectPicker'
@@ -39,6 +33,7 @@ import {
 } from '@/components/event/FontPicker'
 import { ThemeBackground } from '@/components/event/ThemeBackground'
 import { fontFamilyToCssVar } from '@/lib/fonts'
+import type { AppLocale } from '@/lib/dates'
 import { eventInputSchema, type EventInput } from '@/lib/schemas/event'
 import type { ThemeRow } from '@/lib/schemas/theme'
 import { cn } from '@/lib/utils'
@@ -58,6 +53,11 @@ export type EventEditorInitial = {
   cover_overlay_text: string | null
   cover_overlay_font_id: string | null
   cover_overlay_color: string | null
+  starts_at: string | null
+  ends_at: string | null
+  location_text: string | null
+  location_address: string | null
+  description: string | null
 }
 
 type EventEditorFormProps = {
@@ -126,6 +126,11 @@ export function EventEditorForm({
           cover_overlay_text: initialEvent.cover_overlay_text,
           cover_overlay_font_id: initialEvent.cover_overlay_font_id,
           cover_overlay_color: initialEvent.cover_overlay_color,
+          starts_at: initialEvent.starts_at,
+          ends_at: initialEvent.ends_at,
+          location_text: initialEvent.location_text,
+          location_address: initialEvent.location_address,
+          description: initialEvent.description,
         }
       : {
           title: '',
@@ -139,6 +144,11 @@ export function EventEditorForm({
           cover_overlay_text: null,
           cover_overlay_font_id: null,
           cover_overlay_color: null,
+          starts_at: null,
+          ends_at: null,
+          location_text: null,
+          location_address: null,
+          description: null,
         },
   })
 
@@ -155,7 +165,6 @@ export function EventEditorForm({
   const overlayText = form.watch('cover_overlay_text') ?? ''
   const overlayFontId = form.watch('cover_overlay_font_id') ?? null
   const overlayColor = form.watch('cover_overlay_color') ?? '#ffffff'
-
   const overlayFont: FontPresetForPicker | null = overlayFontId
     ? fontPresets.find((f) => f.id === overlayFontId) ?? null
     : null
@@ -257,6 +266,7 @@ export function EventEditorForm({
         <section className="mx-auto mt-4 grid max-w-5xl grid-cols-1 gap-6 px-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:gap-8 md:px-8 md:pr-28">
           <EventCardForm
             form={form}
+            locale={locale}
             title={title ?? ''}
             titleFontFamily={titleFontFamily}
             fontWeight={selectedFont?.font_weight ?? 500}
@@ -335,6 +345,7 @@ export function EventEditorForm({
 
 type EventCardFormProps = {
   form: ReturnType<typeof useForm<EventInput>>
+  locale: string
   title: string
   titleFontFamily: string
   fontWeight: number
@@ -346,6 +357,7 @@ type EventCardFormProps = {
 
 function EventCardForm({
   form,
+  locale,
   title,
   titleFontFamily,
   fontWeight,
@@ -416,60 +428,110 @@ function EventCardForm({
         </div>
       </div>
 
-      {/* Mock fields — non-functional placeholders for fields that land in
-          Prompt 08.1+. Each carries `data-todo="08.1"` so we can find them. */}
-      <PlaceholderRow icon={<Calendar className="h-4 w-4" />}>
-        Set a date…
-      </PlaceholderRow>
-      <PlaceholderRow icon={<Crown className="h-4 w-4" />}>
-        Hosted by …
-      </PlaceholderRow>
-      <PlaceholderRow icon={<MapPin className="h-4 w-4" />}>
-        Location
-      </PlaceholderRow>
-      <PlaceholderRow icon={<Users className="h-4 w-4" />}>
-        Unlimited spots
-      </PlaceholderRow>
-      <PlaceholderRow icon={<DollarSign className="h-4 w-4" />}>
-        Cost per person
-      </PlaceholderRow>
-
-      <div className="flex flex-wrap gap-2 pt-1" data-todo="08.2">
-        {['Link', 'Playlist', 'Registry', 'Dress code'].map((label) => (
-          <span
-            key={label}
-            className="inline-flex items-center gap-1 rounded-full bg-black/40 px-3 py-1.5 text-xs text-white/80"
-          >
-            <Plus className="h-3.5 w-3.5" />
-            {label}
-          </span>
-        ))}
-      </div>
-
-      <div
-        data-todo="08.1"
-        className="rounded-xl bg-black/30 p-4 text-sm text-white/40"
-      >
-        Add a description of your event
-      </div>
+      <EventMetaFields form={form} locale={locale} />
     </div>
   )
 }
 
-function PlaceholderRow({
-  icon,
-  children,
-}: {
-  icon: React.ReactNode
-  children: React.ReactNode
-}) {
+// ----- Date / location / description block --------------------------------
+
+type EventMetaFieldsProps = {
+  form: ReturnType<typeof useForm<EventInput>>
+  locale: string
+}
+
+function EventMetaFields({ form, locale }: EventMetaFieldsProps) {
+  const t = useTranslations('events.fields')
+  const tVal = useTranslations('events.validation')
+
+  const startsAt = form.watch('starts_at') ?? null
+  const endsAt = form.watch('ends_at') ?? null
+  const locationText = form.watch('location_text') ?? ''
+  const locationAddress = form.watch('location_address') ?? ''
+  const description = form.watch('description') ?? ''
+  const endsAtError = form.formState.errors.ends_at?.message
+  const [showEndPicker, setShowEndPicker] = useState(() => endsAt !== null)
+
+  const startDate = startsAt ? new Date(startsAt) : null
+  const endDate = endsAt ? new Date(endsAt) : null
+  const appLocale = locale as AppLocale
+
+  const setStart = (d: Date | null) =>
+    form.setValue('starts_at', d ? d.toISOString() : null, {
+      shouldDirty: true,
+      shouldValidate: true,
+    })
+  const setEnd = (d: Date | null) =>
+    form.setValue('ends_at', d ? d.toISOString() : null, {
+      shouldDirty: true,
+      shouldValidate: true,
+    })
+
   return (
-    <div
-      data-todo="08.1"
-      className="flex items-center gap-2.5 rounded-xl bg-black/30 px-4 py-3 text-sm text-white/70"
-    >
-      <span className="text-white/60">{icon}</span>
-      <span>{children}</span>
+    <div className="space-y-3 pt-2">
+      <div className="space-y-2">
+        <label className="text-xs font-medium text-white/70">
+          {t('startLabel')}
+        </label>
+        <DateTimePicker
+          value={startDate}
+          onChange={setStart}
+          variant="start"
+          locale={appLocale}
+          ariaLabel={t('startLabel')}
+        />
+        {!showEndPicker ? (
+          <button
+            type="button"
+            onClick={() => setShowEndPicker(true)}
+            className="text-xs text-white/60 transition-colors hover:text-white"
+          >
+            {t('addEndTime')}
+          </button>
+        ) : (
+          <div className="space-y-1">
+            <DateTimePicker
+              value={endDate}
+              onChange={setEnd}
+              minDate={startDate ?? undefined}
+              variant="end"
+              locale={appLocale}
+              ariaLabel={t('endLabel')}
+            />
+            {endsAtError && (
+              <p className="text-xs text-rose-300">{tVal('endBeforeStart')}</p>
+            )}
+            <button
+              type="button"
+              onClick={() => {
+                setEnd(null)
+                setShowEndPicker(false)
+              }}
+              className="text-xs text-white/60 transition-colors hover:text-white"
+            >
+              {t('removeEndTime')}
+            </button>
+          </div>
+        )}
+      </div>
+
+      <LocationInput
+        nameValue={locationText}
+        addressValue={locationAddress}
+        onChangeName={(v) =>
+          form.setValue('location_text', v, { shouldDirty: true })
+        }
+        onChangeAddress={(v) =>
+          form.setValue('location_address', v, { shouldDirty: true })
+        }
+      />
+
+      <DescriptionInput
+        value={description}
+        onChange={(v) =>
+          form.setValue('description', v, { shouldDirty: true })
+        }
+      />
     </div>
   )
 }

@@ -20,6 +20,26 @@ const SLUG_RETRIES = 3
  *
  * Returns the slice ready to spread into an insert/update payload.
  */
+/**
+ * Empty-string → null for the free-text date/location/description fields.
+ * RHF returns '' from cleared inputs; storing nulls keeps `WHERE … IS NULL`
+ * queries clean and the Past-tab filter doesn't need to special-case empties.
+ */
+function normalizeMeta(input: EventInput) {
+  const blankToNull = (s: string | null | undefined) => {
+    if (s == null) return null
+    const trimmed = s.trim()
+    return trimmed.length === 0 ? null : trimmed
+  }
+  return {
+    starts_at: input.starts_at ?? null,
+    ends_at: input.ends_at ?? null,
+    location_text: blankToNull(input.location_text),
+    location_address: blankToNull(input.location_address),
+    description: blankToNull(input.description),
+  }
+}
+
 function normalizeOverlay(input: EventInput, fallbackTitle: string) {
   const enabled = input.cover_overlay_enabled === true
   if (!enabled) {
@@ -57,6 +77,7 @@ export async function createEvent(
 
   const finalTitle = parsed.data.title || 'Untitled Event'
   const overlay = normalizeOverlay(parsed.data, finalTitle)
+  const meta = normalizeMeta(parsed.data)
 
   // 6-char base56 collisions are vanishingly rare (~30B possibilities), but
   // a unique-violation retry costs us nothing and makes the create path
@@ -68,6 +89,7 @@ export async function createEvent(
       .insert({
         ...parsed.data,
         ...overlay,
+        ...meta,
         title: finalTitle,
         host_id: user.id,
         slug,
@@ -105,12 +127,14 @@ export async function updateEvent(
 
   const finalTitle = parsed.data.title || 'Untitled Event'
   const overlay = normalizeOverlay(parsed.data, finalTitle)
+  const meta = normalizeMeta(parsed.data)
 
   const { error } = await supabase
     .from('events')
     .update({
       ...parsed.data,
       ...overlay,
+      ...meta,
       title: finalTitle,
     })
     .eq('slug', slug)
@@ -200,7 +224,7 @@ function extractStoragePath(url: string): string | null {
 
 export type SetEventStatusResult =
   | { ok: true }
-  | { ok: false; error: string }
+  | { ok: false; error: 'invalid_status' | 'unauthenticated' | 'missing_start_at' | 'db' }
 
 export async function setEventStatus(
   slug: string,
@@ -216,13 +240,29 @@ export async function setEventStatus(
   } = await supabase.auth.getUser()
   if (!user) return { ok: false, error: 'unauthenticated' }
 
+  // Publish guard — refuse to flip draft → published without a start time.
+  // The dashboard's Upcoming/Past tabs key off `starts_at`, and a published
+  // event with no date would float in neither bucket. Cheap pre-check
+  // beats letting the row update succeed and then having to chase the
+  // dangling-date bug downstream.
+  if (status === 'published') {
+    const { data: row, error: fetchErr } = await supabase
+      .from('events')
+      .select('starts_at')
+      .eq('slug', slug)
+      .eq('host_id', user.id)
+      .maybeSingle()
+    if (fetchErr || !row) return { ok: false, error: 'db' }
+    if (!row.starts_at) return { ok: false, error: 'missing_start_at' }
+  }
+
   const { error } = await supabase
     .from('events')
     .update({ status })
     .eq('slug', slug)
     .eq('host_id', user.id)
 
-  if (error) return { ok: false, error: error.message }
+  if (error) return { ok: false, error: 'db' }
 
   revalidatePath(`/e/${slug}`)
   revalidatePath(`/events/${slug}/edit`)

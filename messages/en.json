@@ -30,10 +30,11 @@
     "emptyTitle": "No events yet",
     "emptyCta": "Create your first event",
     "newEventTile": "New Event",
-    "pastComingSoon": "Past events will appear here once date support is added.",
+    "pastEmpty": "No past events yet.",
     "cardStatusDraft": "Draft",
     "cardStatusPublic": "Public",
     "cardHostingBadge": "Hosting",
+    "cardNoDate": "No date yet",
     "cardActions": {
       "menuLabel": "More actions",
       "edit": "Edit",
@@ -68,7 +69,35 @@
       "savedThenPublish": "Save draft first",
       "publishSuccess": "Published",
       "unpublishSuccess": "Reverted to draft",
-      "publishError": "Couldn't change status. Try again."
+      "publishError": "Couldn't change status. Try again.",
+      "missingStartAtError": "Add a date and time before publishing."
+    },
+    "fields": {
+      "startLabel": "Date and time",
+      "endLabel": "End time",
+      "addEndTime": "+ Add end time",
+      "removeEndTime": "Remove end time",
+      "clearDate": "Clear date",
+      "done": "Done",
+      "datePickerPlaceholder": "Pick a date and time",
+      "timeLabel": "Time",
+      "locationNameLabel": "Location",
+      "locationNamePlaceholder": "Maria's apartment, The office, etc.",
+      "locationAddressLabel": "Address",
+      "locationAddressPlaceholder": "Street, building, district…",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "What's the event about? Dress code, what to bring, what to expect…",
+      "descriptionCharCount": "{used} / {max}",
+      "until": "until"
+    },
+    "validation": {
+      "endBeforeStart": "End time must be after the start time",
+      "descriptionTooLong": "Description must be 2000 characters or less"
+    },
+    "dateRelative": {
+      "today": "Today",
+      "tomorrow": "Tomorrow",
+      "yesterday": "Yesterday"
     },
     "public": {
       "notFound": "Event not found",

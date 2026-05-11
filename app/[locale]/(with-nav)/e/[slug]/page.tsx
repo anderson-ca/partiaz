@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { setRequestLocale, getTranslations } from 'next-intl/server'
-import { Calendar, Crown, Lock, Pencil } from 'lucide-react'
+import { Calendar, Crown, Lock, MapPin, Pencil } from 'lucide-react'
 import type { ISourceOptions } from '@tsparticles/engine'
 import { CoverImage } from '@/components/event/CoverImage'
 import { EventTitle } from '@/components/event/EventTitle'
@@ -9,6 +9,7 @@ import { LazyEffectOverlay as EffectOverlay } from '@/components/event/LazyEffec
 import { RestrictedAccessCard } from '@/components/event/RestrictedAccessCard'
 import { RsvpButtonsStub } from '@/components/event/RsvpButtonsStub'
 import { ThemeBackground } from '@/components/event/ThemeBackground'
+import { formatLongDate, type AppLocale } from '@/lib/dates'
 import { FLOATING_SURFACE } from '@/lib/ui/floating-surface'
 import type { ThemeBackgroundValue } from '@/lib/schemas/theme'
 import { createClient } from '@/lib/supabase/server'
@@ -24,6 +25,7 @@ export default async function PublicEventPage({
   const { locale, slug } = await params
   setRequestLocale(locale)
   const t = await getTranslations('events.public')
+  const tFields = await getTranslations('events.fields')
 
   const supabase = await createClient()
   const {
@@ -39,6 +41,7 @@ export default async function PublicEventPage({
     .select(
       `id, slug, title, status, audience, text_color, cover_image_url,
        cover_overlay_enabled, cover_overlay_text, cover_overlay_color,
+       starts_at, ends_at, location_text, location_address, description,
        theme:themes(id,name,category,background_type,background_value,recommended_text_color,order_index),
        effect:effects(id,name,category,engine,config),
        font_preset:font_presets!events_font_preset_id_fkey(id,name,category,font_family,font_weight,letter_spacing,text_transform),
@@ -148,15 +151,54 @@ export default async function PublicEventPage({
               className="text-5xl leading-tight tracking-tight md:text-6xl"
             />
 
-            <DetailRow icon={<Calendar className="h-4 w-4" />}>
-              {t('dateTbd')}
-            </DetailRow>
-            {/* Location row hidden under restricted access card on private
-                events — show on the bare layout for hosts and public events. */}
-            {!restricted && (
+            {/* Date row — live when starts_at is set; otherwise the
+                placeholder pre-09.84 wording. */}
+            {event.starts_at ? (
+              <DetailRow icon={<Calendar className="h-4 w-4" />}>
+                <div className="leading-tight">
+                  <div>
+                    {formatLongDate(event.starts_at, locale as AppLocale)}
+                  </div>
+                  {event.ends_at && (
+                    <div className="text-sm text-white/60">
+                      {tFields('until')}{' '}
+                      {formatLongDate(event.ends_at, locale as AppLocale)}
+                    </div>
+                  )}
+                </div>
+              </DetailRow>
+            ) : (
+              <DetailRow icon={<Calendar className="h-4 w-4" />}>
+                {t('dateTbd')}
+              </DetailRow>
+            )}
+
+            {/* Location row. Public events show address inline; private+
+                restricted viewers see the locked placeholder. */}
+            {restricted ? null : event.location_text || event.location_address ? (
+              <DetailRow icon={<MapPin className="h-4 w-4" />}>
+                <div className="leading-tight">
+                  {event.location_text && (
+                    <div>{event.location_text}</div>
+                  )}
+                  {event.location_address && (
+                    <div className="text-sm text-white/60">
+                      {event.location_address}
+                    </div>
+                  )}
+                </div>
+              </DetailRow>
+            ) : (
               <DetailRow icon={<Lock className="h-4 w-4" />}>
                 {t('locationLocked')}
               </DetailRow>
+            )}
+
+            {/* Free-text description — preserve whitespace, no markdown. */}
+            {event.description && (
+              <p className="whitespace-pre-wrap text-base text-white/80">
+                {event.description}
+              </p>
             )}
 
             <div className="flex items-center gap-3">
@@ -227,12 +269,9 @@ function DetailRow({
   children: React.ReactNode
 }) {
   return (
-    <div
-      data-todo="08.1"
-      className="flex items-center gap-2 text-base text-white/80"
-    >
-      <span className="text-white/60">{icon}</span>
-      <span>{children}</span>
+    <div className="flex items-start gap-2 text-base text-white/80">
+      <span className="mt-1 shrink-0 text-white/60">{icon}</span>
+      <div className="min-w-0 flex-1">{children}</div>
     </div>
   )
 }

@@ -29,7 +29,7 @@ export default async function EditEventPage({
   const { data: event, error } = await supabase
     .from('events')
     .select(
-      'id,slug,status,title,host_id,theme_id,effect_id,font_preset_id,text_color,cover_image_url,cover_image_source,cover_overlay_enabled,cover_overlay_text,cover_overlay_font_id,cover_overlay_color',
+      'id,slug,status,title,host_id,theme_id,effect_id,font_preset_id,text_color,cover_image_url,cover_image_source,cover_overlay_enabled,cover_overlay_text,cover_overlay_font_id,cover_overlay_color,starts_at,ends_at,location_text,location_address,description',
     )
     .eq('slug', slug)
     .maybeSingle()
@@ -86,6 +86,11 @@ export default async function EditEventPage({
     cover_overlay_text: event.cover_overlay_text,
     cover_overlay_font_id: event.cover_overlay_font_id,
     cover_overlay_color: event.cover_overlay_color,
+    starts_at: event.starts_at,
+    ends_at: event.ends_at,
+    location_text: event.location_text,
+    location_address: event.location_address,
+    description: event.description,
   }
 
   return (

@@ -37,11 +37,12 @@ export default async function DashboardPage({
     supabase
       .from('events')
       .select(
-        `id, slug, title, status, text_color, cover_image_url,
+        `id, slug, title, status, text_color, cover_image_url, starts_at,
          theme:themes(background_type, background_value),
          font_preset:font_presets!events_font_preset_id_fkey(font_family, font_weight, letter_spacing, text_transform)`,
       )
       .eq('host_id', user.id)
+      .order('starts_at', { ascending: true, nullsFirst: false })
       .order('created_at', { ascending: false }),
   ])
 
@@ -56,6 +57,7 @@ export default async function DashboardPage({
       status: e.status as EventCardEvent['status'],
       text_color: e.text_color,
       cover_image_url: e.cover_image_url,
+      starts_at: e.starts_at,
       theme: {
         background_type: e.theme!
           .background_type as ThemeBackgroundValue['type'],
@@ -64,41 +66,39 @@ export default async function DashboardPage({
       font_preset: e.font_preset!,
     }))
 
+  const now = Date.now()
   const hosting = events
-  // Upcoming (today) = published; date-based filtering lands when starts_at
-  // wires up in Prompt 08.1.
-  const upcoming = events.filter((e) => e.status === 'published')
+  // Upcoming = published + a future start. Drafts without dates and
+  // dateless-anything stay out of Upcoming (they're visible in Hosting).
+  const upcoming = events.filter(
+    (e) =>
+      e.status === 'published' &&
+      e.starts_at !== null &&
+      new Date(e.starts_at).getTime() >= now,
+  )
+  // Past = anything with a start in the past, regardless of status — a draft
+  // whose date already slipped still belongs here so the host can recover it.
+  const past = events.filter(
+    (e) => e.starts_at !== null && new Date(e.starts_at).getTime() < now,
+  )
 
   const counts = {
     upcoming: upcoming.length,
     hosting: hosting.length,
-    past: 0,
+    past: past.length,
   }
 
   // Pre-render the cards on the server so EventTabs (Client Component) can
   // pass them as children without becoming async itself.
-  const upcomingCards =
-    upcoming.length > 0
-      ? upcoming.map((e) => (
-          <EventCard
-            key={e.id}
-            event={e}
-            isHost={true}
-            locale={locale}
-          />
+  const renderCards = (list: EventCardEvent[]) =>
+    list.length > 0
+      ? list.map((e) => (
+          <EventCard key={e.id} event={e} isHost={true} locale={locale} />
         ))
       : null
-  const hostingCards =
-    hosting.length > 0
-      ? hosting.map((e) => (
-          <EventCard
-            key={e.id}
-            event={e}
-            isHost={true}
-            locale={locale}
-          />
-        ))
-      : null
+  const upcomingCards = renderCards(upcoming)
+  const hostingCards = renderCards(hosting)
+  const pastCards = renderCards(past)
 
   const firstName =
     profile?.display_name?.split(' ')[0] ?? user.email?.split('@')[0] ?? 'there'
@@ -126,6 +126,7 @@ export default async function DashboardPage({
           counts={counts}
           upcomingCards={upcomingCards}
           hostingCards={hostingCards}
+          pastCards={pastCards}
           newEventTile={<NewEventTile locale={locale} />}
           locale={locale}
         />

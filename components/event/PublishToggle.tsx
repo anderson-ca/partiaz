@@ -76,6 +76,12 @@ export function PublishToggle({
             if (result.ok) {
               toast.success(t('publishSuccess'))
               router.refresh()
+            } else if (result.error === 'missing_start_at') {
+              // The server-side publish guard refused — user hasn't set a
+              // date. Surface a specific message; the generic publishError
+              // would be confusing here ("couldn't change status" implies
+              // a transient failure, not a missing input).
+              toast.error(t('missingStartAtError'))
             } else {
               toast.error(t('publishError'))
             }

@@ -30,10 +30,11 @@
     "emptyTitle": "Hələ tədbir yoxdur",
     "emptyCta": "İlk tədbirini yarat",
     "newEventTile": "Yeni tədbir",
-    "pastComingSoon": "Tarix dəstəyi əlavə edildikdə keçmiş tədbirlər burada görünəcək.",
+    "pastEmpty": "Hələ keçmiş tədbir yoxdur.",
     "cardStatusDraft": "Qaralama",
     "cardStatusPublic": "Açıq",
     "cardHostingBadge": "Təşkilatçı",
+    "cardNoDate": "Tarix yoxdur",
     "cardActions": {
       "menuLabel": "Daha çox əməliyyat",
       "edit": "Redaktə et",
@@ -68,7 +69,35 @@
       "savedThenPublish": "Əvvəlcə qaralamanı saxla",
       "publishSuccess": "Açıq edildi",
       "unpublishSuccess": "Qaralamaya qaytarıldı",
-      "publishError": "Statusu dəyişmək alınmadı. Yenidən cəhd edin."
+      "publishError": "Statusu dəyişmək alınmadı. Yenidən cəhd edin.",
+      "missingStartAtError": "Dərc etməzdən əvvəl tarix və saat əlavə et."
+    },
+    "fields": {
+      "startLabel": "Tarix və saat",
+      "endLabel": "Bitmə saatı",
+      "addEndTime": "+ Bitmə saatı əlavə et",
+      "removeEndTime": "Bitmə saatını sil",
+      "clearDate": "Tarixi sil",
+      "done": "Hazırdır",
+      "datePickerPlaceholder": "Tarix və saat seç",
+      "timeLabel": "Saat",
+      "locationNameLabel": "Yer",
+      "locationNamePlaceholder": "Mənzil, ofis, və s.",
+      "locationAddressLabel": "Ünvan",
+      "locationAddressPlaceholder": "Küçə, bina, rayon…",
+      "descriptionLabel": "Təsvir",
+      "descriptionPlaceholder": "Tədbir nə haqqındadır? Geyim tərzi, gətirməli olduqlar, gözləntilər…",
+      "descriptionCharCount": "{used} / {max}",
+      "until": "qədər"
+    },
+    "validation": {
+      "endBeforeStart": "Bitmə vaxtı başlama vaxtından sonra olmalıdır",
+      "descriptionTooLong": "Təsvir 2000 simvoldan çox olmamalıdır"
+    },
+    "dateRelative": {
+      "today": "Bu gün",
+      "tomorrow": "Sabah",
+      "yesterday": "Dünən"
     },
     "public": {
       "notFound": "Tədbir tapılmadı",
