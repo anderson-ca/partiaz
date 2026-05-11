@@ -1,6 +1,6 @@
 'use client'
 
-import { useTransition } from 'react'
+import { useEffect, useState, useTransition } from 'react'
 import { Check, Globe } from 'lucide-react'
 import { useLocale, useTranslations } from 'next-intl'
 import {
@@ -25,12 +25,26 @@ const LOCALE_LABELS: Record<Locale, string> = {
   en: 'English',
 }
 
+const TRIGGER_CLASS =
+  'flex h-9 w-9 items-center justify-center rounded-full text-white transition-all duration-150 hover:bg-white/10 active:scale-[0.95] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/40 disabled:opacity-50'
+
 export function LocaleSwitcher() {
   const t = useTranslations('nav')
   const router = useRouter()
   const pathname = usePathname()
   const currentLocale = useLocale() as Locale
   const [pending, startTransition] = useTransition()
+
+  // Pre-mount: render the bare trigger only, no DropdownMenu wrapper. The
+  // Radix Root calls `useId()` for the trigger ↔ content aria-controls
+  // relationship; if that id differs SSR vs client (which can happen when
+  // upstream client components in the tree — Sonner, NextIntlProvider —
+  // mount asynchronously and shift the useId counter), hydration fails on
+  // the trigger button. Holding off the wrapper until post-mount makes SSR
+  // and first paint identical (bare button, no Radix ids), eliminating the
+  // mismatch. Same pattern as ResponsivePicker (CLAUDE.md).
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
 
   function changeLocale(next: Locale) {
     if (next === currentLocale) return
@@ -43,6 +57,19 @@ export function LocaleSwitcher() {
     })
   }
 
+  if (!mounted) {
+    return (
+      <button
+        type="button"
+        aria-label={t('languageMenuLabel')}
+        disabled
+        className={TRIGGER_CLASS}
+      >
+        <Globe className="h-4 w-4" />
+      </button>
+    )
+  }
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -50,7 +77,7 @@ export function LocaleSwitcher() {
           type="button"
           aria-label={t('languageMenuLabel')}
           disabled={pending}
-          className="flex h-9 w-9 items-center justify-center rounded-full text-white transition-all duration-150 hover:bg-white/10 active:scale-[0.95] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/40 disabled:opacity-50"
+          className={TRIGGER_CLASS}
         >
           <Globe className="h-4 w-4" />
         </button>

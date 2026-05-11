@@ -168,6 +168,25 @@ export function EventEditorForm({
   const selectedFont: FontPresetForPicker | null =
     fontPresets.find((f) => f.id === fontPresetId) ?? defaultFont ?? null
 
+  // Memoize the effect-prop object so its identity is stable across keystrokes
+  // on unrelated form fields (title, color, etc.). tsParticles' <Particles>
+  // re-initialises the engine — restarting any in-flight animation — when its
+  // `options` prop receives a new reference, so a fresh object literal per
+  // render would yank the effect back to frame 0 on every keystroke.
+  const effectForOverlay = useMemo(
+    () =>
+      selectedEffect
+        ? {
+            id: selectedEffect.id,
+            name: selectedEffect.name,
+            engine:
+              selectedEffect.engine === 'tsparticles' ? ('tsparticles' as const) : ('css' as const),
+            config: selectedEffect.config as ISourceOptions,
+          }
+        : null,
+    [selectedEffect],
+  )
+
   const [pending, setPending] = useState(false)
 
   async function onSubmit(values: EventInput) {
@@ -217,20 +236,7 @@ export function EventEditorForm({
       <ThemeBackground theme={selectedTheme} className="fixed inset-0" />
 
       {/* Layer 1: ambient effect overlay */}
-      <EffectOverlay
-        effect={
-          selectedEffect
-            ? {
-                id: selectedEffect.id,
-                name: selectedEffect.name,
-                engine:
-                  selectedEffect.engine === 'tsparticles' ? 'tsparticles' : 'css',
-                config: selectedEffect.config as ISourceOptions,
-              }
-            : null
-        }
-        className="fixed inset-0"
-      />
+      <EffectOverlay effect={effectForOverlay} className="fixed inset-0" />
 
       {/* Layer 2: page content */}
       <div className="relative z-20 min-h-screen pb-32 md:pb-12">

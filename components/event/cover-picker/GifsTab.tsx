@@ -4,7 +4,6 @@ import { useEffect, useRef, useState, useTransition } from 'react'
 import { Loader2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   searchGiphy,
   type GiphyError,
@@ -62,7 +61,7 @@ export function GifsTab({ onSelect }: GifsTabProps) {
   }
 
   return (
-    <div className="flex flex-1 flex-col">
+    <div className="flex min-h-0 flex-1 flex-col">
       <div className="flex items-center gap-3 px-4 pt-3 pb-2">
         <input
           type="search"
@@ -78,7 +77,7 @@ export function GifsTab({ onSelect }: GifsTabProps) {
         </span>
       </div>
 
-      <ScrollArea className="flex-1">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
         {error === 'no_api_key' ? (
           <p className="px-6 py-12 text-center text-sm text-amber-300">
             {t('noApiKey')}
@@ -133,7 +132,7 @@ export function GifsTab({ onSelect }: GifsTabProps) {
             )}
           </div>
         )}
-      </ScrollArea>
+      </div>
     </div>
   )
 }

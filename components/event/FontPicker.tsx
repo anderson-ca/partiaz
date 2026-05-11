@@ -1,6 +1,5 @@
 'use client'
 
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 import { fontFamilyToCssVar } from '@/lib/fonts'
 import { cn } from '@/lib/utils'
 
@@ -28,8 +27,17 @@ export function FontPicker({
   className,
 }: FontPickerProps) {
   return (
-    <ScrollArea className={cn('w-full whitespace-nowrap', className)}>
-      <div className="flex w-max gap-2 px-1 pb-2">
+    // Native horizontal overflow, scrollbar hidden — wheel/touch/keyboard
+    // scroll still works. Padding `py-2` gives the pills room to breathe on
+    // both sides without a scrollbar kissing their bottom edge.
+    <div
+      className={cn(
+        'w-full overflow-x-auto py-2 whitespace-nowrap',
+        '[scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
+        className,
+      )}
+    >
+      <div className="flex w-max gap-2 px-1">
         {fontPresets.map((f) => {
           const isSelected = f.id === selectedFontPresetId
           const cssVar = fontFamilyToCssVar[f.font_family] ?? '--font-inter'
@@ -60,7 +68,6 @@ export function FontPicker({
           )
         })}
       </div>
-      <ScrollBar orientation="horizontal" className="h-1.5" />
-    </ScrollArea>
+    </div>
   )
 }

@@ -4,9 +4,14 @@ import Image from 'next/image'
 import { useMemo, useState } from 'react'
 import { Check } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { Pill } from '@/components/ui/pill'
 import { cn } from '@/lib/utils'
+
+// Hides the WebKit/Firefox scrollbar while keeping native scroll behaviour.
+// The right-edge mask hints at horizontal scrollability without a visible bar.
+const HSCROLL_INVISIBLE =
+  'overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ' +
+  '[mask-image:linear-gradient(to_right,black_calc(100%-1.5rem),transparent)]'
 
 export type CoverIllustration = {
   id: string
@@ -54,8 +59,8 @@ export function LibraryTab({
   }, [illustrations, query, category])
 
   return (
-    <div className="flex flex-1 flex-col">
-      <div className="space-y-3 px-4 pt-3 pb-2">
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="shrink-0 space-y-3 px-4 pt-3 pb-2">
         <input
           type="search"
           value={query}
@@ -63,8 +68,11 @@ export function LibraryTab({
           placeholder={t('searchPlaceholder')}
           className="w-full rounded-full border border-white/15 bg-white/5 px-3.5 py-2 text-sm text-white placeholder:text-white/40 focus:border-violet-400/60 focus:outline-none focus:ring-2 focus:ring-violet-400/40"
         />
-        <ScrollArea className="-mx-1 w-[calc(100%+0.5rem)]">
-          <div className="flex gap-2 px-1">
+        {/* Negative margins + matching padding let the chip row span the
+            picker's full width and scroll edge-to-edge without the right-
+            most chip getting clipped by the parent's px-4 padding. */}
+        <div className={cn('-mx-4 px-4', HSCROLL_INVISIBLE)}>
+          <div className="flex gap-2">
             {CATEGORIES.map((cat) => {
               const active = cat === category
               return (
@@ -98,10 +106,10 @@ export function LibraryTab({
               )
             })}
           </div>
-        </ScrollArea>
+        </div>
       </div>
 
-      <ScrollArea className="flex-1">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
         {filtered.length === 0 ? (
           <p className="px-6 py-12 text-center text-sm text-white/60">
             {t('emptyState')}
@@ -143,7 +151,7 @@ export function LibraryTab({
             })}
           </div>
         )}
-      </ScrollArea>
+      </div>
     </div>
   )
 }

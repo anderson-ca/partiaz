@@ -16,6 +16,16 @@ import { cn } from '@/lib/utils'
 
 export type CoverSource = 'illustration' | 'gif' | 'upload'
 
+// Pill triggers — content-sized (not grid-equal) so each pill hugs its
+// label tightly, matching the dashboard EventTabs treatment from [09.8].
+// `min-w-20` keeps the shortest label ("GIFs") from collapsing to an
+// awkwardly small pill next to "Library".
+const TAB_TRIGGER_CLASS = cn(
+  'min-w-20 justify-center rounded-full border-0 px-4 py-1.5 text-sm font-medium text-white/60',
+  'transition-all duration-150 hover:bg-white/5 hover:text-white',
+  'data-[state=active]:bg-white data-[state=active]:text-zinc-900 data-[state=active]:shadow-none',
+)
+
 type CoverImagePickerProps = {
   illustrations: CoverIllustration[]
   currentUrl: string | null
@@ -57,43 +67,22 @@ export function CoverImagePicker({
       side="left"
       align="start"
     >
-      <Tabs defaultValue="library" className="flex flex-1 flex-col">
-        <TabsList className="mx-4 mt-3 grid w-auto shrink-0 grid-cols-3 gap-1 rounded-full bg-white/5 p-1">
-          <TabsTrigger
-            value="library"
-            className={cn(
-              'rounded-full border-0 px-3 py-1.5 text-sm text-white/60 transition-all duration-150',
-              'hover:bg-white/5 hover:text-white',
-              'data-[state=active]:bg-white data-[state=active]:text-zinc-900 data-[state=active]:shadow-none',
-            )}
-          >
+      <Tabs defaultValue="library" className="flex min-h-0 flex-1 flex-col">
+        <TabsList className="mx-4 mt-3 inline-flex w-auto shrink-0 items-center gap-1 rounded-full bg-white/5 p-1">
+          <TabsTrigger value="library" className={TAB_TRIGGER_CLASS}>
             {tTabs('library')}
           </TabsTrigger>
-          <TabsTrigger
-            value="gifs"
-            className={cn(
-              'rounded-full border-0 px-3 py-1.5 text-sm text-white/60 transition-all duration-150',
-              'hover:bg-white/5 hover:text-white',
-              'data-[state=active]:bg-white data-[state=active]:text-zinc-900 data-[state=active]:shadow-none',
-            )}
-          >
+          <TabsTrigger value="gifs" className={TAB_TRIGGER_CLASS}>
             {tTabs('gifs')}
           </TabsTrigger>
-          <TabsTrigger
-            value="upload"
-            className={cn(
-              'rounded-full border-0 px-3 py-1.5 text-sm text-white/60 transition-all duration-150',
-              'hover:bg-white/5 hover:text-white',
-              'data-[state=active]:bg-white data-[state=active]:text-zinc-900 data-[state=active]:shadow-none',
-            )}
-          >
+          <TabsTrigger value="upload" className={TAB_TRIGGER_CLASS}>
             {tTabs('upload')}
           </TabsTrigger>
         </TabsList>
 
         <TabsContent
           value="library"
-          className="flex flex-1 flex-col overflow-hidden"
+          className="flex min-h-0 flex-1 flex-col overflow-hidden"
         >
           <LibraryTab
             illustrations={illustrations}
@@ -104,14 +93,14 @@ export function CoverImagePicker({
 
         <TabsContent
           value="gifs"
-          className="flex flex-1 flex-col overflow-hidden"
+          className="flex min-h-0 flex-1 flex-col overflow-hidden"
         >
           <GifsTab onSelect={(url) => handleSelect(url, 'gif')} />
         </TabsContent>
 
         <TabsContent
           value="upload"
-          className="flex flex-1 flex-col overflow-hidden"
+          className="flex min-h-0 flex-1 flex-col overflow-hidden"
         >
           <UploadTab onSelect={(url) => handleSelect(url, 'upload')} />
         </TabsContent>

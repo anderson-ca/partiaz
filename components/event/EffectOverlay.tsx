@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { memo, useEffect, useState } from 'react'
 import Particles, { initParticlesEngine } from '@tsparticles/react'
 // We deliberately use loadAll instead of loadSlim. 7 of our 14 seeded effects
 // depend on plugins not in slim:
@@ -51,7 +51,7 @@ function useReducedMotion(): boolean {
   return reduced
 }
 
-export function EffectOverlay({ effect, className }: EffectOverlayProps) {
+function EffectOverlayInner({ effect, className }: EffectOverlayProps) {
   const [ready, setReady] = useState(false)
   const reducedMotion = useReducedMotion()
 
@@ -79,3 +79,14 @@ export function EffectOverlay({ effect, className }: EffectOverlayProps) {
     />
   )
 }
+
+/**
+ * `React.memo` is doing real work here. `@tsparticles/react` v3.0.0 lists the
+ * entire props object in its internal `useEffect` deps array
+ * (`[id, props, props.url, props.options]`), so the particle engine
+ * destroys + reloads on every parent re-render — restarting the animation.
+ * The parent already memoizes `effect`, and `className` is a string literal,
+ * so memoizing this component short-circuits the render entirely when the
+ * editor re-renders for unrelated reasons (title keystrokes, cover switch).
+ */
+export const EffectOverlay = memo(EffectOverlayInner)

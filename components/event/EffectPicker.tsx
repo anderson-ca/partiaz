@@ -2,15 +2,10 @@
 
 import { useMemo, useState } from 'react'
 import { Check, Dices } from 'lucide-react'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 import { Button } from '@/components/ui/button'
 import { EffectThumbnail } from '@/components/event/EffectThumbnail'
 import { ResponsivePicker } from '@/components/event/ResponsivePicker'
 import { cn } from '@/lib/utils'
-
-const CATEGORIES = ['all', 'fun', 'classic', 'trending', 'seasonal'] as const
-type Category = (typeof CATEGORIES)[number]
 
 export type EffectRowMin = {
   id: string
@@ -36,9 +31,8 @@ export function EffectPicker({
   trigger,
 }: EffectPickerProps) {
   const [open, setOpen] = useState(false)
-  const [activeTab, setActiveTab] = useState<Category>('all')
 
-  // Separate "None" from the rest — it's pinned and always visible.
+  // "None" is pinned at the top so users can always clear the effect.
   const noneEffect = useMemo(
     () => effects.find((e) => e.name === 'None') ?? null,
     [effects],
@@ -48,19 +42,14 @@ export function EffectPicker({
     [effects],
   )
 
-  const filtered = useMemo(() => {
-    if (activeTab === 'all') return nonNone
-    return nonNone.filter((e) => e.category === activeTab)
-  }, [nonNone, activeTab])
-
   function handlePick(effectId: string | null) {
     onSelectEffect(effectId)
     setOpen(false)
   }
 
   function handleShuffle() {
-    if (filtered.length === 0) return
-    const random = filtered[Math.floor(Math.random() * filtered.length)]
+    if (nonNone.length === 0) return
+    const random = nonNone[Math.floor(Math.random() * nonNone.length)]
     if (onShuffle) onShuffle()
     onSelectEffect(random.id)
     setOpen(false)
@@ -86,30 +75,8 @@ export function EffectPicker({
         </Button>
       }
     >
-      <Tabs
-        value={activeTab}
-        onValueChange={(v) => setActiveTab(v as Category)}
-        className="border-b border-white/10"
-      >
-        <ScrollArea className="w-full">
-          <TabsList className="flex w-max min-w-full justify-start gap-1 bg-transparent px-3 py-2">
-            {CATEGORIES.map((cat) => (
-              <TabsTrigger
-                key={cat}
-                value={cat}
-                className="rounded-full border-0 px-3 py-1 text-sm capitalize text-white/60 transition-all duration-150 hover:bg-white/5 hover:text-white data-[state=active]:bg-white data-[state=active]:text-zinc-900 data-[state=active]:shadow-none"
-              >
-                {cat}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-          <ScrollBar orientation="horizontal" className="h-1.5" />
-        </ScrollArea>
-      </Tabs>
-
-      <ScrollArea className="flex-1">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
         <div className="grid grid-cols-3 gap-3 p-4 min-[380px]:grid-cols-4">
-          {/* Pinned None button */}
           {noneEffect && (
             <EffectCircle
               name={noneEffect.name}
@@ -119,7 +86,7 @@ export function EffectPicker({
             />
           )}
 
-          {filtered.map((effect) => (
+          {nonNone.map((effect) => (
             <EffectCircle
               key={effect.id}
               name={effect.name}
@@ -129,7 +96,7 @@ export function EffectPicker({
             />
           ))}
         </div>
-      </ScrollArea>
+      </div>
     </ResponsivePicker>
   )
 }
