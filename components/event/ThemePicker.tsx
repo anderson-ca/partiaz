@@ -146,7 +146,7 @@ export function ThemePicker({
                   isSelected && 'ring-2 ring-white ring-offset-2 ring-offset-zinc-900',
                 )}
               >
-                <ThemeBackground theme={theme} />
+                <ThemeBackground theme={theme} staticOnly />
                 {isSelected && (
                   <div className="absolute inset-0 z-10 flex items-center justify-center">
                     <span className="rounded-full bg-white/90 p-1 text-zinc-900">

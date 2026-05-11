@@ -53,6 +53,7 @@ export function EditorRail({
                 <ThemeBackground
                   theme={selectedTheme}
                   colorOverride={selectedColorOverride ?? undefined}
+                  staticOnly
                   className="absolute inset-0 z-0"
                 />
               </div>

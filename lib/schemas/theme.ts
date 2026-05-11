@@ -30,11 +30,22 @@ export type ThemeSolid = {
   color: string
 }
 
+export type ThemeVideo = {
+  type: 'video'
+  /** Public Supabase Storage URL for the .mp4 (theme-videos bucket). */
+  src: string
+  /** Static-frame JPG extracted by scripts/process-theme-videos.ts. Used as
+   *  <video poster=…>, the picker-grid thumbnail, dashboard card background,
+   *  and the prefers-reduced-motion fallback. */
+  poster: string
+}
+
 export type ThemeBackgroundValue =
   | ThemeGradient
   | ThemeUnsplash
   | ThemePattern
   | ThemeSolid
+  | ThemeVideo
 
 export type ThemeBackgroundType = ThemeBackgroundValue['type']
 

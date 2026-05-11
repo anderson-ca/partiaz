@@ -77,7 +77,11 @@ export async function EventCard({ event, isHost, locale }: EventCardProps) {
             />
           )
         ) : (
-          <ThemeBackground theme={event.theme} className="absolute inset-0" />
+          <ThemeBackground
+            theme={event.theme}
+            staticOnly
+            className="absolute inset-0"
+          />
         )}
       </div>
 
