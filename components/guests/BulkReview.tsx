@@ -39,6 +39,10 @@ type ReviewRow = {
 type BulkReviewProps = {
   eventId: string
   result: ParseResult
+  /** E.164 phones already on the guest list for this event. */
+  existingPhones: string[]
+  /** Lowercased emails already on the guest list for this event. */
+  existingEmails: string[]
   onSuccess: () => void
   onCancel: () => void
 }
@@ -46,6 +50,8 @@ type BulkReviewProps = {
 export function BulkReview({
   eventId,
   result,
+  existingPhones,
+  existingEmails,
   onSuccess,
   onCancel,
 }: BulkReviewProps) {
@@ -56,14 +62,40 @@ export function BulkReview({
   // mount") to keep useId() sequences stable across SSR/hydration.
   const [mounted, setMounted] = React.useState(false)
   const isDesktop = useMediaQuery('(min-width: 768px)')
-  const [rows, setRows] = React.useState<ReviewRow[]>(() =>
-    result.valid.map((g, i) => ({
-      rowId: `row-${i}`,
-      name: g.name ?? '',
-      phone: g.phone,
-      email: g.email,
-    })),
-  )
+
+  // Partition parsed rows ONCE on mount: already-on-list (read-only "skipped"
+  // section) vs willAdd (editable, counted toward submit). Also dedupes
+  // within the same paste — first occurrence wins, the rest go to the
+  // already-on-list bucket. Mirrors the server's `addGuestsBatch` dedupe
+  // logic so what the user sees matches what gets inserted.
+  const [{ initialRows, alreadyOnList }] = React.useState(() => {
+    const phoneSet = new Set(existingPhones)
+    const emailSet = new Set(existingEmails)
+    const seenPhones = new Set<string>()
+    const seenEmails = new Set<string>()
+    const initial: ReviewRow[] = []
+    const skipped: { phone: string | null; email: string | null }[] = []
+    result.valid.forEach((g, i) => {
+      const collides =
+        (g.phone && (phoneSet.has(g.phone) || seenPhones.has(g.phone))) ||
+        (g.email && (emailSet.has(g.email) || seenEmails.has(g.email)))
+      if (collides) {
+        skipped.push({ phone: g.phone, email: g.email })
+        return
+      }
+      if (g.phone) seenPhones.add(g.phone)
+      if (g.email) seenEmails.add(g.email)
+      initial.push({
+        rowId: `row-${i}`,
+        name: g.name ?? '',
+        phone: g.phone,
+        email: g.email,
+      })
+    })
+    return { initialRows: initial, alreadyOnList: skipped }
+  })
+
+  const [rows, setRows] = React.useState<ReviewRow[]>(initialRows)
   const [pending, startTransition] = React.useTransition()
 
   React.useEffect(() => setMounted(true), [])
@@ -141,6 +173,26 @@ export function BulkReview({
             </li>
           ))}
         </ul>
+      )}
+
+      {alreadyOnList.length > 0 && (
+        <section className="space-y-1.5 rounded-lg bg-white/5 p-3 ring-1 ring-white/10">
+          <h3 className="text-xs font-medium text-white/70">
+            {t('reviewAlreadyOnListTitle', { count: alreadyOnList.length })}
+          </h3>
+          <ul className="space-y-0.5 text-xs text-white/50">
+            {alreadyOnList.map((row, i) => (
+              <li key={i} className="truncate">
+                {[
+                  row.phone ? formatPhoneDisplay(row.phone) : null,
+                  row.email,
+                ]
+                  .filter(Boolean)
+                  .join(' · ')}
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
 
       {result.invalid.length > 0 && (

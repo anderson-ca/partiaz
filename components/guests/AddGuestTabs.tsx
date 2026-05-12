@@ -14,7 +14,20 @@ import {
 import { isContactsPickerSupported } from '@/lib/contacts-picker'
 import { cn } from '@/lib/utils'
 
-export function AddGuestTabs({ eventId }: { eventId: string }) {
+type AddGuestTabsProps = {
+  eventId: string
+  /** Existing E.164 phones in this event — passed down so the bulk review
+   *  modal can flag rows that would collide. */
+  existingPhones: string[]
+  /** Existing lowercased emails in this event. */
+  existingEmails: string[]
+}
+
+export function AddGuestTabs({
+  eventId,
+  existingPhones,
+  existingEmails,
+}: AddGuestTabsProps) {
   const t = useTranslations('events.guests.bulk')
 
   // Contacts tab is post-mount only. SSR has no `navigator`, and even on
@@ -53,11 +66,19 @@ export function AddGuestTabs({ eventId }: { eventId: string }) {
         <AddGuestForm eventId={eventId} />
       </TabsContent>
       <TabsContent value="paste" className="mt-3">
-        <PasteTab eventId={eventId} />
+        <PasteTab
+          eventId={eventId}
+          existingPhones={existingPhones}
+          existingEmails={existingEmails}
+        />
       </TabsContent>
       {showContacts && (
         <TabsContent value="contacts" className="mt-3">
-          <ContactsTab eventId={eventId} />
+          <ContactsTab
+            eventId={eventId}
+            existingPhones={existingPhones}
+            existingEmails={existingEmails}
+          />
         </TabsContent>
       )}
     </Tabs>

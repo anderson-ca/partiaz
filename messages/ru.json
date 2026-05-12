@@ -230,6 +230,7 @@
         "tabSingle": "По одному",
         "tabPaste": "Вставить",
         "tabContacts": "Контакты",
+        "cancel": "Отмена",
         "pasteTitle": "Вставь список",
         "pasteHelper": "По одному контакту в строке. Мы сами разберём имена, телефоны и email.",
         "pastePlaceholder": "Лейла Мамедова +994 50 123 45 67\nКамран kamran@example.com\nНигяр +1 415 555 9876 nigar@example.com",
@@ -244,6 +245,7 @@
         "reviewRemoveAria": "Убрать из списка",
         "reviewAllRemoved": "Все строки удалены. Отмени, чтобы начать заново.",
         "reviewInvalidTitle": "{count, plural, one {1 строку не удалось разобрать} few {# строки не удалось разобрать} many {# строк не удалось разобрать} other {# строк не удалось разобрать}}",
+        "reviewAlreadyOnListTitle": "{count, plural, one {1 уже в списке — пропущен} few {# уже в списке — пропущены} many {# уже в списке — пропущены} other {# уже в списке — пропущены}}",
         "reviewSubmit": "{count, plural, =0 {Добавить гостей} one {Добавить 1 гостя} few {Добавить # гостей} many {Добавить # гостей} other {Добавить # гостей}}",
         "successToast": "Добавлено {added} · пропущено {skipped} дублей",
         "errors": {

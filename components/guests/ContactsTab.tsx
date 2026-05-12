@@ -9,7 +9,17 @@ import { BulkReview } from '@/components/guests/BulkReview'
 import { pickContacts } from '@/lib/contacts-picker'
 import { type ParseResult } from '@/lib/parse-contacts'
 
-export function ContactsTab({ eventId }: { eventId: string }) {
+type ContactsTabProps = {
+  eventId: string
+  existingPhones: string[]
+  existingEmails: string[]
+}
+
+export function ContactsTab({
+  eventId,
+  existingPhones,
+  existingEmails,
+}: ContactsTabProps) {
   const t = useTranslations('events.guests.bulk')
   const [result, setResult] = React.useState<ParseResult | null>(null)
   const [pending, startTransition] = React.useTransition()
@@ -52,6 +62,8 @@ export function ContactsTab({ eventId }: { eventId: string }) {
         <BulkReview
           eventId={eventId}
           result={result}
+          existingPhones={existingPhones}
+          existingEmails={existingEmails}
           onSuccess={() => setResult(null)}
           onCancel={() => setResult(null)}
         />

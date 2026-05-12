@@ -230,6 +230,7 @@
         "tabSingle": "Add one",
         "tabPaste": "Paste",
         "tabContacts": "Contacts",
+        "cancel": "Cancel",
         "pasteTitle": "Paste a list",
         "pasteHelper": "One contact per line. We'll figure out names, phones, and emails.",
         "pastePlaceholder": "Leyla Mammadova +994 50 123 45 67\nKamran kamran@example.com\nNigar +1 415 555 9876 nigar@example.com",
@@ -244,6 +245,7 @@
         "reviewRemoveAria": "Remove from batch",
         "reviewAllRemoved": "You removed every row. Cancel to start over.",
         "reviewInvalidTitle": "{count, plural, one {1 line couldn't be parsed} other {# lines couldn't be parsed}}",
+        "reviewAlreadyOnListTitle": "{count, plural, one {1 already on the list — skipped} other {# already on the list — skipped}}",
         "reviewSubmit": "{count, plural, =0 {Add guests} one {Add 1 guest} other {Add # guests}}",
         "successToast": "Added {added} · skipped {skipped} duplicates",
         "errors": {

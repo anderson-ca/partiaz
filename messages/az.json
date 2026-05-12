@@ -230,6 +230,7 @@
         "tabSingle": "Tək-tək",
         "tabPaste": "Yapışdır",
         "tabContacts": "Kontaktlar",
+        "cancel": "Ləğv et",
         "pasteTitle": "Siyahı yapışdır",
         "pasteHelper": "Hər sətirə bir nəfər. Adları, telefonları və emailləri özümüz tapacağıq.",
         "pastePlaceholder": "Leyla Məmmədova +994 50 123 45 67\nKamran kamran@example.com\nNigar +1 415 555 9876 nigar@example.com",
@@ -244,6 +245,7 @@
         "reviewRemoveAria": "Siyahıdan çıxar",
         "reviewAllRemoved": "Bütün sətirlər silindi. Yenidən başlamaq üçün ləğv et.",
         "reviewInvalidTitle": "{count, plural, one {1 sətir təhlil olunmadı} other {# sətir təhlil olunmadı}}",
+        "reviewAlreadyOnListTitle": "{count, plural, one {1 artıq siyahıdadır — atlandı} other {# artıq siyahıdadır — atlandı}}",
         "reviewSubmit": "{count, plural, =0 {Qonaqları əlavə et} one {1 qonağı əlavə et} other {# qonağı əlavə et}}",
         "successToast": "{added} əlavə edildi · {skipped} təkrar atlandı",
         "errors": {

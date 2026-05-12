@@ -57,6 +57,17 @@ export default async function GuestsPage({
     rsvp: g.rsvp as GuestListItem['rsvp'],
   }))
 
+  // Existing contact channels in this event — fed into AddGuestTabs so the
+  // bulk review modal can flag rows that would collide with what's already
+  // on the list. Server-side dedupe in addGuestsBatch is still authoritative;
+  // this is purely a UX layer to set expectations before submit.
+  const existingPhones = guests
+    .map((g) => g.phone)
+    .filter((p): p is string => !!p)
+  const existingEmails = guests
+    .map((g) => g.email)
+    .filter((e): e is string => !!e)
+
   const t = await getTranslations('events.guests')
 
   return (
@@ -77,7 +88,11 @@ export default async function GuestsPage({
           </p>
         </header>
 
-        <AddGuestTabs eventId={event.id} />
+        <AddGuestTabs
+          eventId={event.id}
+          existingPhones={existingPhones}
+          existingEmails={existingEmails}
+        />
         <GuestList eventId={event.id} guests={guests} />
       </div>
     </>

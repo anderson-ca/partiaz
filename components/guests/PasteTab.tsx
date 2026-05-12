@@ -10,7 +10,17 @@ import {
   type ParseResult,
 } from '@/lib/parse-contacts'
 
-export function PasteTab({ eventId }: { eventId: string }) {
+type PasteTabProps = {
+  eventId: string
+  existingPhones: string[]
+  existingEmails: string[]
+}
+
+export function PasteTab({
+  eventId,
+  existingPhones,
+  existingEmails,
+}: PasteTabProps) {
   const t = useTranslations('events.guests.bulk')
   const [text, setText] = React.useState('')
   const [result, setResult] = React.useState<ParseResult | null>(null)
@@ -49,6 +59,8 @@ export function PasteTab({ eventId }: { eventId: string }) {
         <BulkReview
           eventId={eventId}
           result={result}
+          existingPhones={existingPhones}
+          existingEmails={existingEmails}
           onSuccess={() => {
             setResult(null)
             setText('')
