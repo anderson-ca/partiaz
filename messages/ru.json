@@ -8,6 +8,41 @@
     "loading": "Загрузка…"
   },
   "auth": {
+    "phone": {
+      "title": "Войти по телефону",
+      "phoneLabel": "Номер телефона",
+      "phonePlaceholder": "50 123 45 67",
+      "helperText": "Отправим код в WhatsApp. Не из Азербайджана? Начни с + и кода страны.",
+      "sendCodeButton": "Отправить код",
+      "sending": "Отправляем…",
+      "otpTitle": "Введи код",
+      "otpSentTo": "Мы отправили код на {phone}",
+      "useDifferentPhone": "Другой номер",
+      "verifyButton": "Подтвердить",
+      "verifying": "Проверяем…",
+      "resendCode": "Отправить ещё раз",
+      "resendAvailableIn": "Ещё раз через {seconds} с",
+      "nameTitle": "Как тебя называть?",
+      "nameHelper": "Так ты будешь отображаться на своих событиях",
+      "namePlaceholder": "Имя",
+      "continueButton": "Продолжить",
+      "saving": "Сохраняем…",
+      "errors": {
+        "invalid_phone": "Введи корректный номер телефона.",
+        "rate_limited": "Слишком много попыток. Подожди пару минут.",
+        "send_failed": "Не удалось отправить код. Попробуй ещё раз.",
+        "invalid_code": "Неверный код. Попробуй ещё раз.",
+        "expired_code": "Код истёк. Запроси новый.",
+        "verify_failed": "Не удалось проверить. Попробуй ещё раз.",
+        "invalid_name": "Введи имя (1-100 символов).",
+        "save_failed": "Не удалось сохранить имя. Попробуй ещё раз.",
+        "unauthorized": "Сессия истекла. Войди снова."
+      }
+    },
+    "loginPage": {
+      "orDivider": "или",
+      "emailSectionTitle": "Войти по email"
+    },
     "login": {
       "title": "Войдите в аккаунт",
       "emailLabel": "Эл. почта",
@@ -22,7 +57,8 @@
     "greeting": "Привет, {email}"
   },
   "dashboard": {
-    "welcomeBack": "С возвращением, {name}!",
+    "welcomeWithName": "Добро пожаловать, {name}!",
+    "welcomeNoName": "Добро пожаловать в parti.az",
     "eventsCount": "{count, plural, =0 {У тебя пока нет событий.} one {У тебя # событие.} few {У тебя # события.} many {У тебя # событий.} other {У тебя # событий.}}",
     "tabUpcoming": "Предстоящие",
     "tabHosting": "Организую",

@@ -8,6 +8,41 @@
     "loading": "Yüklənir…"
   },
   "auth": {
+    "phone": {
+      "title": "Telefonla daxil ol",
+      "phoneLabel": "Telefon nömrəsi",
+      "phonePlaceholder": "50 123 45 67",
+      "helperText": "WhatsApp-da kod göndərəcəyik. Xarici nömrə? + ilə ölkə kodunu yaz.",
+      "sendCodeButton": "Kod göndər",
+      "sending": "Göndərilir…",
+      "otpTitle": "Kodu daxil et",
+      "otpSentTo": "{phone} nömrəsinə kod göndərdik",
+      "useDifferentPhone": "Başqa nömrə",
+      "verifyButton": "Təsdiqlə",
+      "verifying": "Təsdiqlənir…",
+      "resendCode": "Kodu yenidən göndər",
+      "resendAvailableIn": "{seconds} saniyə",
+      "nameTitle": "Səni necə çağıraq?",
+      "nameHelper": "Bu, təşkil etdiyin tədbirlərdə görünəcək",
+      "namePlaceholder": "Adın",
+      "continueButton": "Davam et",
+      "saving": "Saxlanır…",
+      "errors": {
+        "invalid_phone": "Düzgün telefon nömrəsi yaz.",
+        "rate_limited": "Çox cəhd edildi. Bir neçə dəqiqə gözlə.",
+        "send_failed": "Kod göndərilmədi. Yenidən cəhd et.",
+        "invalid_code": "Səhv kod. Yenidən cəhd et.",
+        "expired_code": "Kodun vaxtı bitdi. Yenisini istə.",
+        "verify_failed": "Təsdiqləmək alınmadı. Yenidən cəhd et.",
+        "invalid_name": "Ad yaz (1-100 simvol).",
+        "save_failed": "Ad saxlanmadı. Yenidən cəhd et.",
+        "unauthorized": "Sessiyanın vaxtı bitdi. Yenidən daxil ol."
+      }
+    },
+    "loginPage": {
+      "orDivider": "və ya",
+      "emailSectionTitle": "E-poçtla daxil ol"
+    },
     "login": {
       "title": "Hesabınıza daxil olun",
       "emailLabel": "E-poçt",
@@ -22,7 +57,8 @@
     "greeting": "Salam, {email}"
   },
   "dashboard": {
-    "welcomeBack": "Xoş gəldin, {name}!",
+    "welcomeWithName": "Xoş gəldin, {name}!",
+    "welcomeNoName": "parti.az-a xoş gəldin",
     "eventsCount": "{count, plural, =0 {Hələ tədbirin yoxdur.} other {# tədbirin var.}}",
     "tabUpcoming": "Gələcək",
     "tabHosting": "Təşkil edirəm",

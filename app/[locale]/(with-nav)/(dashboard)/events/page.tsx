@@ -123,8 +123,18 @@ export default async function DashboardPage({
   const hostingCards = renderCards(hosting)
   const pastCards = renderCards(past)
 
+  // First name resolution, defensive: an empty-string display_name (e.g. a
+  // phone signup that bailed before the "what should we call you?" step)
+  // shouldn't render as "Welcome, !". The `||` chain treats empty strings
+  // as falsy and falls through. When nothing resolves to a real name we
+  // switch to the no-name greeting variant instead of plugging "there" in.
   const firstName =
-    profile?.display_name?.split(' ')[0] ?? user.email?.split('@')[0] ?? 'there'
+    profile?.display_name?.trim().split(' ')[0] ||
+    user.email?.split('@')[0] ||
+    null
+  const greeting = firstName
+    ? t('welcomeWithName', { name: firstName })
+    : t('welcomeNoName')
 
   return (
     <>
@@ -138,7 +148,7 @@ export default async function DashboardPage({
       <div className="mx-auto max-w-6xl px-4 py-8 md:px-8 md:py-12">
         <header className="mb-8 md:mb-12">
           <h1 className="text-4xl font-semibold tracking-tight text-white md:text-5xl">
-            {t('welcomeBack', { name: firstName })}
+            {greeting}
           </h1>
           <p className="mt-2 text-lg text-white/60">
             {t('eventsCount', { count: events.length })}

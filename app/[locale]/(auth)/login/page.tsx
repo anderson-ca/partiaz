@@ -1,5 +1,6 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { redirect } from 'next/navigation'
+import { PhoneAuthForm } from '@/components/auth/PhoneAuthForm'
 import { LocaleSwitcher } from '@/components/navigation/LocaleSwitcher'
 import { isSafeRelativePath } from '@/lib/auth/safe-redirect'
 import { FLOATING_SURFACE } from '@/lib/ui/floating-surface'
@@ -34,6 +35,7 @@ export default async function LoginPage({
   }
 
   const t = await getTranslations('auth.login')
+  const tPage = await getTranslations('auth.loginPage')
 
   return (
     <div className="relative min-h-screen bg-linear-to-br from-violet-950 via-indigo-950 to-zinc-950">
@@ -51,12 +53,27 @@ export default async function LoginPage({
             'w-full max-w-md rounded-2xl p-8 md:p-10',
           )}
         >
-          <header className="mb-8">
+          <header className="mb-6">
             <h1 className="text-3xl font-semibold tracking-tight text-white">
               parti.az
             </h1>
             <p className="mt-1 text-sm text-white/60">{t('title')}</p>
           </header>
+
+          {/* Phone is the primary auth method for AZ — most users have
+              WhatsApp and OTP is faster than email round-trip. Promoted to
+              the top of the card; email + Google sit below the divider as
+              secondary options. */}
+          <PhoneAuthForm next={next} />
+
+          <div className="my-6 flex items-center gap-3">
+            <span className="h-px flex-1 bg-white/10" />
+            <span className="text-xs uppercase tracking-wide text-white/40">
+              {tPage('orDivider')}
+            </span>
+            <span className="h-px flex-1 bg-white/10" />
+          </div>
+
           <LoginForm next={next} />
         </div>
       </main>

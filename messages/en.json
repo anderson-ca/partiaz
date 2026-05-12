@@ -8,6 +8,41 @@
     "loading": "Loading…"
   },
   "auth": {
+    "phone": {
+      "title": "Sign in with phone",
+      "phoneLabel": "Phone number",
+      "phonePlaceholder": "50 123 45 67",
+      "helperText": "We'll send you a code on WhatsApp. International? Start with + and your country code.",
+      "sendCodeButton": "Send code",
+      "sending": "Sending…",
+      "otpTitle": "Enter your code",
+      "otpSentTo": "We sent a code to {phone}",
+      "useDifferentPhone": "Use a different phone",
+      "verifyButton": "Verify",
+      "verifying": "Verifying…",
+      "resendCode": "Resend code",
+      "resendAvailableIn": "Resend in {seconds}s",
+      "nameTitle": "What should we call you?",
+      "nameHelper": "This is how you'll appear on events you host",
+      "namePlaceholder": "Your name",
+      "continueButton": "Continue",
+      "saving": "Saving…",
+      "errors": {
+        "invalid_phone": "Please enter a valid phone number.",
+        "rate_limited": "Too many tries. Wait a few minutes and try again.",
+        "send_failed": "Couldn't send the code. Try again.",
+        "invalid_code": "Wrong code. Try again.",
+        "expired_code": "Code expired. Resend a new one.",
+        "verify_failed": "Couldn't verify. Try again.",
+        "invalid_name": "Please enter a name (1-100 characters).",
+        "save_failed": "Couldn't save your name. Try again.",
+        "unauthorized": "Your session expired. Sign in again."
+      }
+    },
+    "loginPage": {
+      "orDivider": "or",
+      "emailSectionTitle": "Sign in with email"
+    },
     "login": {
       "title": "Sign in to your account",
       "emailLabel": "Email",
@@ -22,7 +57,8 @@
     "greeting": "Hello, {email}"
   },
   "dashboard": {
-    "welcomeBack": "Welcome back, {name}!",
+    "welcomeWithName": "Welcome, {name}!",
+    "welcomeNoName": "Welcome to parti.az",
     "eventsCount": "{count, plural, =0 {You have no events yet.} one {You have 1 event.} other {You have # events.}}",
     "tabUpcoming": "Upcoming",
     "tabHosting": "Hosting",
