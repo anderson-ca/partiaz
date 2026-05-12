@@ -39,6 +39,7 @@ export type AddGuestResult =
         | 'invalid_phone'
         | 'invalid_email'
         | 'duplicate_phone'
+        | 'duplicate_email'
         | 'insert_failed'
     }
 
@@ -108,7 +109,17 @@ export async function addGuest(
 
   if (error) {
     if (error.code === PG_UNIQUE_VIOLATION) {
-      return { ok: false, error: 'duplicate_phone' }
+      // Disambiguate by constraint name embedded in the message. Falling
+      // through to insert_failed for unknown constraints (e.g. an
+      // invite_token collision, which is vanishingly rare with a 24-char
+      // nanoid) keeps us honest rather than mis-labelling.
+      const msg = error.message ?? ''
+      if (msg.includes('guests_event_id_phone_unique')) {
+        return { ok: false, error: 'duplicate_phone' }
+      }
+      if (msg.includes('guests_event_id_email_unique')) {
+        return { ok: false, error: 'duplicate_email' }
+      }
     }
     return { ok: false, error: 'insert_failed' }
   }

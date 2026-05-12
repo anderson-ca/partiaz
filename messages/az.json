@@ -222,6 +222,7 @@
         "invalid_phone": "Bu telefon nömrəsi düzgün görünmür.",
         "invalid_email": "Bu email düzgün görünmür.",
         "duplicate_phone": "Bu telefon nömrəsi ilə artıq qonaq siyahıdadır.",
+        "duplicate_email": "Bu email ilə artıq qonaq siyahıdadır.",
         "insert_failed": "Qonağı əlavə etmək alınmadı. Yenidən cəhd et.",
         "delete_failed": "Qonağı silmək alınmadı. Yenidən cəhd et."
       }

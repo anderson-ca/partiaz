@@ -1,43 +1,59 @@
-import {
-  isValidPhoneNumber,
-  parsePhoneNumber,
-  type CountryCode,
-} from 'libphonenumber-js/min'
+import { parsePhoneNumber, type CountryCode } from 'libphonenumber-js/min'
 
 // `libphonenumber-js/min` is ~15 kB vs ~150 kB for the full bundle. The min
 // variant covers all countries' calling codes + lengths but drops AsYouType
 // formatting and a few rare metadata fields we don't need.
 
-const DEFAULT_COUNTRY: CountryCode = 'AZ'
+// Order matters: the first country whose parse produces a valid number
+// wins. AZ first (primary audience), then US for the dev's own testing,
+// then likely guest origins for Baku events. Overlaps between AZ mobile
+// (9 digits starting 50/51/55/70/77/99) and the others are vanishingly
+// rare in practice.
+const DEFAULT_COUNTRIES: readonly CountryCode[] = [
+  'AZ',
+  'US',
+  'RU',
+  'TR',
+  'GE',
+  'UA',
+]
 
 /**
  * Normalize a user-typed phone number to E.164 (`+994501234567`).
  *
- * Accepts both bare local digits ("50 123 45 67" — interpreted against
- * `DEFAULT_COUNTRY`) and explicit international formats ("+994 50 ..." or
- * "+1 555 ..."). Returns null when the input can't be parsed as a valid
- * phone for any country.
+ * Accepts:
+ *   - explicit international ("+994 50 ..." or "+1 555 ...") — wins on the
+ *     first try regardless of the default-country list, since `+` overrides;
+ *   - bare local digits — tried against each country in `defaultCountries`
+ *     in order, first valid wins;
+ *   - bare international without `+` (e.g. "5127481053") — last-resort
+ *     fallback prepends `+` and parses as raw international.
+ *
+ * Returns null when the input can't be parsed as a valid phone for any of
+ * those interpretations.
  */
 export function normalizePhone(
   input: string,
-  defaultCountry: CountryCode = DEFAULT_COUNTRY,
+  defaultCountries: readonly CountryCode[] = DEFAULT_COUNTRIES,
 ): string | null {
   const trimmed = input.trim()
   if (!trimmed) return null
 
-  // First pass: parse as typed. Respects an explicit `+` prefix; otherwise
-  // interprets the digits against `defaultCountry` (AZ).
-  try {
-    const parsed = parsePhoneNumber(trimmed, defaultCountry)
-    if (parsed?.isValid()) return parsed.format('E.164')
-  } catch {
-    // fall through to the international-fallback parse below
+  // First passes: try each default country in order. An explicit `+` prefix
+  // makes the country argument a no-op (libphonenumber-js prefers the
+  // prefix), so international numbers win on the very first iteration.
+  for (const country of defaultCountries) {
+    try {
+      const parsed = parsePhoneNumber(trimmed, country)
+      if (parsed?.isValid()) return parsed.format('E.164')
+    } catch {
+      // try the next country
+    }
   }
 
-  // Fallback: user typed an international number without the leading `+`
-  // (e.g. a US tester typing "5127481053"). Strip non-digits, prepend `+`,
-  // and try again as a pure international parse. AZ-local numbers won't hit
-  // this branch — they validate on the first pass.
+  // Fallback: user typed an international number without the leading `+`.
+  // Strip non-digits, prepend `+`, and parse as pure international. Helps
+  // for country codes outside our default list.
   if (!trimmed.startsWith('+')) {
     const digits = trimmed.replace(/\D/g, '')
     if (digits.length >= 7) {
@@ -68,9 +84,3 @@ export function formatPhoneDisplay(e164: string): string {
   }
 }
 
-export function isValidPhone(
-  input: string,
-  defaultCountry: CountryCode = DEFAULT_COUNTRY,
-): boolean {
-  return isValidPhoneNumber(input.trim(), defaultCountry)
-}

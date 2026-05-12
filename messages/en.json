@@ -222,6 +222,7 @@
         "invalid_phone": "That phone number doesn't look right.",
         "invalid_email": "That email doesn't look right.",
         "duplicate_phone": "Someone with that phone is already on the list.",
+        "duplicate_email": "Someone with that email is already on the list.",
         "insert_failed": "Couldn't add the guest. Try again.",
         "delete_failed": "Couldn't remove the guest. Try again."
       }

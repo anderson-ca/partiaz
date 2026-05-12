@@ -60,23 +60,26 @@ export default async function GuestsPage({
   const t = await getTranslations('events.guests')
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6 px-4 py-6 md:px-8">
-      <header className="space-y-2">
-        <Link
-          href={`/${locale}/events/${slug}/edit`}
-          className="inline-flex items-center gap-1.5 text-xs text-white/60 hover:text-white"
-        >
-          <ArrowLeft className="h-3.5 w-3.5" />
-          {t('backToEditor')}
-        </Link>
-        <h1 className="text-2xl font-semibold text-white">{t('title')}</h1>
-        <p className="text-sm text-white/60">
-          {t('subtitle', { event: event.title })}
-        </p>
-      </header>
+    <>
+      <div className="fixed inset-0 -z-10 bg-linear-to-br from-violet-950 via-indigo-950 to-zinc-950" />
+      <div className="mx-auto max-w-2xl space-y-6 px-4 py-6 md:px-8">
+        <header className="space-y-2">
+          <Link
+            href={`/${locale}/events/${slug}/edit`}
+            className="inline-flex items-center gap-1.5 text-xs text-white/60 hover:text-white"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            {t('backToEditor')}
+          </Link>
+          <h1 className="text-2xl font-semibold text-white">{t('title')}</h1>
+          <p className="text-sm text-white/60">
+            {t('subtitle', { event: event.title })}
+          </p>
+        </header>
 
-      <AddGuestForm eventId={event.id} />
-      <GuestList eventId={event.id} guests={guests} />
-    </div>
+        <AddGuestForm eventId={event.id} />
+        <GuestList eventId={event.id} guests={guests} />
+      </div>
+    </>
   )
 }
