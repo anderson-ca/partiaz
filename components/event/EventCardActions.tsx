@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import Link from 'next/link'
-import { MoreVertical, Pencil, Trash2 } from 'lucide-react'
+import { MoreVertical, Pencil, Trash2, Users } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import {
   DropdownMenu,
@@ -62,6 +62,15 @@ export function EventCardActions({
             <Link href={`/${locale}/events/${slug}/edit`} className="gap-2">
               <Pencil className="h-4 w-4" />
               {t('edit')}
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            asChild
+            className="text-white focus:bg-white/10 focus:text-white"
+          >
+            <Link href={`/${locale}/events/${slug}/guests`} className="gap-2">
+              <Users className="h-4 w-4" />
+              {t('manageGuests')}
             </Link>
           </DropdownMenuItem>
           {!isCohosting && (

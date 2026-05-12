@@ -74,6 +74,7 @@
     "cardActions": {
       "menuLabel": "More actions",
       "edit": "Edit",
+      "manageGuests": "Manage guests",
       "delete": "Delete"
     }
   },
@@ -106,7 +107,8 @@
       "publishSuccess": "Published",
       "unpublishSuccess": "Reverted to draft",
       "publishError": "Couldn't change status. Try again.",
-      "missingStartAtError": "Add a date and time before publishing."
+      "missingStartAtError": "Add a date and time before publishing.",
+      "manageGuests": "Guests"
     },
     "fields": {
       "startLabel": "Date and time",
@@ -185,6 +187,44 @@
       "dangerZoneTitle": "Danger zone",
       "dangerZoneBody": "Deleting removes this event and everything tied to it — RSVPs, photos, polls, and messages.",
       "dangerZoneButton": "Delete event"
+    },
+    "guests": {
+      "title": "Guests",
+      "subtitle": "Manage the guest list for {event}.",
+      "backToEditor": "Back to editor",
+      "addTitle": "Add a guest",
+      "addHelper": "Phone or email is required. Name is optional.",
+      "nameLabel": "Name",
+      "namePlaceholder": "Leyla Mammadova",
+      "phoneLabel": "Phone",
+      "phonePlaceholder": "50 123 45 67",
+      "emailLabel": "Email",
+      "emailPlaceholder": "leyla@example.com",
+      "addButton": "Add guest",
+      "adding": "Adding…",
+      "addSuccess": "Guest added",
+      "cancel": "Cancel",
+      "status": {
+        "yes": "Going",
+        "maybe": "Maybe",
+        "no": "Can't make it",
+        "pending": "Not responded"
+      },
+      "deleteAria": "Remove {name}",
+      "deleteConfirmTitle": "Remove {name}?",
+      "deleteConfirmBody": "This removes them from the guest list. They can still RSVP again with the invite link.",
+      "deleteConfirmAction": "Remove",
+      "deleteSuccess": "Guest removed",
+      "emptyState": "No guests yet. Add your first one above.",
+      "errors": {
+        "unauthorized": "You're not signed in.",
+        "phone_or_email_required": "Add a phone number or email.",
+        "invalid_phone": "That phone number doesn't look right.",
+        "invalid_email": "That email doesn't look right.",
+        "duplicate_phone": "Someone with that phone is already on the list.",
+        "insert_failed": "Couldn't add the guest. Try again.",
+        "delete_failed": "Couldn't remove the guest. Try again."
+      }
     }
   },
   "coverPicker": {

@@ -74,6 +74,7 @@
     "cardActions": {
       "menuLabel": "Ещё действия",
       "edit": "Редактировать",
+      "manageGuests": "Управлять гостями",
       "delete": "Удалить"
     }
   },
@@ -106,7 +107,8 @@
       "publishSuccess": "Опубликовано",
       "unpublishSuccess": "Возвращено в черновик",
       "publishError": "Не удалось изменить статус. Попробуйте ещё раз.",
-      "missingStartAtError": "Добавь дату и время перед публикацией."
+      "missingStartAtError": "Добавь дату и время перед публикацией.",
+      "manageGuests": "Гости"
     },
     "fields": {
       "startLabel": "Дата и время",
@@ -185,6 +187,44 @@
       "dangerZoneTitle": "Опасная зона",
       "dangerZoneBody": "Удаление сотрёт это событие и всё связанное с ним — RSVP, фотографии, опросы и сообщения.",
       "dangerZoneButton": "Удалить событие"
+    },
+    "guests": {
+      "title": "Гости",
+      "subtitle": "Управление списком гостей для {event}.",
+      "backToEditor": "Назад к редактору",
+      "addTitle": "Добавить гостя",
+      "addHelper": "Нужен телефон или email. Имя необязательно.",
+      "nameLabel": "Имя",
+      "namePlaceholder": "Лейла Мамедова",
+      "phoneLabel": "Телефон",
+      "phonePlaceholder": "50 123 45 67",
+      "emailLabel": "Email",
+      "emailPlaceholder": "leyla@example.com",
+      "addButton": "Добавить гостя",
+      "adding": "Добавляем…",
+      "addSuccess": "Гость добавлен",
+      "cancel": "Отмена",
+      "status": {
+        "yes": "Идёт",
+        "maybe": "Может быть",
+        "no": "Не сможет",
+        "pending": "Не ответил"
+      },
+      "deleteAria": "Удалить {name}",
+      "deleteConfirmTitle": "Удалить {name}?",
+      "deleteConfirmBody": "Это уберёт их из списка гостей. Они смогут снова сделать RSVP по ссылке-приглашению.",
+      "deleteConfirmAction": "Удалить",
+      "deleteSuccess": "Гость удалён",
+      "emptyState": "Пока нет гостей. Добавь первого выше.",
+      "errors": {
+        "unauthorized": "Ты не вошёл в систему.",
+        "phone_or_email_required": "Добавь номер телефона или email.",
+        "invalid_phone": "Этот номер выглядит некорректно.",
+        "invalid_email": "Этот email выглядит некорректно.",
+        "duplicate_phone": "Гость с таким телефоном уже в списке.",
+        "insert_failed": "Не удалось добавить гостя. Попробуй ещё раз.",
+        "delete_failed": "Не удалось удалить гостя. Попробуй ещё раз."
+      }
     }
   },
   "coverPicker": {

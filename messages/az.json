@@ -74,6 +74,7 @@
     "cardActions": {
       "menuLabel": "Daha çox əməliyyat",
       "edit": "Redaktə et",
+      "manageGuests": "Qonaqları idarə et",
       "delete": "Sil"
     }
   },
@@ -106,7 +107,8 @@
       "publishSuccess": "Açıq edildi",
       "unpublishSuccess": "Qaralamaya qaytarıldı",
       "publishError": "Statusu dəyişmək alınmadı. Yenidən cəhd edin.",
-      "missingStartAtError": "Dərc etməzdən əvvəl tarix və saat əlavə et."
+      "missingStartAtError": "Dərc etməzdən əvvəl tarix və saat əlavə et.",
+      "manageGuests": "Qonaqlar"
     },
     "fields": {
       "startLabel": "Tarix və saat",
@@ -185,6 +187,44 @@
       "dangerZoneTitle": "Təhlükəli zona",
       "dangerZoneBody": "Silmə tədbiri və onunla bağlı hər şeyi — RSVP-ləri, şəkilləri, sorğuları və mesajları — yox edir.",
       "dangerZoneButton": "Tədbiri sil"
+    },
+    "guests": {
+      "title": "Qonaqlar",
+      "subtitle": "{event} üçün qonaq siyahısını idarə et.",
+      "backToEditor": "Redaktora qayıt",
+      "addTitle": "Qonaq əlavə et",
+      "addHelper": "Telefon və ya email tələb olunur. Ad istəyə bağlıdır.",
+      "nameLabel": "Ad",
+      "namePlaceholder": "Leyla Məmmədova",
+      "phoneLabel": "Telefon",
+      "phonePlaceholder": "50 123 45 67",
+      "emailLabel": "Email",
+      "emailPlaceholder": "leyla@example.com",
+      "addButton": "Qonağı əlavə et",
+      "adding": "Əlavə olunur…",
+      "addSuccess": "Qonaq əlavə edildi",
+      "cancel": "Ləğv et",
+      "status": {
+        "yes": "Gəlir",
+        "maybe": "Bəlkə",
+        "no": "Gələ bilmir",
+        "pending": "Cavab verməyib"
+      },
+      "deleteAria": "{name} adlı qonağı sil",
+      "deleteConfirmTitle": "{name} adlı qonağı silmək?",
+      "deleteConfirmBody": "Bu, qonağı siyahıdan çıxarır. Onlar dəvət linki ilə yenidən RSVP edə bilərlər.",
+      "deleteConfirmAction": "Sil",
+      "deleteSuccess": "Qonaq silindi",
+      "emptyState": "Hələ qonaq yoxdur. Yuxarıdan ilk qonağı əlavə et.",
+      "errors": {
+        "unauthorized": "Daxil olmamısan.",
+        "phone_or_email_required": "Telefon nömrəsi və ya email əlavə et.",
+        "invalid_phone": "Bu telefon nömrəsi düzgün görünmür.",
+        "invalid_email": "Bu email düzgün görünmür.",
+        "duplicate_phone": "Bu telefon nömrəsi ilə artıq qonaq siyahıdadır.",
+        "insert_failed": "Qonağı əlavə etmək alınmadı. Yenidən cəhd et.",
+        "delete_failed": "Qonağı silmək alınmadı. Yenidən cəhd et."
+      }
     }
   },
   "coverPicker": {

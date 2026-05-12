@@ -1,13 +1,14 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import type { ISourceOptions } from '@tsparticles/engine'
-import { Loader2, Trash2 } from 'lucide-react'
+import { Loader2, Trash2, Users } from 'lucide-react'
 import { createEvent, updateEvent } from '@/app/actions/events'
 import { Button } from '@/components/ui/button'
 import { ColorPicker } from '@/components/event/ColorPicker'
@@ -283,6 +284,14 @@ export function EventEditorForm({
       <div className="relative z-20 min-h-screen pb-32 md:pb-12">
         {/* Top bar — Save draft + Make it public */}
         <header className="mx-auto flex max-w-5xl items-center justify-end gap-3 px-4 pt-6 md:px-8 md:pr-28">
+          {mode === 'edit' && initialEvent && (
+            <Button asChild type="button" variant="outline">
+              <Link href={`/${locale}/events/${initialEvent.slug}/guests`}>
+                <Users className="h-4 w-4" />
+                {t('manageGuests')}
+              </Link>
+            </Button>
+          )}
           <PublishToggle
             mode={mode}
             slug={initialEvent?.slug}

@@ -570,6 +570,7 @@ export type Database = {
           guest_message: string | null
           host_notes: string | null
           id: string
+          invite_channel: string | null
           invite_token: string
           invited_at: string | null
           name: string
@@ -586,6 +587,7 @@ export type Database = {
           guest_message?: string | null
           host_notes?: string | null
           id?: string
+          invite_channel?: string | null
           invite_token: string
           invited_at?: string | null
           name?: string
@@ -602,6 +604,7 @@ export type Database = {
           guest_message?: string | null
           host_notes?: string | null
           id?: string
+          invite_channel?: string | null
           invite_token?: string
           invited_at?: string | null
           name?: string
