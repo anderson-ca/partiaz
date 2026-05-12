@@ -225,6 +225,33 @@
         "duplicate_email": "Bu email ilə artıq qonaq siyahıdadır.",
         "insert_failed": "Qonağı əlavə etmək alınmadı. Yenidən cəhd et.",
         "delete_failed": "Qonağı silmək alınmadı. Yenidən cəhd et."
+      },
+      "bulk": {
+        "tabSingle": "Tək-tək",
+        "tabPaste": "Yapışdır",
+        "tabContacts": "Kontaktlar",
+        "pasteTitle": "Siyahı yapışdır",
+        "pasteHelper": "Hər sətirə bir nəfər. Adları, telefonları və emailləri özümüz tapacağıq.",
+        "pastePlaceholder": "Leyla Məmmədova +994 50 123 45 67\nKamran kamran@example.com\nNigar +1 415 555 9876 nigar@example.com",
+        "parseButton": "Təhlil et",
+        "contactsTitle": "Kontaktlarından",
+        "contactsHelper": "Telefonunun kontakt siyahısından seç.",
+        "openContactsButton": "Kontaktları aç",
+        "contactsEmpty": "Kontakt seçilmədi.",
+        "reviewTitle": "{count, plural, =0 {Əlavə ediləcək heç nə yoxdur} one {1 qonağı yoxla} other {# qonağı yoxla}}",
+        "reviewDescription": "Lazım olarsa adları redaktə et, istəmədiklərini sil və sonra təsdiqlə.",
+        "reviewNamePlaceholder": "Ad (istəyə bağlı)",
+        "reviewRemoveAria": "Siyahıdan çıxar",
+        "reviewAllRemoved": "Bütün sətirlər silindi. Yenidən başlamaq üçün ləğv et.",
+        "reviewInvalidTitle": "{count, plural, one {1 sətir təhlil olunmadı} other {# sətir təhlil olunmadı}}",
+        "reviewSubmit": "{count, plural, =0 {Qonaqları əlavə et} one {1 qonağı əlavə et} other {# qonağı əlavə et}}",
+        "successToast": "{added} əlavə edildi · {skipped} təkrar atlandı",
+        "errors": {
+          "unauthorized": "Daxil olmamısan.",
+          "no_valid_input": "Əlavə ediləcək heç nə yoxdur. Daxiletməni yoxla və yenidən cəhd et.",
+          "concurrent_modification": "Eyni vaxtda başqası qonaq əlavə etdi. Yenidən cəhd et.",
+          "insert_failed": "Qonaqları əlavə etmək alınmadı. Yenidən cəhd et."
+        }
       }
     }
   },

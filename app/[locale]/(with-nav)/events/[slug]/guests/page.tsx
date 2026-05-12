@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
-import { AddGuestForm } from '@/components/guests/AddGuestForm'
+import { AddGuestTabs } from '@/components/guests/AddGuestTabs'
 import { GuestList, type GuestListItem } from '@/components/guests/GuestList'
 import { createClient } from '@/lib/supabase/server'
 
@@ -77,7 +77,7 @@ export default async function GuestsPage({
           </p>
         </header>
 
-        <AddGuestForm eventId={event.id} />
+        <AddGuestTabs eventId={event.id} />
         <GuestList eventId={event.id} guests={guests} />
       </div>
     </>

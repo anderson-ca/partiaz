@@ -225,6 +225,33 @@
         "duplicate_email": "Гость с таким email уже в списке.",
         "insert_failed": "Не удалось добавить гостя. Попробуй ещё раз.",
         "delete_failed": "Не удалось удалить гостя. Попробуй ещё раз."
+      },
+      "bulk": {
+        "tabSingle": "По одному",
+        "tabPaste": "Вставить",
+        "tabContacts": "Контакты",
+        "pasteTitle": "Вставь список",
+        "pasteHelper": "По одному контакту в строке. Мы сами разберём имена, телефоны и email.",
+        "pastePlaceholder": "Лейла Мамедова +994 50 123 45 67\nКамран kamran@example.com\nНигяр +1 415 555 9876 nigar@example.com",
+        "parseButton": "Разобрать",
+        "contactsTitle": "Из контактов",
+        "contactsHelper": "Выбери людей из контактов телефона.",
+        "openContactsButton": "Открыть контакты",
+        "contactsEmpty": "Контакты не выбраны.",
+        "reviewTitle": "{count, plural, =0 {Нечего добавлять} one {Проверь 1 гостя} few {Проверь # гостей} many {Проверь # гостей} other {Проверь # гостей}}",
+        "reviewDescription": "Поправь имена, убери ненужных и подтверди.",
+        "reviewNamePlaceholder": "Имя (необязательно)",
+        "reviewRemoveAria": "Убрать из списка",
+        "reviewAllRemoved": "Все строки удалены. Отмени, чтобы начать заново.",
+        "reviewInvalidTitle": "{count, plural, one {1 строку не удалось разобрать} few {# строки не удалось разобрать} many {# строк не удалось разобрать} other {# строк не удалось разобрать}}",
+        "reviewSubmit": "{count, plural, =0 {Добавить гостей} one {Добавить 1 гостя} few {Добавить # гостей} many {Добавить # гостей} other {Добавить # гостей}}",
+        "successToast": "Добавлено {added} · пропущено {skipped} дублей",
+        "errors": {
+          "unauthorized": "Ты не вошёл в систему.",
+          "no_valid_input": "Нечего добавлять. Проверь ввод и попробуй ещё раз.",
+          "concurrent_modification": "Кто-то добавил гостя одновременно. Попробуй ещё раз.",
+          "insert_failed": "Не удалось добавить гостей. Попробуй ещё раз."
+        }
       }
     }
   },

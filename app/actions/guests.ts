@@ -139,6 +139,174 @@ export async function addGuest(
   }
 }
 
+export type BatchInsertResult =
+  | { ok: true; added: number; skipped: number }
+  | {
+      ok: false
+      error:
+        | 'unauthorized'
+        | 'no_valid_input'
+        | 'concurrent_modification'
+        | 'insert_failed'
+    }
+
+/**
+ * Bulk variant of `addGuest`. The contacts-picker and smart-paste flows
+ * funnel here; the single-add form still uses `addGuest`.
+ *
+ * Dedupe strategy: pre-fetch existing `(phone, email)` for this event in two
+ * narrow SELECTs (one per column, both filtered to the values we're about
+ * to insert), filter the input client-side, then issue one bulk INSERT.
+ * Avoids `ON CONFLICT DO NOTHING` because PG can target only one constraint
+ * at a time and we have two (phone + email partial uniques from [11a]/
+ * [11a.1]). Also avoids a per-row loop's N round-trips.
+ *
+ * Race window: a co-host could insert a colliding row between our SELECT
+ * and INSERT. The bulk INSERT is all-or-nothing, so a single late collider
+ * aborts the whole batch — we surface that as `concurrent_modification` so
+ * the host can retry rather than silently losing the batch.
+ *
+ * Invalid input (unnormalizable phone, bad-shape email, no contact channel)
+ * is silently dropped in the loop below — the client review screen already
+ * gave the host a chance to fix or remove those rows, so we trust whatever
+ * we get and just count valid landings.
+ */
+export async function addGuestsBatch(
+  eventId: string,
+  guests: AddGuestInput[],
+): Promise<BatchInsertResult> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { ok: false, error: 'unauthorized' }
+
+  const { data: isMember, error: rpcErr } = await supabase.rpc(
+    'is_event_host_or_cohost',
+    { p_event_id: eventId },
+  )
+  if (rpcErr || !isMember) return { ok: false, error: 'unauthorized' }
+
+  // ─── Validate + normalize each input. Drop rows the client somehow
+  //      let through that we can't act on. ─────────────────────────────────
+  type Row = {
+    event_id: string
+    name: string
+    phone: string | null
+    email: string | null
+    invite_token: string
+    rsvp: 'pending'
+  }
+
+  const candidates: Row[] = []
+  for (const input of guests) {
+    const rawName = input.name?.trim() ?? ''
+    const rawPhone = input.phone?.trim() ?? ''
+    const rawEmail = input.email?.trim() ?? ''
+    if (!rawPhone && !rawEmail) continue
+
+    let phone: string | null = null
+    if (rawPhone) {
+      phone = normalizePhone(rawPhone)
+      if (!phone) continue
+    }
+
+    let email: string | null = null
+    if (rawEmail) {
+      if (!EMAIL_REGEX.test(rawEmail)) continue
+      email = rawEmail.toLowerCase()
+    }
+
+    candidates.push({
+      event_id: eventId,
+      name: rawName,
+      phone,
+      email,
+      invite_token: generateInviteToken(),
+      rsvp: 'pending',
+    })
+  }
+
+  if (candidates.length === 0) {
+    return { ok: false, error: 'no_valid_input' }
+  }
+
+  // ─── Pre-fetch existing duplicates within this event. Two narrow queries
+  //      (one per column) beats one wide OR query for readability and
+  //      keeps the index hits clean. ─────────────────────────────────────
+  const service = createServiceClient()
+  const phonesToCheck = candidates
+    .map((c) => c.phone)
+    .filter((p): p is string => !!p)
+  const emailsToCheck = candidates
+    .map((c) => c.email)
+    .filter((e): e is string => !!e)
+
+  const existingPhones = new Set<string>()
+  const existingEmails = new Set<string>()
+
+  if (phonesToCheck.length > 0) {
+    const { data } = await service
+      .from('guests')
+      .select('phone')
+      .eq('event_id', eventId)
+      .in('phone', phonesToCheck)
+    for (const row of data ?? []) {
+      if (row.phone) existingPhones.add(row.phone)
+    }
+  }
+  if (emailsToCheck.length > 0) {
+    const { data } = await service
+      .from('guests')
+      .select('email')
+      .eq('event_id', eventId)
+      .in('email', emailsToCheck)
+    for (const row of data ?? []) {
+      if (row.email) existingEmails.add(row.email)
+    }
+  }
+
+  // Dedupe vs. DB AND within the batch itself (two rows with the same phone
+  // in one paste). First occurrence wins.
+  const seenPhones = new Set<string>()
+  const seenEmails = new Set<string>()
+  const toInsert: Row[] = []
+  for (const row of candidates) {
+    if (row.phone && (existingPhones.has(row.phone) || seenPhones.has(row.phone))) {
+      continue
+    }
+    if (row.email && (existingEmails.has(row.email) || seenEmails.has(row.email))) {
+      continue
+    }
+    if (row.phone) seenPhones.add(row.phone)
+    if (row.email) seenEmails.add(row.email)
+    toInsert.push(row)
+  }
+
+  const skipped = candidates.length - toInsert.length
+  const locale = await getLocale()
+
+  if (toInsert.length === 0) {
+    revalidatePath(`/${locale}/events`)
+    return { ok: true, added: 0, skipped }
+  }
+
+  const { error: insertErr } = await service.from('guests').insert(toInsert)
+
+  if (insertErr) {
+    if (insertErr.code === PG_UNIQUE_VIOLATION) {
+      // Race: a concurrent insert (co-host?) landed a colliding row between
+      // our SELECT and INSERT. Bulk INSERT is atomic so the whole batch
+      // rolled back; ask the host to retry.
+      return { ok: false, error: 'concurrent_modification' }
+    }
+    return { ok: false, error: 'insert_failed' }
+  }
+
+  revalidatePath(`/${locale}/events`)
+  return { ok: true, added: toInsert.length, skipped }
+}
+
 export type DeleteGuestResult =
   | { ok: true }
   | { ok: false; error: 'unauthorized' | 'delete_failed' }

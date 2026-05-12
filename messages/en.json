@@ -225,6 +225,33 @@
         "duplicate_email": "Someone with that email is already on the list.",
         "insert_failed": "Couldn't add the guest. Try again.",
         "delete_failed": "Couldn't remove the guest. Try again."
+      },
+      "bulk": {
+        "tabSingle": "Add one",
+        "tabPaste": "Paste",
+        "tabContacts": "Contacts",
+        "pasteTitle": "Paste a list",
+        "pasteHelper": "One contact per line. We'll figure out names, phones, and emails.",
+        "pastePlaceholder": "Leyla Mammadova +994 50 123 45 67\nKamran kamran@example.com\nNigar +1 415 555 9876 nigar@example.com",
+        "parseButton": "Parse",
+        "contactsTitle": "From your contacts",
+        "contactsHelper": "Pick people from your phone's contact list.",
+        "openContactsButton": "Open contacts",
+        "contactsEmpty": "No contacts picked.",
+        "reviewTitle": "{count, plural, =0 {Nothing to add} one {Review 1 guest} other {Review # guests}}",
+        "reviewDescription": "Edit names if needed, remove anyone you don't want to add, then confirm.",
+        "reviewNamePlaceholder": "Name (optional)",
+        "reviewRemoveAria": "Remove from batch",
+        "reviewAllRemoved": "You removed every row. Cancel to start over.",
+        "reviewInvalidTitle": "{count, plural, one {1 line couldn't be parsed} other {# lines couldn't be parsed}}",
+        "reviewSubmit": "{count, plural, =0 {Add guests} one {Add 1 guest} other {Add # guests}}",
+        "successToast": "Added {added} · skipped {skipped} duplicates",
+        "errors": {
+          "unauthorized": "You're not signed in.",
+          "no_valid_input": "Nothing to add. Check the input and try again.",
+          "concurrent_modification": "Someone else added a guest at the same time. Try again.",
+          "insert_failed": "Couldn't add the guests. Try again."
+        }
       }
     }
   },
