@@ -54,9 +54,23 @@ Some Prompt 03 column names diverge from intuitive guesses. Use the real names �
 - Composite PK on `(event_id, user_id)` — no synthetic `id` column
 - `user_id` (NOT `profile_id`) is the FK into `profiles`
 
+**`profiles` table:**
+- `profiles.phone` has a partial unique index `WHERE phone IS NOT NULL`. Multiple NULL phones allowed (most email-only accounts); collisions only enforced on non-NULL values.
+- The `handle_new_user` insert trigger (extended in Prompt 10.5) mirrors `auth.users.phone` → `profiles.phone` alongside display_name/avatar. Phone-only signups get their phone in `profiles` automatically — no app-layer sync needed at signup time.
+
 **Reserved-but-unwired columns** (don't propose features on them without checking PRODUCT_SPEC and asking — schema exists but UI doesn't):
 - `events.event_password`, `events.is_tbd`, `events.audience='public_profile'`
 - `guests.plus_one_count`, `guests.host_notes`, `guests.invited_at`
+
+### Phone auth
+
+OTP-based phone sign-in lives alongside magic link + Google OAuth. Architecture details future prompts must respect:
+
+- Provider is **Twilio Verify** (NOT regular Twilio with Messaging Service). Configured in Supabase Auth → Providers → Phone.
+- Channel selection (SMS vs WhatsApp) lives in the Twilio Verify Service dashboard config, NOT in app code. Always call `supabase.auth.signInWithOtp({ phone })` without an explicit `channel` parameter. Do not hardcode channel anywhere.
+- WhatsApp delivery requires a WhatsApp Business Account (WBA) sender attached to the Verify Service. WBA verification is in progress separately. SMS is the effective channel until WBA approves; flipping to WhatsApp requires only Twilio dashboard config, no app code changes.
+- `lib/phone.ts` exports `formatPhoneDisplay` (libphonenumber-js `formatInternational` — produces output like `+994 50 123 45 67`) and an international-fallback parser: tries AZ default first, falls back to prepending `+` and re-parsing as international. Known edge case: raw US-style 10-digit numbers without leading `1` (e.g. `5127481053`) misparse via fallback as Peru/+51. Eventual fix: country selector dropdown.
+- The `verifyPhoneOtp` action syncs phone → profiles on every sign-in (idempotent UPDATE). There is no separate `syncProfilePhone` action.
 
 ### Tailwind v4 utility renames (vs v3)
 
@@ -192,6 +206,14 @@ If a prompt is ambiguous, ask one clarifying question before coding. Don't guess
 - Mutuals (social graph)
 - Push notifications
 - "Send a card" feature (Partiful has it; we don't)
+
+---
+
+## Known limitations
+
+Things that work but are intentionally rough; document so future prompts don't waste time "fixing" them as bugs.
+
+- **Duplicate identities across auth methods.** Same person signing up via email AND via phone creates two `auth.users` rows. The `profiles.phone` partial unique index prevents two profiles from claiming the same non-NULL phone, but `auth.users` itself does not merge identities. Future "link phone to email account" feature is out of scope for v1.
 
 ---
 
