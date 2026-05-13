@@ -1,11 +1,7 @@
 import 'server-only'
 import { Resend } from 'resend'
 
-// TODO: swap `onboarding@resend.dev` → `noreply@parti.az` after DNS
-// verification (SPF/DKIM records added to the domain registrar). Until then
-// resend.dev sender works for dev / Anderson's own inbox but will land in
-// spam for arbitrary recipients.
-const FROM = 'parti.az <onboarding@resend.dev>'
+const FROM = 'parti.az <[email protected]>'
 
 let cached: Resend | null = null
 
