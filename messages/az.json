@@ -226,6 +226,34 @@
         "insert_failed": "Qonağı əlavə etmək alınmadı. Yenidən cəhd et.",
         "delete_failed": "Qonağı silmək alınmadı. Yenidən cəhd et."
       },
+      "send": {
+        "button": "Dəvət göndər",
+        "resend": "Yenidən göndər",
+        "smsButton": "SMS",
+        "emailButton": "Email",
+        "smsAria": "Dəvəti SMS ilə göndər",
+        "emailAria": "Dəvəti email ilə göndər",
+        "bulkButton": "{count, plural, =0 {Göndəriləcək heç nə yoxdur} one {1 göndərilməmişə göndər} other {# göndərilməmişə göndər}}",
+        "confirmTitle": "{count, plural, one {1 qonağa dəvət göndərilsin?} other {# qonağa dəvət göndərilsin?}}",
+        "confirmBody": "Telefonu olanlara SMS, yalnız emaili olanlara email gedir. Uğursuzları sonra yenidən göndərə bilərsiniz.",
+        "confirmCta": "Bəli, göndər",
+        "cancel": "Ləğv et",
+        "success": {
+          "sms": "Dəvət SMS ilə göndərildi",
+          "email": "Dəvət email ilə göndərildi"
+        },
+        "error": "Dəvət göndərilmədi: {reason}",
+        "status": {
+          "notInvited": "Dəvət olunmayıb",
+          "smsSent": "SMS {relativeTime} göndərildi",
+          "emailSent": "Email {relativeTime} göndərildi"
+        },
+        "bulkSummary": {
+          "success": "{count, plural, one {1 dəvət göndərildi} other {# dəvət göndərildi}}",
+          "partial": "{sent} göndərildi · {failed} alınmadı",
+          "allFailed": "{count, plural, one {1 dəvət göndərilə bilmədi} other {# dəvət göndərilə bilmədi}}"
+        }
+      },
       "bulk": {
         "tabSingle": "Tək-tək",
         "tabPaste": "Yapışdır",

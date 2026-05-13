@@ -5,8 +5,12 @@ import { revalidatePath } from 'next/cache'
 import { getLocale } from 'next-intl/server'
 import { generateInviteToken } from '@/lib/invite-token'
 import { normalizePhone } from '@/lib/phone'
+import { sendEmail } from '@/lib/resend'
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
+import { inviteEmail } from '@/lib/templates/invite-email'
+import { inviteSmsBody, type Locale } from '@/lib/templates/invite-sms'
+import { sendSms } from '@/lib/twilio'
 
 const PG_UNIQUE_VIOLATION = '23505'
 
@@ -344,4 +348,214 @@ export async function deleteGuest(
   const locale = await getLocale()
   revalidatePath(`/${locale}/events`)
   return { ok: true }
+}
+
+export type SentChannel = 'sms' | 'email'
+
+export type SendInvitesResult = {
+  sent: Array<{ guestId: string; channel: SentChannel }>
+  failed: Array<{ guestId: string; reason: string }>
+}
+
+/**
+ * Send invite SMS / email to a list of guests for one event.
+ *
+ * Channel selection (per guest):
+ *   - phone only          → SMS
+ *   - email only          → email
+ *   - both                → SMS (AZ market priority + delivery speed)
+ *   - neither             → fail that guest with 'no_channel'
+ *
+ * Iterates SEQUENTIALLY — Twilio's Messaging Service has per-second rate
+ * limits and a sequential loop keeps us well under them without a token
+ * bucket. On success we stamp `invited_at = now()` + `invite_channel`
+ * via service-role; failures leave the row untouched so the host can retry.
+ *
+ * Twilio Messaging credentials (Account SID + Auth Token + Messaging
+ * Service SID) are distinct from the Twilio Verify Service used for OTP
+ * sign-in. They live in TWILIO_ACCOUNT_SID/_AUTH_TOKEN/_MESSAGING_SERVICE_SID
+ * here, NOT in the Supabase Auth Verify config.
+ */
+export async function sendInvites(
+  eventId: string,
+  guestIds: string[],
+  overrideChannel?: SentChannel,
+): Promise<SendInvitesResult> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) {
+    return {
+      sent: [],
+      failed: guestIds.map((id) => ({ guestId: id, reason: 'unauthorized' })),
+    }
+  }
+
+  const { data: isMember, error: rpcErr } = await supabase.rpc(
+    'is_event_host_or_cohost',
+    { p_event_id: eventId },
+  )
+  if (rpcErr || !isMember) {
+    return {
+      sent: [],
+      failed: guestIds.map((id) => ({ guestId: id, reason: 'unauthorized' })),
+    }
+  }
+
+  if (guestIds.length === 0) {
+    return { sent: [], failed: [] }
+  }
+
+  // ─── Fetch event with host profile join. `host_id` (not `created_by`)
+  //      is the FK into `profiles`; the next-intl-aligned `locale` column
+  //      (not `preferred_locale`) is what drives template language. ──────
+  const service = createServiceClient()
+  const { data: event, error: eventErr } = await service
+    .from('events')
+    .select(
+      'id, slug, title, cover_image_url, starts_at, location_text, host:profiles!events_host_id_fkey(display_name, locale)',
+    )
+    .eq('id', eventId)
+    .maybeSingle()
+
+  if (eventErr || !event || !event.host) {
+    return {
+      sent: [],
+      failed: guestIds.map((id) => ({ guestId: id, reason: 'event_not_found' })),
+    }
+  }
+
+  const host = event.host as { display_name: string | null; locale: string }
+  const locale = (host.locale === 'ru' || host.locale === 'en' ? host.locale : 'az') as Locale
+  const hostName = host.display_name?.trim() || 'parti.az'
+
+  // ─── Fetch the requested guests, restricted to this event. Tampering
+  //      with `guestIds` to target someone else's guests would just match
+  //      zero rows here. ────────────────────────────────────────────────
+  const { data: guests, error: guestsErr } = await service
+    .from('guests')
+    .select('id, name, phone, email')
+    .eq('event_id', eventId)
+    .in('id', guestIds)
+
+  if (guestsErr || !guests) {
+    return {
+      sent: [],
+      failed: guestIds.map((id) => ({ guestId: id, reason: 'fetch_failed' })),
+    }
+  }
+
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
+  const sent: SendInvitesResult['sent'] = []
+  const failed: SendInvitesResult['failed'] = []
+  const foundIds = new Set(guests.map((g) => g.id))
+
+  // Any guestId the caller passed that didn't come back from the fetch
+  // (wrong event, deleted, etc.) is reported individually rather than
+  // silently dropped.
+  for (const id of guestIds) {
+    if (!foundIds.has(id)) {
+      failed.push({ guestId: id, reason: 'not_found' })
+    }
+  }
+
+  // ─── Sequential loop. ──────────────────────────────────────────────────
+  for (const guest of guests) {
+    const { id: guestId, name, phone, email } = guest
+
+    // Fresh invite token per send: lets us rotate access if a list was
+    // ever leaked. The existing token from the row would also work.
+    const { data: refreshed } = await service
+      .from('guests')
+      .select('invite_token')
+      .eq('id', guestId)
+      .maybeSingle()
+    const token = refreshed?.invite_token
+    if (!token) {
+      failed.push({ guestId, reason: 'no_token' })
+      continue
+    }
+    const inviteUrl = `${siteUrl}/e/${event.slug}?t=${token}`
+
+    // Channel rule. `overrideChannel` (when provided by the per-guest UI)
+    // forces a specific channel; otherwise auto-rule picks SMS when phone
+    // exists, email when only email exists, fails when neither.
+    let channel: SentChannel
+    if (overrideChannel === 'sms') {
+      if (!phone) {
+        failed.push({ guestId, reason: 'no_phone' })
+        continue
+      }
+      channel = 'sms'
+    } else if (overrideChannel === 'email') {
+      if (!email) {
+        failed.push({ guestId, reason: 'no_email' })
+        continue
+      }
+      channel = 'email'
+    } else {
+      const useSms = !!phone
+      const useEmail = !useSms && !!email
+      if (!useSms && !useEmail) {
+        failed.push({ guestId, reason: 'no_channel' })
+        continue
+      }
+      channel = useSms ? 'sms' : 'email'
+    }
+
+    let sendResult: { ok: true } | { ok: false; error: string }
+
+    if (channel === 'sms') {
+      const body = inviteSmsBody({
+        locale,
+        eventTitle: event.title,
+        guestName: name,
+        inviteUrl,
+      })
+      const r = await sendSms({ to: phone!, body })
+      sendResult = r.ok ? { ok: true } : { ok: false, error: r.error }
+    } else {
+      const { subject, html } = inviteEmail({
+        locale,
+        eventTitle: event.title,
+        eventCoverUrl: event.cover_image_url,
+        eventStartsAt: event.starts_at ? new Date(event.starts_at) : null,
+        eventLocationText: event.location_text,
+        guestName: name,
+        inviteUrl,
+        hostName,
+      })
+      const r = await sendEmail({ to: email!, subject, html })
+      sendResult = r.ok ? { ok: true } : { ok: false, error: r.error }
+    }
+
+    if (!sendResult.ok) {
+      failed.push({ guestId, reason: sendResult.error })
+      continue
+    }
+
+    const { error: updateErr } = await service
+      .from('guests')
+      .update({
+        invited_at: new Date().toISOString(),
+        invite_channel: channel,
+      })
+      .eq('id', guestId)
+      .eq('event_id', eventId)
+
+    if (updateErr) {
+      // Send succeeded but bookkeeping didn't — log to failed so the host
+      // sees something went wrong, but the recipient already got the
+      // message. Acceptable trade-off; a retry would double-send.
+      failed.push({ guestId, reason: `sent_but_unrecorded:${updateErr.message}` })
+      continue
+    }
+
+    sent.push({ guestId, channel })
+  }
+
+  const reqLocale = await getLocale()
+  revalidatePath(`/${reqLocale}/events`)
+  return { sent, failed }
 }

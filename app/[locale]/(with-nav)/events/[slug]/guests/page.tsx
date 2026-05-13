@@ -3,6 +3,7 @@ import { notFound, redirect } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { AddGuestTabs } from '@/components/guests/AddGuestTabs'
+import { BulkSendButton } from '@/components/guests/BulkSendButton'
 import { GuestList, type GuestListItem } from '@/components/guests/GuestList'
 import { createClient } from '@/lib/supabase/server'
 
@@ -45,17 +46,23 @@ export default async function GuestsPage({
 
   const { data: guestsData } = await supabase
     .from('guests')
-    .select('id, name, phone, email, rsvp')
+    .select('id, name, phone, email, rsvp, invited_at, invite_channel')
     .eq('event_id', event.id)
     .order('created_at', { ascending: false })
 
-  const guests = (guestsData ?? []).map((g) => ({
+  const guests: GuestListItem[] = (guestsData ?? []).map((g) => ({
     id: g.id,
     name: g.name,
     phone: g.phone,
     email: g.email,
     rsvp: g.rsvp as GuestListItem['rsvp'],
+    invited_at: g.invited_at,
+    invite_channel: g.invite_channel as GuestListItem['invite_channel'],
   }))
+
+  const unsentGuestIds = guests
+    .filter((g) => g.invited_at === null)
+    .map((g) => g.id)
 
   // Existing contact channels in this event — fed into AddGuestTabs so the
   // bulk review modal can flag rows that would collide with what's already
@@ -88,6 +95,12 @@ export default async function GuestsPage({
           </p>
         </header>
 
+        <div className="flex justify-end">
+          <BulkSendButton
+            eventId={event.id}
+            unsentGuestIds={unsentGuestIds}
+          />
+        </div>
         <AddGuestTabs
           eventId={event.id}
           existingPhones={existingPhones}

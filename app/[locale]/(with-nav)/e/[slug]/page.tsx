@@ -15,16 +15,34 @@ import { formatLongDate, type AppLocale } from '@/lib/dates'
 import { FLOATING_SURFACE } from '@/lib/ui/floating-surface'
 import type { ThemeBackgroundValue } from '@/lib/schemas/theme'
 import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import { cn } from '@/lib/utils'
 
 type EventAudience = 'private' | 'public_profile'
 
+// Single source of truth for the event SELECT — anon-RLS fetch and the
+// invite-token bearer-auth fallback use the exact same shape.
+const EVENT_SELECT = `id, slug, title, status, audience, text_color, cover_image_url,
+       cover_overlay_enabled, cover_overlay_text, cover_overlay_color,
+       starts_at, ends_at, location_text, location_address, description,
+       capacity, show_guest_count, show_guest_names, allow_maybe,
+       require_names, location_hidden_until_rsvp,
+       theme:themes(id,name,category,background_type,background_value,recommended_text_color,order_index),
+       effect:effects(id,name,category,engine,config),
+       font_preset:font_presets!events_font_preset_id_fkey(id,name,category,font_family,font_weight,letter_spacing,text_transform),
+       overlay_font:font_presets!events_cover_overlay_font_id_fkey(font_family,font_weight,letter_spacing,text_transform),
+       host:profiles!events_host_id_fkey(id,display_name,avatar_url),
+       cohosts:event_cohosts(user_id,profile:profiles!event_cohosts_user_id_fkey(display_name,avatar_url))`
+
 export default async function PublicEventPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string; slug: string }>
+  searchParams: Promise<{ t?: string }>
 }) {
   const { locale, slug } = await params
+  const { t: inviteToken } = await searchParams
   setRequestLocale(locale)
   const t = await getTranslations('events.public')
   const tFields = await getTranslations('events.fields')
@@ -40,23 +58,36 @@ export default async function PublicEventPage({
   // handles visibility: drafts are visible only to the host; published are
   // visible to anon + authenticated. Catalog tables are public-read so the
   // joins resolve for anon viewers too.
-  const { data: event, error } = await supabase
+  const { data: initialEvent, error } = await supabase
     .from('events')
-    .select(
-      `id, slug, title, status, audience, text_color, cover_image_url,
-       cover_overlay_enabled, cover_overlay_text, cover_overlay_color,
-       starts_at, ends_at, location_text, location_address, description,
-       capacity, show_guest_count, show_guest_names, allow_maybe,
-       require_names, location_hidden_until_rsvp,
-       theme:themes(id,name,category,background_type,background_value,recommended_text_color,order_index),
-       effect:effects(id,name,category,engine,config),
-       font_preset:font_presets!events_font_preset_id_fkey(id,name,category,font_family,font_weight,letter_spacing,text_transform),
-       overlay_font:font_presets!events_cover_overlay_font_id_fkey(font_family,font_weight,letter_spacing,text_transform),
-       host:profiles!events_host_id_fkey(id,display_name,avatar_url),
-       cohosts:event_cohosts(user_id,profile:profiles!event_cohosts_user_id_fkey(display_name,avatar_url))`,
-    )
+    .select(EVENT_SELECT)
     .eq('slug', slug)
     .maybeSingle()
+  let event = initialEvent
+
+  // Invite-token bearer auth: when `?t=<token>` is present and the anon-RLS
+  // fetch came back empty (typical for a recipient clicking an invite link
+  // to a draft event), re-fetch through service-role AFTER verifying the
+  // token matches a guest row on this event. The 24-char nanoid is
+  // effectively unguessable, so possession = authorization. Same security
+  // model as the existing RSVP cookie flow ([10]).
+  if (!event && inviteToken) {
+    const service = createServiceClient()
+    const { data: tokenEvent } = await service
+      .from('events')
+      .select(EVENT_SELECT)
+      .eq('slug', slug)
+      .maybeSingle()
+    if (tokenEvent) {
+      const { data: tokenGuest } = await service
+        .from('guests')
+        .select('id')
+        .eq('event_id', tokenEvent.id)
+        .eq('invite_token', inviteToken)
+        .maybeSingle()
+      if (tokenGuest) event = tokenEvent
+    }
+  }
 
   if (error || !event || !event.theme || !event.font_preset || !event.host) {
     notFound()

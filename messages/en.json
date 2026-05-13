@@ -226,6 +226,34 @@
         "insert_failed": "Couldn't add the guest. Try again.",
         "delete_failed": "Couldn't remove the guest. Try again."
       },
+      "send": {
+        "button": "Send invite",
+        "resend": "Resend",
+        "smsButton": "SMS",
+        "emailButton": "Email",
+        "smsAria": "Send invite via SMS",
+        "emailAria": "Send invite via email",
+        "bulkButton": "{count, plural, =0 {Nothing to send} one {Send to 1 unsent} other {Send to # unsent}}",
+        "confirmTitle": "{count, plural, one {Send invite to 1 guest?} other {Send invites to # guests?}}",
+        "confirmBody": "Each guest gets an SMS if they have a phone, otherwise an email. You can resend later if anything fails.",
+        "confirmCta": "Yes, send",
+        "cancel": "Cancel",
+        "success": {
+          "sms": "Invite sent via SMS",
+          "email": "Invite sent via email"
+        },
+        "error": "Couldn't send invite: {reason}",
+        "status": {
+          "notInvited": "Not invited",
+          "smsSent": "SMS sent {relativeTime}",
+          "emailSent": "Email sent {relativeTime}"
+        },
+        "bulkSummary": {
+          "success": "{count, plural, one {Sent 1 invite} other {Sent # invites}}",
+          "partial": "Sent {sent} · {failed} failed",
+          "allFailed": "{count, plural, one {Failed to send 1 invite} other {Failed to send # invites}}"
+        }
+      },
       "bulk": {
         "tabSingle": "Add one",
         "tabPaste": "Paste",
