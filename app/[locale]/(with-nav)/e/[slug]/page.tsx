@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { setRequestLocale, getTranslations } from 'next-intl/server'
 import { Calendar, Crown, Lock, MapPin, Pencil } from 'lucide-react'
+import type { Metadata } from 'next'
 import type { ISourceOptions } from '@tsparticles/engine'
 import { CoverImage } from '@/components/event/CoverImage'
 import { EventTitle } from '@/components/event/EventTitle'
@@ -12,27 +13,154 @@ import { ThemeBackground } from '@/components/event/ThemeBackground'
 import { getGuestSummary } from '@/app/actions/guest-summary'
 import { getCurrentGuestForEvent } from '@/app/actions/rsvp'
 import { formatLongDate, type AppLocale } from '@/lib/dates'
+import { getEventForView } from '@/lib/event-fetch'
 import { FLOATING_SURFACE } from '@/lib/ui/floating-surface'
 import type { ThemeBackgroundValue } from '@/lib/schemas/theme'
 import { createClient } from '@/lib/supabase/server'
-import { createServiceClient } from '@/lib/supabase/service'
 import { cn } from '@/lib/utils'
 
 type EventAudience = 'private' | 'public_profile'
 
-// Single source of truth for the event SELECT — anon-RLS fetch and the
-// invite-token bearer-auth fallback use the exact same shape.
-const EVENT_SELECT = `id, slug, title, status, audience, text_color, cover_image_url,
-       cover_overlay_enabled, cover_overlay_text, cover_overlay_color,
-       starts_at, ends_at, location_text, location_address, description,
-       capacity, show_guest_count, show_guest_names, allow_maybe,
-       require_names, location_hidden_until_rsvp,
-       theme:themes(id,name,category,background_type,background_value,recommended_text_color,order_index),
-       effect:effects(id,name,category,engine,config),
-       font_preset:font_presets!events_font_preset_id_fkey(id,name,category,font_family,font_weight,letter_spacing,text_transform),
-       overlay_font:font_presets!events_cover_overlay_font_id_fkey(font_family,font_weight,letter_spacing,text_transform),
-       host:profiles!events_host_id_fkey(id,display_name,avatar_url),
-       cohosts:event_cohosts(user_id,profile:profiles!event_cohosts_user_id_fkey(display_name,avatar_url))`
+// ─── OG metadata ───────────────────────────────────────────────────────────
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
+
+const OG_LOCALE_MAP: Record<string, string> = {
+  az: 'az_AZ',
+  ru: 'ru_RU',
+  en: 'en_US',
+}
+
+// Canonical URL is the locale-less /e/{slug} form — matches what's actually
+// shared in SMS templates. Middleware redirects to the locale-prefixed
+// path; crawlers / preview bots follow that hop transparently.
+function canonicalUrl(slug: string) {
+  return `${SITE_URL}/e/${slug}`
+}
+
+// Pick an OG image URL. Videos can't render as OG images and there's no
+// poster column yet, so .mp4 covers fall back to the default placeholder.
+// Image URLs from Supabase Storage and Unsplash are already absolute.
+function pickOgImage(coverUrl: string | null): {
+  url: string
+  isDefault: boolean
+} {
+  if (!coverUrl || /\.mp4(\?|$)/i.test(coverUrl)) {
+    return { url: `${SITE_URL}/og-default.png`, isDefault: true }
+  }
+  return { url: coverUrl, isDefault: false }
+}
+
+function truncate(s: string, max: number): string {
+  if (s.length <= max) return s
+  return s.slice(0, max - 1).trimEnd() + '…'
+}
+
+const INVITED_YOU_TO: Record<string, (host: string, title: string) => string> = {
+  az: (h, t) => `${h} sizi ${t} tədbirinə dəvət etdi.`,
+  ru: (h, t) => `${h} приглашает вас на ${t}.`,
+  en: (h, t) => `${h} invited you to ${t}.`,
+}
+const INVITED_YOU_MINIMAL: Record<string, (host: string) => string> = {
+  az: (h) => `${h} sizi dəvət etdi.`,
+  ru: (h) => `${h} приглашает вас.`,
+  en: (h) => `${h} invited you.`,
+}
+
+export async function generateMetadata({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ locale: string; slug: string }>
+  searchParams: Promise<{ t?: string }>
+}): Promise<Metadata> {
+  const { slug } = await params
+  const { t: inviteToken } = await searchParams
+  const result = await getEventForView(slug, inviteToken)
+  const event = result?.event
+
+  // Fallback metadata when the slug doesn't resolve. Keeps the page's
+  // notFound() rendering intact while still giving the crawler something
+  // benign.
+  if (!event || !event.host) {
+    return {
+      title: 'parti.az',
+      openGraph: {
+        title: 'parti.az',
+        siteName: 'parti.az',
+        type: 'website',
+        url: canonicalUrl(slug),
+        images: [
+          {
+            url: `${SITE_URL}/og-default.png`,
+            width: 1200,
+            height: 630,
+          },
+        ],
+      },
+      robots: { index: false, follow: false },
+    }
+  }
+
+  const hostName = event.host.display_name?.trim() || 'parti.az'
+  const hostLocaleRaw = event.host.locale ?? 'az'
+  const hostLocale =
+    hostLocaleRaw === 'ru' || hostLocaleRaw === 'en' ? hostLocaleRaw : 'az'
+  const ogLocale = OG_LOCALE_MAP[hostLocale] ?? 'az_AZ'
+
+  // `status === 'published'` is the gate for full details. Drafts (and
+  // canceled events) get the minimal description so unpublished work
+  // doesn't leak via preview cards.
+  const isPublished = event.status === 'published'
+
+  let description: string
+  if (isPublished) {
+    const invited = INVITED_YOU_TO[hostLocale](hostName, event.title)
+    const dateStr = event.starts_at
+      ? new Intl.DateTimeFormat(hostLocale, {
+          weekday: 'long',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        }).format(new Date(event.starts_at))
+      : null
+    const pieces = [invited, dateStr, event.location_text].filter(
+      (s): s is string => !!s,
+    )
+    description = truncate(pieces.join(' · '), 200)
+  } else {
+    description = INVITED_YOU_MINIMAL[hostLocale](hostName)
+  }
+
+  const og = pickOgImage(event.cover_image_url)
+  const ogImages = og.isDefault
+    ? [{ url: og.url, width: 1200, height: 630 }]
+    : [{ url: og.url }]
+
+  return {
+    title: event.title,
+    description,
+    openGraph: {
+      title: event.title,
+      description,
+      siteName: 'parti.az',
+      type: 'website',
+      url: canonicalUrl(event.slug),
+      locale: ogLocale,
+      images: ogImages,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: event.title,
+      description,
+      images: ogImages.map((i) => i.url),
+    },
+    robots: { index: false, follow: false },
+  }
+}
+
+// ─── Page ──────────────────────────────────────────────────────────────────
 
 export default async function PublicEventPage({
   params,
@@ -54,42 +182,13 @@ export default async function PublicEventPage({
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Single-query fetch with joins on catalog tables + host profile. RLS
-  // handles visibility: drafts are visible only to the host; published are
-  // visible to anon + authenticated. Catalog tables are public-read so the
-  // joins resolve for anon viewers too.
-  const { data: initialEvent, error } = await supabase
-    .from('events')
-    .select(EVENT_SELECT)
-    .eq('slug', slug)
-    .maybeSingle()
-  let event = initialEvent
+  // Cached fetch — shared with generateMetadata via React `cache()` so this
+  // is a single DB roundtrip per request. Two-stage anon-RLS + token-bearer
+  // fallback lives inside the helper now.
+  const result = await getEventForView(slug, inviteToken)
+  const event = result?.event ?? null
 
-  // Invite-token bearer auth: when `?t=<token>` is present and the anon-RLS
-  // fetch came back empty (typical for a recipient clicking an invite link
-  // to a draft event), re-fetch through service-role AFTER verifying the
-  // token matches a guest row on this event. The 24-char nanoid is
-  // effectively unguessable, so possession = authorization. Same security
-  // model as the existing RSVP cookie flow ([10]).
-  if (!event && inviteToken) {
-    const service = createServiceClient()
-    const { data: tokenEvent } = await service
-      .from('events')
-      .select(EVENT_SELECT)
-      .eq('slug', slug)
-      .maybeSingle()
-    if (tokenEvent) {
-      const { data: tokenGuest } = await service
-        .from('guests')
-        .select('id')
-        .eq('event_id', tokenEvent.id)
-        .eq('invite_token', inviteToken)
-        .maybeSingle()
-      if (tokenGuest) event = tokenEvent
-    }
-  }
-
-  if (error || !event || !event.theme || !event.font_preset || !event.host) {
+  if (!event || !event.theme || !event.font_preset || !event.host) {
     notFound()
   }
 
