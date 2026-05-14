@@ -198,6 +198,16 @@
       "namePlaceholder": "Leyla Mammadova",
       "phoneLabel": "Phone",
       "phonePlaceholder": "50 123 45 67",
+      "country": {
+        "selectAria": "Country code",
+        "AZ": "Azerbaijan",
+        "RU": "Russia",
+        "TR": "Turkey",
+        "GE": "Georgia",
+        "KZ": "Kazakhstan",
+        "UA": "Ukraine",
+        "US": "United States"
+      },
       "emailLabel": "Email",
       "emailPlaceholder": "leyla@example.com",
       "addButton": "Add guest",

@@ -198,6 +198,16 @@
       "namePlaceholder": "Leyla Məmmədova",
       "phoneLabel": "Telefon",
       "phonePlaceholder": "50 123 45 67",
+      "country": {
+        "selectAria": "Ölkə kodu",
+        "AZ": "Azərbaycan",
+        "RU": "Rusiya",
+        "TR": "Türkiyə",
+        "GE": "Gürcüstan",
+        "KZ": "Qazaxıstan",
+        "UA": "Ukrayna",
+        "US": "ABŞ"
+      },
       "emailLabel": "Email",
       "emailPlaceholder": "leyla@example.com",
       "addButton": "Qonağı əlavə et",

@@ -198,6 +198,16 @@
       "namePlaceholder": "Лейла Мамедова",
       "phoneLabel": "Телефон",
       "phonePlaceholder": "50 123 45 67",
+      "country": {
+        "selectAria": "Код страны",
+        "AZ": "Азербайджан",
+        "RU": "Россия",
+        "TR": "Турция",
+        "GE": "Грузия",
+        "KZ": "Казахстан",
+        "UA": "Украина",
+        "US": "США"
+      },
       "emailLabel": "Email",
       "emailPlaceholder": "leyla@example.com",
       "addButton": "Добавить гостя",

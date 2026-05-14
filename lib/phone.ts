@@ -1,4 +1,5 @@
 import { parsePhoneNumber, type CountryCode } from 'libphonenumber-js/min'
+import type { SupportedCountry } from './countries'
 
 // `libphonenumber-js/min` is ~15 kB vs ~150 kB for the full bundle. The min
 // variant covers all countries' calling codes + lengths but drops AsYouType
@@ -18,33 +19,56 @@ const DEFAULT_COUNTRIES: readonly CountryCode[] = [
   'UA',
 ]
 
+export type StrictParseResult =
+  | { ok: true; e164: string }
+  | { ok: false; error: 'invalid_for_country' }
+
 /**
  * Normalize a user-typed phone number to E.164 (`+994501234567`).
  *
- * Accepts:
- *   - explicit international ("+994 50 ..." or "+1 555 ...") — wins on the
- *     first try regardless of the default-country list, since `+` overrides;
- *   - bare local digits — tried against each country in `defaultCountries`
- *     in order, first valid wins;
- *   - bare international without `+` (e.g. "5127481053") — last-resort
- *     fallback prepends `+` and parses as raw international.
- *
- * Returns null when the input can't be parsed as a valid phone for any of
- * those interpretations.
+ * Two modes:
+ *   - **Permissive (default)** — `normalizePhone(input)` returns `string | null`.
+ *     Walks DEFAULT_COUNTRIES in order, first valid wins; falls back to
+ *     prepending `+` for bare-digit international. Used by bulk paste,
+ *     contacts picker, OTP login — flows where the caller can't reasonably
+ *     prompt for a country.
+ *   - **Strict country-locked** — `normalizePhone(input, 'AZ')` returns the
+ *     tagged `StrictParseResult`. Parses with the given country as the only
+ *     hint, no fallback. Used by the single-add guest form where the host
+ *     explicitly picked a country in the dropdown.
  */
+export function normalizePhone(input: string): string | null
 export function normalizePhone(
   input: string,
-  defaultCountries: readonly CountryCode[] = DEFAULT_COUNTRIES,
-): string | null {
+  country: SupportedCountry,
+): StrictParseResult
+export function normalizePhone(
+  input: string,
+  country?: SupportedCountry,
+): string | null | StrictParseResult {
   const trimmed = input.trim()
+
+  // ─── Strict path: caller picked an explicit country. No fallback. ────
+  if (country) {
+    if (!trimmed) return { ok: false, error: 'invalid_for_country' }
+    try {
+      const parsed = parsePhoneNumber(trimmed, country)
+      if (parsed?.isValid()) return { ok: true, e164: parsed.format('E.164') }
+    } catch {
+      // fall through to error
+    }
+    return { ok: false, error: 'invalid_for_country' }
+  }
+
+  // ─── Permissive path: existing multi-country fallback. ───────────────
   if (!trimmed) return null
 
   // First passes: try each default country in order. An explicit `+` prefix
   // makes the country argument a no-op (libphonenumber-js prefers the
   // prefix), so international numbers win on the very first iteration.
-  for (const country of defaultCountries) {
+  for (const c of DEFAULT_COUNTRIES) {
     try {
-      const parsed = parsePhoneNumber(trimmed, country)
+      const parsed = parsePhoneNumber(trimmed, c)
       if (parsed?.isValid()) return parsed.format('E.164')
     } catch {
       // try the next country

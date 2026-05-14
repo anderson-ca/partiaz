@@ -6,7 +6,13 @@ import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { addGuest, type AddGuestResult } from '@/app/actions/guests'
+import { CountrySelect } from '@/components/guests/CountrySelect'
 import { Button } from '@/components/ui/button'
+import {
+  countryByCode,
+  DEFAULT_COUNTRY,
+  type SupportedCountry,
+} from '@/lib/countries'
 import { formatPhoneDisplay, normalizePhone } from '@/lib/phone'
 
 type AddGuestFormProps = {
@@ -21,25 +27,43 @@ export function AddGuestForm({ eventId }: AddGuestFormProps) {
   const [name, setName] = React.useState('')
   const [phone, setPhone] = React.useState('')
   const [email, setEmail] = React.useState('')
+  const [selectedCountry, setSelectedCountry] =
+    React.useState<SupportedCountry>(DEFAULT_COUNTRY)
   const [error, setError] = React.useState<FieldError>(null)
   const [pending, startTransition] = React.useTransition()
 
-  // Live phone preview: only show when normalize succeeds AND the formatted
-  // string differs from what the user typed (otherwise it's just noise).
+  const country = countryByCode(selectedCountry)
+
+  // Live phone preview: build the combined `+{dial}{digits}` string and
+  // strict-parse against the selected country. Strict variant returns a
+  // tagged result; only render when valid AND the formatted output differs
+  // from what the user typed (avoids redundancy when the input already
+  // matches the canonical format).
   const phonePreview = React.useMemo(() => {
-    const trimmed = phone.trim()
-    if (!trimmed) return null
-    const e164 = normalizePhone(trimmed)
-    if (!e164) return null
-    const pretty = formatPhoneDisplay(e164)
-    return pretty === trimmed ? null : pretty
-  }, [phone])
+    const digits = phone.replace(/\D/g, '')
+    if (!digits) return null
+    const combined = '+' + country.dialCode + digits
+    const result = normalizePhone(combined, selectedCountry)
+    if (!result.ok) return null
+    const pretty = formatPhoneDisplay(result.e164)
+    return pretty === phone.trim() ? null : pretty
+  }, [phone, country.dialCode, selectedCountry])
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
     startTransition(async () => {
-      const result = await addGuest(eventId, { name, phone, email })
+      // Combine dial code + local digits BEFORE handing to the action, so
+      // its server-side `normalizePhone` (permissive) parses an unambiguous
+      // E.164-form string. Empty phone = empty combined string; the action
+      // already treats that as "no phone provided".
+      const digits = phone.replace(/\D/g, '')
+      const combinedPhone = digits ? '+' + country.dialCode + digits : ''
+      const result = await addGuest(eventId, {
+        name,
+        phone: combinedPhone,
+        email,
+      })
       if (!result.ok) {
         setError(result.error)
         return
@@ -86,16 +110,26 @@ export function AddGuestForm({ eventId }: AddGuestFormProps) {
           <label htmlFor="guest-phone" className="text-xs text-white/70">
             {t('phoneLabel')}
           </label>
-          <input
-            id="guest-phone"
-            type="tel"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder={t('phonePlaceholder')}
-            className={inputClass}
-            autoComplete="off"
-            inputMode="tel"
-          />
+          {/* Composite field: country selector flush-left, phone input
+              flush-right. Shared appearance via matching border tokens and
+              flat seam between the two halves. */}
+          <div className="flex w-full">
+            <CountrySelect
+              value={selectedCountry}
+              onChange={setSelectedCountry}
+              className="rounded-r-none border-r-0"
+            />
+            <input
+              id="guest-phone"
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder={country.placeholderExample}
+              className={`${inputClass} rounded-l-none`}
+              autoComplete="off"
+              inputMode="tel"
+            />
+          </div>
           {phonePreview && (
             <p className="pt-0.5 text-xs text-white/50">{phonePreview}</p>
           )}
