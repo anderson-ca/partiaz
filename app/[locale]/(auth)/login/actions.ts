@@ -32,12 +32,13 @@ export async function sendMagicLink(
   // Prefer the browser's actual `Origin` header (server-side equivalent of
   // `window.location.origin`) so magic links adapt automatically to local
   // dev, production, and Vercel preview deploys without depending on
-  // NEXT_PUBLIC_SITE_URL being correct in each environment. Supabase's
-  // Redirect URL allowlist is the security boundary that makes this safe.
-  // Env-var + localhost fallbacks remain for non-browser request paths.
+  // SITE_URL being correct in each environment. Supabase's Redirect URL
+  // allowlist is the security boundary that makes this safe. Env-var +
+  // localhost fallbacks remain for non-browser request paths. `SITE_URL`
+  // is non-public on purpose — see [11c.7.1] / lib/site-url.ts for why.
   const origin =
     (await headers()).get('origin') ??
-    process.env.NEXT_PUBLIC_SITE_URL ??
+    process.env.SITE_URL ??
     'http://localhost:3000'
 
   const callbackUrl = next
