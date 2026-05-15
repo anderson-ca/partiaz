@@ -14,6 +14,7 @@ import { getGuestSummary } from '@/app/actions/guest-summary'
 import { getCurrentGuestForEvent } from '@/app/actions/rsvp'
 import { formatLongDate, type AppLocale } from '@/lib/dates'
 import { getEventForView } from '@/lib/event-fetch'
+import { getSiteUrl } from '@/lib/site-url'
 import { FLOATING_SURFACE } from '@/lib/ui/floating-surface'
 import type { ThemeBackgroundValue } from '@/lib/schemas/theme'
 import { createClient } from '@/lib/supabase/server'
@@ -22,8 +23,6 @@ import { cn } from '@/lib/utils'
 type EventAudience = 'private' | 'public_profile'
 
 // ─── OG metadata ───────────────────────────────────────────────────────────
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
 
 const OG_LOCALE_MAP: Record<string, string> = {
   az: 'az_AZ',
@@ -35,7 +34,7 @@ const OG_LOCALE_MAP: Record<string, string> = {
 // shared in SMS templates. Middleware redirects to the locale-prefixed
 // path; crawlers / preview bots follow that hop transparently.
 function canonicalUrl(slug: string) {
-  return `${SITE_URL}/e/${slug}`
+  return `${getSiteUrl()}/e/${slug}`
 }
 
 // Pick an OG image URL. Videos can't render as OG images and there's no
@@ -46,7 +45,7 @@ function pickOgImage(coverUrl: string | null): {
   isDefault: boolean
 } {
   if (!coverUrl || /\.mp4(\?|$)/i.test(coverUrl)) {
-    return { url: `${SITE_URL}/og-default.png`, isDefault: true }
+    return { url: `${getSiteUrl()}/og-default.png`, isDefault: true }
   }
   return { url: coverUrl, isDefault: false }
 }
@@ -92,7 +91,7 @@ export async function generateMetadata({
         url: canonicalUrl(slug),
         images: [
           {
-            url: `${SITE_URL}/og-default.png`,
+            url: `${getSiteUrl()}/og-default.png`,
             width: 1200,
             height: 630,
           },

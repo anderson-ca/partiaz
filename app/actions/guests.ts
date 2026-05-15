@@ -6,6 +6,7 @@ import { getLocale } from 'next-intl/server'
 import { generateInviteToken } from '@/lib/invite-token'
 import { normalizePhone } from '@/lib/phone'
 import { sendEmail } from '@/lib/resend'
+import { getSiteUrl } from '@/lib/site-url'
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { inviteEmail } from '@/lib/templates/invite-email'
@@ -446,7 +447,7 @@ export async function sendInvites(
     }
   }
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
+  const siteUrl = getSiteUrl()
   const sent: SendInvitesResult['sent'] = []
   const failed: SendInvitesResult['failed'] = []
   const foundIds = new Set(guests.map((g) => g.id))
