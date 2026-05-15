@@ -439,5 +439,10 @@
       "fontLabel": "Font",
       "colorLabel": "Color"
     }
+  },
+  "invite_sms": {
+    "title_line": "{hostName} invited you to {eventTitle}",
+    "date_label": "When: {formattedDate}",
+    "rsvp_cta": "RSVP: {url}"
   }
 }

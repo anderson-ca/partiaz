@@ -439,5 +439,10 @@
       "fontLabel": "Şrift",
       "colorLabel": "Rəng"
     }
+  },
+  "invite_sms": {
+    "title_line": "{hostName} sizi {eventTitle} tədbirinə dəvət edir",
+    "date_label": "Vaxt: {formattedDate}",
+    "rsvp_cta": "Cavab: {url}"
   }
 }

@@ -3,6 +3,7 @@
 import 'server-only'
 import { revalidatePath } from 'next/cache'
 import { getLocale } from 'next-intl/server'
+import { buildInviteSmsBody } from '@/lib/invite-sms-body'
 import { generateInviteToken } from '@/lib/invite-token'
 import { normalizePhone } from '@/lib/phone'
 import { sendEmail } from '@/lib/resend'
@@ -10,7 +11,7 @@ import { getSiteUrl } from '@/lib/site-url'
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { inviteEmail } from '@/lib/templates/invite-email'
-import { inviteSmsBody, type Locale } from '@/lib/templates/invite-sms'
+import { type Locale } from '@/lib/templates/invite-sms'
 import { sendSms } from '@/lib/twilio'
 
 const PG_UNIQUE_VIOLATION = '23505'
@@ -508,10 +509,11 @@ export async function sendInvites(
     let sendResult: { ok: true } | { ok: false; error: string }
 
     if (channel === 'sms') {
-      const body = inviteSmsBody({
+      const body = await buildInviteSmsBody({
         locale,
+        hostName,
         eventTitle: event.title,
-        guestName: name,
+        eventStartsAt: event.starts_at ? new Date(event.starts_at) : null,
         inviteUrl,
       })
       const r = await sendSms({ to: phone!, body })

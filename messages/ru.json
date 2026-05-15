@@ -439,5 +439,10 @@
       "fontLabel": "Шрифт",
       "colorLabel": "Цвет"
     }
+  },
+  "invite_sms": {
+    "title_line": "{hostName} приглашает вас на {eventTitle}",
+    "date_label": "Когда: {formattedDate}",
+    "rsvp_cta": "RSVP: {url}"
   }
 }
