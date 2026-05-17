@@ -42,6 +42,7 @@ Some Prompt 03 column names diverge from intuitive guesses. Use the real names �
 - `responded_at` — bumped on each RSVP update (NOT `updated_at`)
 - `guest_message` — guest's optional note to host (added in Prompt 10)
 - `invite_token` — globally unique, used for anon identity via httpOnly cookie
+- `plus_one_adults` + `plus_one_children` — split int columns (added in [12a], default 0 each, ≥0 check). REPLACED the single `plus_one_count` column. The [12b] submission action enforces `plus_one_adults <= events.plus_one_max_adults` (and same for children).
 
 **`events` table:**
 - `starts_at` / `ends_at` — plural (NOT `start_at` / `end_at`)
@@ -49,6 +50,8 @@ Some Prompt 03 column names diverge from intuitive guesses. Use the real names �
 - `location_address` — street address (added in Prompt 09.84)
 - `location_hidden_until_rsvp` — defaults to `false` (was `true` until 10.1's backfill)
 - Two FKs to `font_presets` (`font_preset_id`, `cover_overlay_font_id`). PostgREST joins MUST disambiguate via `font_presets!events_font_preset_id_fkey` etc. — see "PostgREST FK disambiguation" below if you hit it.
+- `plus_one_enabled` (bool, default `false`), `plus_one_max_adults` (int, default `1`, 0..5 check), `plus_one_max_children` (int, default `0`, 0..5 check), `allow_rsvp_edit` (bool, default `true`) — host-controlled plus-one and RSVP-edit policy, added in [12a]. The 0..5 ceilings are DB-enforced; the form clamps client-side too.
+- Legacy `plus_ones int default 0` column exists from Prompt 03 — unwired, separate concept from the new `plus_one_*` set. Don't conflate. Future cleanup candidate.
 
 **`event_cohosts` table:**
 - Composite PK on `(event_id, user_id)` — no synthetic `id` column
@@ -59,8 +62,8 @@ Some Prompt 03 column names diverge from intuitive guesses. Use the real names �
 - The `handle_new_user` insert trigger (extended in Prompt 10.5) mirrors `auth.users.phone` → `profiles.phone` alongside display_name/avatar. Phone-only signups get their phone in `profiles` automatically — no app-layer sync needed at signup time.
 
 **Reserved-but-unwired columns** (don't propose features on them without checking PRODUCT_SPEC and asking — schema exists but UI doesn't):
-- `events.event_password`, `events.is_tbd`, `events.audience='public_profile'`
-- `guests.plus_one_count`, `guests.host_notes`, `guests.invited_at`
+- `events.event_password`, `events.is_tbd`, `events.audience='public_profile'`, `events.plus_ones` (legacy)
+- `guests.host_notes`, `guests.invited_at`
 
 ### Phone auth
 

@@ -54,6 +54,16 @@ export const eventInputSchema = z
     allow_maybe: z.boolean().optional(),
     require_names: z.boolean().optional(),
     location_hidden_until_rsvp: z.boolean().optional(),
+
+    // Plus-one + RSVP edit policy (added in 12a). Adult/child caps share
+    // the 0..5 ceiling enforced at the DB level — the form clamps to the
+    // same range. `plus_one_enabled` gates whether guests see the steppers
+    // at all on the [12b] submission UI; the cap values persist across
+    // toggle-off/on so the host doesn't lose their inputs.
+    plus_one_enabled: z.boolean().optional(),
+    plus_one_max_adults: z.number().int().min(0).max(5).optional(),
+    plus_one_max_children: z.number().int().min(0).max(5).optional(),
+    allow_rsvp_edit: z.boolean().optional(),
   })
   // Cross-field: end must come after start. The check tolerates either
   // value being null (drafts in progress); only enforces ordering when both

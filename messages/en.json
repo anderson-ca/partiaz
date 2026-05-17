@@ -171,7 +171,13 @@
       "allowMaybeLabel": "Allow 'Maybe' responses",
       "allowMaybeSubLabel": "Off = guests pick only Yes or No",
       "requireNamesLabel": "Require guest names",
-      "requireNamesSubLabel": "Off = guests can RSVP anonymously"
+      "requireNamesSubLabel": "Off = guests can RSVP anonymously",
+      "plusOneEnabledLabel": "Allow plus-ones",
+      "plusOneEnabledSubLabel": "Guests can bring additional people they specify",
+      "plusOneMaxAdultsLabel": "Max adult plus-ones per guest",
+      "plusOneMaxChildrenLabel": "Max child plus-ones per guest",
+      "allowRsvpEditLabel": "Allow guests to change their RSVP",
+      "allowRsvpEditSubLabel": "Off = first response is final"
     },
     "location": {
       "hiddenUntilRsvp": "Location shared after RSVP"

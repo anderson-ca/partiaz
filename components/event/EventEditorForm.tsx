@@ -75,6 +75,10 @@ export type EventEditorInitial = {
   allow_maybe: boolean
   require_names: boolean
   location_hidden_until_rsvp: boolean
+  plus_one_enabled: boolean
+  plus_one_max_adults: number
+  plus_one_max_children: number
+  allow_rsvp_edit: boolean
   cohosts: CoHost[]
   guests: GuestRow[]
 }
@@ -159,6 +163,10 @@ export function EventEditorForm({
           allow_maybe: initialEvent.allow_maybe,
           require_names: initialEvent.require_names,
           location_hidden_until_rsvp: initialEvent.location_hidden_until_rsvp,
+          plus_one_enabled: initialEvent.plus_one_enabled,
+          plus_one_max_adults: initialEvent.plus_one_max_adults,
+          plus_one_max_children: initialEvent.plus_one_max_children,
+          allow_rsvp_edit: initialEvent.allow_rsvp_edit,
         }
       : {
           title: '',
@@ -182,6 +190,10 @@ export function EventEditorForm({
           allow_maybe: true,
           require_names: true,
           location_hidden_until_rsvp: false,
+          plus_one_enabled: false,
+          plus_one_max_adults: 1,
+          plus_one_max_children: 0,
+          allow_rsvp_edit: true,
         },
   })
 
@@ -653,8 +665,8 @@ function SettingsSection({
 }: {
   form: ReturnType<typeof useForm<EventInput>>
 }) {
-  // RHF subscribes per-field; reading all five here re-renders the section
-  // (and ONLY the section) when any toggle flips.
+  // RHF subscribes per-field; reading all nine here re-renders the section
+  // (and ONLY the section) when any toggle / stepper changes.
   const values: EventSettingsValues = {
     show_guest_count: form.watch('show_guest_count') ?? true,
     show_guest_names: form.watch('show_guest_names') ?? true,
@@ -662,6 +674,10 @@ function SettingsSection({
     require_names: form.watch('require_names') ?? true,
     location_hidden_until_rsvp:
       form.watch('location_hidden_until_rsvp') ?? false,
+    plus_one_enabled: form.watch('plus_one_enabled') ?? false,
+    plus_one_max_adults: form.watch('plus_one_max_adults') ?? 1,
+    plus_one_max_children: form.watch('plus_one_max_children') ?? 0,
+    allow_rsvp_edit: form.watch('allow_rsvp_edit') ?? true,
   }
   return (
     <section className="mx-auto mt-8 max-w-5xl px-4 md:px-8 md:pr-28">

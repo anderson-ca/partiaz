@@ -171,7 +171,13 @@
       "allowMaybeLabel": "Разрешить ответ ‘Может быть’",
       "allowMaybeSubLabel": "Выключено = гости выбирают только Иду или Не смогу",
       "requireNamesLabel": "Требовать имя гостя",
-      "requireNamesSubLabel": "Выключено = гости могут ответить анонимно"
+      "requireNamesSubLabel": "Выключено = гости могут ответить анонимно",
+      "plusOneEnabledLabel": "Разрешить +1",
+      "plusOneEnabledSubLabel": "Гости могут привести с собой указанных людей",
+      "plusOneMaxAdultsLabel": "Макс. взрослых +1 на гостя",
+      "plusOneMaxChildrenLabel": "Макс. детей +1 на гостя",
+      "allowRsvpEditLabel": "Разрешить менять RSVP",
+      "allowRsvpEditSubLabel": "Выключено = первый ответ окончательный"
     },
     "location": {
       "hiddenUntilRsvp": "Адрес откроется после RSVP"

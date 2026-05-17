@@ -357,6 +357,7 @@ export type Database = {
       events: {
         Row: {
           allow_maybe: boolean
+          allow_rsvp_edit: boolean
           audience: string
           capacity: number | null
           chip_in_text: string | null
@@ -380,6 +381,9 @@ export type Database = {
           location_hidden_until_rsvp: boolean
           location_text: string | null
           location_url: string | null
+          plus_one_enabled: boolean
+          plus_one_max_adults: number
+          plus_one_max_children: number
           plus_ones: number
           reminders_enabled: boolean
           require_names: boolean
@@ -400,6 +404,7 @@ export type Database = {
         }
         Insert: {
           allow_maybe?: boolean
+          allow_rsvp_edit?: boolean
           audience?: string
           capacity?: number | null
           chip_in_text?: string | null
@@ -423,6 +428,9 @@ export type Database = {
           location_hidden_until_rsvp?: boolean
           location_text?: string | null
           location_url?: string | null
+          plus_one_enabled?: boolean
+          plus_one_max_adults?: number
+          plus_one_max_children?: number
           plus_ones?: number
           reminders_enabled?: boolean
           require_names?: boolean
@@ -443,6 +451,7 @@ export type Database = {
         }
         Update: {
           allow_maybe?: boolean
+          allow_rsvp_edit?: boolean
           audience?: string
           capacity?: number | null
           chip_in_text?: string | null
@@ -466,6 +475,9 @@ export type Database = {
           location_hidden_until_rsvp?: boolean
           location_text?: string | null
           location_url?: string | null
+          plus_one_enabled?: boolean
+          plus_one_max_adults?: number
+          plus_one_max_children?: number
           plus_ones?: number
           reminders_enabled?: boolean
           require_names?: boolean
@@ -575,7 +587,8 @@ export type Database = {
           invited_at: string | null
           name: string
           phone: string | null
-          plus_one_count: number
+          plus_one_adults: number
+          plus_one_children: number
           responded_at: string | null
           rsvp: string
         }
@@ -592,7 +605,8 @@ export type Database = {
           invited_at?: string | null
           name?: string
           phone?: string | null
-          plus_one_count?: number
+          plus_one_adults?: number
+          plus_one_children?: number
           responded_at?: string | null
           rsvp?: string
         }
@@ -609,7 +623,8 @@ export type Database = {
           invited_at?: string | null
           name?: string
           phone?: string | null
-          plus_one_count?: number
+          plus_one_adults?: number
+          plus_one_children?: number
           responded_at?: string | null
           rsvp?: string
         }

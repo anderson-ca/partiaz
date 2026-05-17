@@ -171,7 +171,13 @@
       "allowMaybeLabel": "‘Bəlkə’ cavabına icazə ver",
       "allowMaybeSubLabel": "Söndürülsə = qonaqlar yalnız Bəli və ya Yox seçir",
       "requireNamesLabel": "Qonaq adı tələb et",
-      "requireNamesSubLabel": "Söndürülsə = qonaqlar anonim cavab verə bilər"
+      "requireNamesSubLabel": "Söndürülsə = qonaqlar anonim cavab verə bilər",
+      "plusOneEnabledLabel": "Əlavə qonaqlara icazə ver",
+      "plusOneEnabledSubLabel": "Qonaqlar özləri ilə yanına başqalarını gətirə bilər",
+      "plusOneMaxAdultsLabel": "Hər qonaq üçün maks. böyük",
+      "plusOneMaxChildrenLabel": "Hər qonaq üçün maks. uşaq",
+      "allowRsvpEditLabel": "Qonaqlar cavablarını dəyişə bilsin",
+      "allowRsvpEditSubLabel": "Söndürülsə = ilk cavab dəyişməz qalır"
     },
     "location": {
       "hiddenUntilRsvp": "Ünvan RSVP-dən sonra paylaşılır"
