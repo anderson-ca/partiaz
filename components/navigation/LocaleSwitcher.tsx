@@ -3,6 +3,7 @@
 import { useEffect, useState, useTransition } from 'react'
 import { Check, Globe } from 'lucide-react'
 import { useLocale, useTranslations } from 'next-intl'
+import { useSearchParams } from 'next/navigation'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,6 +33,13 @@ export function LocaleSwitcher() {
   const t = useTranslations('nav')
   const router = useRouter()
   const pathname = usePathname()
+  // `useSearchParams` comes from `next/navigation` (Next.js core) rather
+  // than `@/i18n/routing` — search params are locale-independent and
+  // next-intl's router doesn't re-export the hook. Preserving them is
+  // important for tokenized invite URLs (`/e/{slug}?t={token}`): without
+  // this, switching locale drops `?t=...` and the next-locale event page
+  // 404s ([11d.1]).
+  const searchParams = useSearchParams()
   const currentLocale = useLocale() as Locale
   const [pending, startTransition] = useTransition()
 
@@ -53,7 +61,11 @@ export function LocaleSwitcher() {
       // from the URL, then re-adds the new one. `pathname` here is the
       // already-resolved string (e.g. `/events/abc123/edit`), not the
       // route template, so dynamic segments survive the swap.
-      router.replace(pathname, { locale: next })
+      // Append the current search params so query state survives the
+      // swap too (`?t=<invite-token>`, future `?q=...`, etc).
+      const search = searchParams.toString()
+      const target = search ? `${pathname}?${search}` : pathname
+      router.replace(target, { locale: next })
     })
   }
 
