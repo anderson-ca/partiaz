@@ -14,6 +14,10 @@ import { createServiceClient } from '@/lib/supabase/service'
 
 export type RsvpStatus = 'yes' | 'no' | 'maybe'
 
+// Free-form guest-to-host note. 280 cap matches the [12b] textarea
+// `maxLength` — both client + server enforce the same ceiling.
+const GUEST_MESSAGE_MAX = 280
+
 export type RsvpInput = {
   eventSlug: string
   status: RsvpStatus
@@ -23,6 +27,12 @@ export type RsvpInput = {
   contact?: string
   /** Optional note from the guest TO the host. Lives in `guest_message`. */
   message?: string
+  /** Adult plus-ones the guest is bringing. Defaults to 0. Capped
+   *  server-side at `events.plus_one_max_adults` (and rejected entirely
+   *  when `events.plus_one_enabled` is false). */
+  plusOneAdults?: number
+  /** Child plus-ones, same constraints. */
+  plusOneChildren?: number
 }
 
 export type SubmitRsvpResult =
@@ -34,6 +44,10 @@ export type SubmitRsvpResult =
         | 'event_not_published'
         | 'event_full'
         | 'maybe_not_allowed'
+        | 'plus_one_not_allowed'
+        | 'too_many_adult_plus_ones'
+        | 'too_many_child_plus_ones'
+        | 'edit_not_allowed'
         | 'invalid_input'
         | 'server_error'
     }
@@ -45,6 +59,13 @@ export type CurrentGuest = {
   email: string | null
   phone: string | null
   guest_message: string | null
+  plus_one_adults: number
+  plus_one_children: number
+  /** ISO timestamp of the most-recent submit. Null = never responded
+   *  (created by the host but the guest hasn't clicked yet). The page
+   *  uses this to decide whether to gate edits on
+   *  `events.allow_rsvp_edit`. */
+  responded_at: string | null
 }
 
 // Split a free-form contact value into email/phone slots based on the
@@ -80,10 +101,22 @@ export async function submitRsvp(input: RsvpInput): Promise<SubmitRsvpResult> {
     return { ok: false, error: 'invalid_input' }
   }
   const message = input.message?.trim() ?? ''
-  if (message.length > 1000) {
+  if (message.length > GUEST_MESSAGE_MAX) {
     return { ok: false, error: 'invalid_input' }
   }
   if (input.status !== 'yes' && input.status !== 'no' && input.status !== 'maybe') {
+    return { ok: false, error: 'invalid_input' }
+  }
+  // Plus-one counts must be non-negative integers. Per-event caps are
+  // checked below after the event row is fetched.
+  const rawPlusAdults = input.plusOneAdults ?? 0
+  const rawPlusChildren = input.plusOneChildren ?? 0
+  if (
+    !Number.isInteger(rawPlusAdults) ||
+    rawPlusAdults < 0 ||
+    !Number.isInteger(rawPlusChildren) ||
+    rawPlusChildren < 0
+  ) {
     return { ok: false, error: 'invalid_input' }
   }
 
@@ -91,7 +124,9 @@ export async function submitRsvp(input: RsvpInput): Promise<SubmitRsvpResult> {
   const supabase = await createClient()
   const { data: event } = await supabase
     .from('events')
-    .select('id, status, capacity, allow_maybe, require_names')
+    .select(
+      'id, status, capacity, allow_maybe, require_names, plus_one_enabled, plus_one_max_adults, plus_one_max_children, allow_rsvp_edit',
+    )
     .eq('slug', input.eventSlug)
     .maybeSingle()
   if (!event) return { ok: false, error: 'event_not_found' }
@@ -115,6 +150,29 @@ export async function submitRsvp(input: RsvpInput): Promise<SubmitRsvpResult> {
     // values to decode.
     const tCommon = await getTranslations('rsvp')
     name = tCommon('anonymousFallback')
+  }
+
+  // ─── Plus-one cap enforcement ─────────────────────────────────────────
+  // Plus-ones only make sense on 'yes'. For 'no'/'maybe' the dialog never
+  // sends non-zero counts, but if the client somehow does we coerce to 0
+  // rather than rejecting — saving a 'no' shouldn't fail because of a
+  // dangling stepper value.
+  let plusOneAdults = rawPlusAdults
+  let plusOneChildren = rawPlusChildren
+  if (input.status !== 'yes') {
+    plusOneAdults = 0
+    plusOneChildren = 0
+  } else if (!event.plus_one_enabled) {
+    if (plusOneAdults > 0 || plusOneChildren > 0) {
+      return { ok: false, error: 'plus_one_not_allowed' }
+    }
+  } else {
+    if (plusOneAdults > event.plus_one_max_adults) {
+      return { ok: false, error: 'too_many_adult_plus_ones' }
+    }
+    if (plusOneChildren > event.plus_one_max_children) {
+      return { ok: false, error: 'too_many_child_plus_ones' }
+    }
   }
 
   const {
@@ -163,12 +221,20 @@ export async function submitRsvp(input: RsvpInput): Promise<SubmitRsvpResult> {
   if (user) {
     const { data: existing } = await service
       .from('guests')
-      .select('id')
+      .select('id, responded_at')
       .eq('event_id', event.id)
       .eq('claimed_user_id', user.id)
       .maybeSingle()
 
     if (existing) {
+      // Edit-policy gate: a row that's already been responded to (has a
+      // non-null `responded_at`) is locked when the host turned
+      // `allow_rsvp_edit` off. Re-submits before the first response are
+      // still fine — those rows are host-created shells the guest is
+      // filling for the first time.
+      if (!event.allow_rsvp_edit && existing.responded_at !== null) {
+        return { ok: false, error: 'edit_not_allowed' }
+      }
       const { error } = await service
         .from('guests')
         .update({
@@ -177,6 +243,8 @@ export async function submitRsvp(input: RsvpInput): Promise<SubmitRsvpResult> {
           phone: contact.phone,
           rsvp: input.status,
           guest_message: messageOrNull,
+          plus_one_adults: plusOneAdults,
+          plus_one_children: plusOneChildren,
           responded_at: new Date().toISOString(),
         })
         .eq('id', existing.id)
@@ -197,6 +265,8 @@ export async function submitRsvp(input: RsvpInput): Promise<SubmitRsvpResult> {
         phone: contact.phone,
         rsvp: input.status,
         guest_message: messageOrNull,
+        plus_one_adults: plusOneAdults,
+        plus_one_children: plusOneChildren,
         responded_at: new Date().toISOString(),
       })
       .select('id')
@@ -210,13 +280,16 @@ export async function submitRsvp(input: RsvpInput): Promise<SubmitRsvpResult> {
   if (existingToken) {
     const { data: existing } = await service
       .from('guests')
-      .select('id')
+      .select('id, responded_at')
       .eq('event_id', event.id)
       .eq('invite_token', existingToken)
       .is('claimed_user_id', null)
       .maybeSingle()
 
     if (existing) {
+      if (!event.allow_rsvp_edit && existing.responded_at !== null) {
+        return { ok: false, error: 'edit_not_allowed' }
+      }
       const { error } = await service
         .from('guests')
         .update({
@@ -225,6 +298,8 @@ export async function submitRsvp(input: RsvpInput): Promise<SubmitRsvpResult> {
           phone: contact.phone,
           rsvp: input.status,
           guest_message: messageOrNull,
+          plus_one_adults: plusOneAdults,
+          plus_one_children: plusOneChildren,
           responded_at: new Date().toISOString(),
         })
         .eq('id', existing.id)
@@ -248,6 +323,8 @@ export async function submitRsvp(input: RsvpInput): Promise<SubmitRsvpResult> {
       phone: contact.phone,
       rsvp: input.status,
       guest_message: messageOrNull,
+      plus_one_adults: plusOneAdults,
+      plus_one_children: plusOneChildren,
       responded_at: new Date().toISOString(),
     })
     .select('id')
@@ -291,7 +368,9 @@ export async function getCurrentGuestForEvent(
   if (user) {
     const { data } = await supabase
       .from('guests')
-      .select('id, name, rsvp, email, phone, guest_message')
+      .select(
+        'id, name, rsvp, email, phone, guest_message, plus_one_adults, plus_one_children, responded_at',
+      )
       .eq('event_id', event.id)
       .eq('claimed_user_id', user.id)
       .maybeSingle()
@@ -303,6 +382,9 @@ export async function getCurrentGuestForEvent(
       email: data.email,
       phone: data.phone,
       guest_message: data.guest_message,
+      plus_one_adults: data.plus_one_adults,
+      plus_one_children: data.plus_one_children,
+      responded_at: data.responded_at,
     }
   }
 
@@ -314,7 +396,9 @@ export async function getCurrentGuestForEvent(
   const service = createServiceClient()
   const { data } = await service
     .from('guests')
-    .select('id, name, rsvp, email, phone, guest_message')
+    .select(
+      'id, name, rsvp, email, phone, guest_message, plus_one_adults, plus_one_children, responded_at',
+    )
     .eq('event_id', event.id)
     .eq('invite_token', token)
     .is('claimed_user_id', null)
@@ -327,6 +411,9 @@ export async function getCurrentGuestForEvent(
     email: data.email,
     phone: data.phone,
     guest_message: data.guest_message,
+    plus_one_adults: data.plus_one_adults,
+    plus_one_children: data.plus_one_children,
+    responded_at: data.responded_at,
   }
 }
 

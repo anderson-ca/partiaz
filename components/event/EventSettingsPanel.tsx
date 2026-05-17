@@ -1,9 +1,8 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
-import { Minus, Plus } from 'lucide-react'
+import { StepperRow } from '@/components/ui/stepper-row'
 import { Switch } from '@/components/ui/switch'
-import { cn } from '@/lib/utils'
 
 export type EventSettingsValues = {
   show_guest_count: boolean
@@ -25,7 +24,6 @@ type EventSettingsPanelProps = {
 // Plus-one cap range. Matches the DB check-constraint in [12a] migration —
 // shared as a constant so the UI and any future client-side validators
 // stay in sync.
-const PLUS_ONE_CAP_MIN = 0
 const PLUS_ONE_CAP_MAX = 5
 
 export function EventSettingsPanel({ values, onChange }: EventSettingsPanelProps) {
@@ -88,12 +86,14 @@ export function EventSettingsPanel({ values, onChange }: EventSettingsPanelProps
           label={t('plusOneMaxAdultsLabel')}
           value={values.plus_one_max_adults}
           onChange={(v) => onChange({ plus_one_max_adults: v })}
+          max={PLUS_ONE_CAP_MAX}
           disabled={!values.plus_one_enabled}
         />
         <StepperRow
           label={t('plusOneMaxChildrenLabel')}
           value={values.plus_one_max_children}
           onChange={(v) => onChange({ plus_one_max_children: v })}
+          max={PLUS_ONE_CAP_MAX}
           disabled={!values.plus_one_enabled}
         />
         <ToggleRow
@@ -133,52 +133,3 @@ function ToggleRow({
   )
 }
 
-function StepperRow({
-  label,
-  value,
-  onChange,
-  disabled,
-}: {
-  label: string
-  value: number
-  onChange: (next: number) => void
-  disabled: boolean
-}) {
-  const clamp = (n: number) =>
-    Math.max(PLUS_ONE_CAP_MIN, Math.min(PLUS_ONE_CAP_MAX, n))
-  return (
-    <div
-      className={cn(
-        'flex items-center justify-between gap-4 rounded-lg px-1 py-1 transition-opacity',
-        disabled && 'pointer-events-none opacity-40',
-      )}
-    >
-      <div className="min-w-0 flex-1 text-sm font-medium text-white">
-        {label}
-      </div>
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={() => onChange(clamp(value - 1))}
-          disabled={disabled || value <= PLUS_ONE_CAP_MIN}
-          aria-label={`${label} −`}
-          className="flex h-8 w-8 items-center justify-center rounded-full bg-white/5 text-white transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-30"
-        >
-          <Minus className="h-3.5 w-3.5" />
-        </button>
-        <span className="w-6 text-center text-sm font-medium tabular-nums text-white">
-          {value}
-        </span>
-        <button
-          type="button"
-          onClick={() => onChange(clamp(value + 1))}
-          disabled={disabled || value >= PLUS_ONE_CAP_MAX}
-          aria-label={`${label} +`}
-          className="flex h-8 w-8 items-center justify-center rounded-full bg-white/5 text-white transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-30"
-        >
-          <Plus className="h-3.5 w-3.5" />
-        </button>
-      </div>
-    </div>
-  )
-}

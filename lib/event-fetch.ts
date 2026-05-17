@@ -11,6 +11,8 @@ export const EVENT_SELECT = `id, slug, title, status, audience, text_color, cove
        starts_at, ends_at, location_text, location_address, description,
        capacity, show_guest_count, show_guest_names, allow_maybe,
        require_names, location_hidden_until_rsvp,
+       plus_one_enabled, plus_one_max_adults, plus_one_max_children,
+       allow_rsvp_edit,
        theme:themes(id,name,category,background_type,background_value,recommended_text_color,order_index),
        effect:effects(id,name,category,engine,config),
        font_preset:font_presets!events_font_preset_id_fkey(id,name,category,font_family,font_weight,letter_spacing,text_transform),

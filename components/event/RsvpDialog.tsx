@@ -16,9 +16,14 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
+import { StepperRow } from '@/components/ui/stepper-row'
 import { Textarea } from '@/components/ui/textarea'
 import { FLOATING_SURFACE } from '@/lib/ui/floating-surface'
 import { cn } from '@/lib/utils'
+
+// Mirrors the server-side cap in app/actions/rsvp.ts. The textarea
+// `maxLength` enforces this on the client; the action re-validates.
+const GUEST_MESSAGE_MAX = 280
 
 const STATUS_ICON: Record<RsvpStatus, string> = {
   yes: '✅',
@@ -37,6 +42,8 @@ type RsvpDialogProps = {
     name: string
     contact: string
     message: string
+    plusOneAdults: number
+    plusOneChildren: number
   } | null
   /** Pre-fill for first-time RSVP — name from auth profile if present.
    *  Ignored when `initial` is set. */
@@ -48,6 +55,12 @@ type RsvpDialogProps = {
    *  an "Anonymous (optional)" placeholder; server fills 'Anonymous' on
    *  empty submission. */
   requireNames: boolean
+  /** Per-event toggle (added [12a]). When false, the plus-one section is
+   *  not rendered and the server rejects any non-zero plus-one submission. */
+  plusOneEnabled: boolean
+  /** 0..5, enforced both client (stepper clamp) and server (cap check). */
+  plusOneMaxAdults: number
+  plusOneMaxChildren: number
 }
 
 export function RsvpDialog({
@@ -58,6 +71,9 @@ export function RsvpDialog({
   defaultName,
   allowMaybe,
   requireNames,
+  plusOneEnabled,
+  plusOneMaxAdults,
+  plusOneMaxChildren,
 }: RsvpDialogProps) {
   const t = useTranslations('rsvp')
   const isEdit = initial !== null
@@ -68,6 +84,16 @@ export function RsvpDialog({
   const [name, setName] = React.useState(initial?.name ?? defaultName ?? '')
   const [contact, setContact] = React.useState(initial?.contact ?? '')
   const [message, setMessage] = React.useState(initial?.message ?? '')
+  // Plus-one stepper state. Initialize from `initial` (edit) or 0/0 (new).
+  // The host can REDUCE caps after a guest submitted a higher count — we
+  // clamp the pre-fill to the current cap so a stale-too-high value
+  // doesn't get re-saved on edit.
+  const [plusOneAdults, setPlusOneAdults] = React.useState(() =>
+    Math.min(initial?.plusOneAdults ?? 0, plusOneMaxAdults),
+  )
+  const [plusOneChildren, setPlusOneChildren] = React.useState(() =>
+    Math.min(initial?.plusOneChildren ?? 0, plusOneMaxChildren),
+  )
   const [nameError, setNameError] = React.useState<string | null>(null)
   const [pending, startTransition] = React.useTransition()
   const router = useRouter()
@@ -80,9 +106,13 @@ export function RsvpDialog({
       setName(initial?.name ?? defaultName ?? '')
       setContact(initial?.contact ?? '')
       setMessage(initial?.message ?? '')
+      setPlusOneAdults(Math.min(initial?.plusOneAdults ?? 0, plusOneMaxAdults))
+      setPlusOneChildren(
+        Math.min(initial?.plusOneChildren ?? 0, plusOneMaxChildren),
+      )
       setNameError(null)
     }
-  }, [open, initial, defaultName])
+  }, [open, initial, defaultName, plusOneMaxAdults, plusOneMaxChildren])
 
   function handleSubmit() {
     const trimmed = name.trim()
@@ -99,6 +129,15 @@ export function RsvpDialog({
     }
     setNameError(null)
 
+    // Plus-ones only apply to 'yes' — coerce to 0 for 'no'/'maybe' before
+    // sending so a leftover stepper value (e.g. user toggled yes → adults
+    // 2 → no) doesn't get persisted alongside a non-yes status. The
+    // action also coerces server-side; this is just clean wire payload.
+    const adultsToSend =
+      status === 'yes' && plusOneEnabled ? plusOneAdults : 0
+    const childrenToSend =
+      status === 'yes' && plusOneEnabled ? plusOneChildren : 0
+
     startTransition(async () => {
       const result = await submitRsvp({
         eventSlug,
@@ -106,6 +145,8 @@ export function RsvpDialog({
         name: trimmed,
         contact: contact.trim() || undefined,
         message: message.trim() || undefined,
+        plusOneAdults: adultsToSend,
+        plusOneChildren: childrenToSend,
       })
 
       if (!result.ok) {
@@ -165,6 +206,30 @@ export function RsvpDialog({
             })}
           </div>
 
+          {/* Plus-ones — only rendered when (a) the host enabled them at
+              event-creation/edit time and (b) the guest picked 'yes'.
+              For 'no' / 'maybe' the section vanishes; the parent component
+              also sends zeros to the server in those cases. */}
+          {plusOneEnabled && status === 'yes' && (
+            <div className="space-y-2 rounded-xl bg-white/5 p-3">
+              <p className="text-xs font-medium uppercase tracking-wide text-white/50">
+                {t('plusOneSectionLabel')}
+              </p>
+              <StepperRow
+                label={t('plusOneAdultsLabel')}
+                value={plusOneAdults}
+                onChange={setPlusOneAdults}
+                max={plusOneMaxAdults}
+              />
+              <StepperRow
+                label={t('plusOneChildrenLabel')}
+                value={plusOneChildren}
+                onChange={setPlusOneChildren}
+                max={plusOneMaxChildren}
+              />
+            </div>
+          )}
+
           {/* Name */}
           <div>
             <label
@@ -222,7 +287,7 @@ export function RsvpDialog({
             <Textarea
               id="rsvp-message"
               rows={3}
-              maxLength={1000}
+              maxLength={GUEST_MESSAGE_MAX}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder={t('messagePlaceholder')}

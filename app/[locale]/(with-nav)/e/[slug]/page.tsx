@@ -448,6 +448,10 @@ export default async function PublicEventPage({
                   defaultName={viewerDisplayName}
                   allowMaybe={event.allow_maybe ?? true}
                   requireNames={event.require_names ?? true}
+                  allowRsvpEdit={event.allow_rsvp_edit ?? true}
+                  plusOneEnabled={event.plus_one_enabled ?? false}
+                  plusOneMaxAdults={event.plus_one_max_adults ?? 1}
+                  plusOneMaxChildren={event.plus_one_max_children ?? 0}
                 />
               </div>
             )}
