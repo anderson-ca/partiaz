@@ -75,6 +75,18 @@ OTP-based phone sign-in lives alongside magic link + Google OAuth. Architecture 
 - `lib/phone.ts` exports `formatPhoneDisplay` (libphonenumber-js `formatInternational` — produces output like `+994 50 123 45 67`) and `normalizePhone`, which walks a default-country list (`AZ, US, RU, TR, GE, UA` in order — AZ primary audience, then realistic guest origins for Baku events) and returns the first valid parse. Explicit `+994…` / `+1…` wins on the first iteration regardless. Bare digits without `+` falling outside the default list hit a last-resort `+`-prepend international fallback. Country-selector dropdown remains the eventual real fix.
 - The `verifyPhoneOtp` action syncs phone → profiles on every sign-in (idempotent UPDATE). There is no separate `syncProfilePhone` action.
 
+### Event read access — `getEventForView` three-branch model
+
+The public event page fetches via `lib/event-fetch.ts → getEventForView(slug, inviteToken?)`. It resolves in **three prioritized branches**, all returning the same `{ event, isTokenAuth }` shape. New prompts that touch event reads need to know which branch they're operating in before adding guards or changing the join shape.
+
+1. **Token-bearer (service-role).** When `?t=<invite-token>` is on the URL, the token is the access proof. Service-role lookup of the guest row → service-role fetch of the event with the full join shape. Returns `isTokenAuth: true`. Defense-in-depth: the event lookup is constrained by both `id = guest.event_id` AND `slug = <param>` so a leaked token can't be paired with a fabricated slug.
+
+2. **Authenticated host/cohost (service-role).** No token, but the viewer has a session and is the primary host or a cohost. We can't use the `is_event_host_or_cohost` RPC here — it's `security definer` keyed off `auth.uid()`, which returns null under service-role. Instead: service-role slug lookup → membership check against `event_cohosts` (composite PK lookup) → full service-role event fetch if membership confirmed. Returns `isTokenAuth: false`. This branch exists because `profiles_select_self` would otherwise return `host: null` from the host-profile join and trip the page's `notFound()` guard.
+
+3. **Anon/auth RLS fallback.** Last resort — anon viewer with no token guessing a published-event slug. Currently 404s by design because the host-profile join returns null under anon RLS. Kept as a structural placeholder for the future `audience='public_profile'` Explore-feed flow (which would also require a partial `profiles` policy surfacing host display data for public events).
+
+The page-level `restricted` predicate in `app/[locale]/(with-nav)/e/[slug]/page.tsx` mirrors the same access model: cohosts, hosts, and token-bearers all bypass `RestrictedAccessCard`. If you add another way for someone to be "invited" (e.g., poll respondents, photo contributors), update both `getEventForView` AND the `restricted` predicate together — splitting them ships half-fixes.
+
 ### Tailwind v4 utility renames (vs v3)
 
 Verified against the official upgrade guide: https://tailwindcss.com/docs/upgrade-guide. The IDE flags v3 names with a `suggestCanonicalClasses` warning on every edit — use the v4 names from the start to avoid review noise.

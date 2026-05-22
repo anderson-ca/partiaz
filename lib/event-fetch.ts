@@ -28,25 +28,30 @@ type FetchResult = {
 } | null
 
 async function rawFetch(slug: string, inviteToken: string | undefined) {
-  // ─── Token-bearer path (priority) ────────────────────────────────────
-  // When the URL carries `?t=<token>`, the invite token itself is the
-  // access proof. Use service-role for both the guest lookup AND the
-  // event fetch — service-role bypasses RLS on every table in the join.
+  // Three-branch access model. Priority order (token first, then session,
+  // then RLS-public fallback) is load-bearing — see each branch's preamble
+  // for the specific RLS interaction that motivates the order.
   //
-  // Why this branch runs FIRST rather than as a fallback:
-  //   The previous order tried anon-RLS first and fell through to token
-  //   only when the outer event row came back null. But `profiles_select_self`
-  //   (from [02]) denies anon SELECT on profiles, so anon fetch on a
-  //   published event returns the event row WITH `host: null` and
-  //   `cohosts[].profile: null`. That's a non-null `anonEvent`, so the
-  //   short-circuit succeeded and the token branch never ran. The page
-  //   then 404'd at `if (!event.host)`. Bug fixed in [11c.7.2] by
-  //   restructuring: token presence routes through service-role first.
+  // All branches return the same `{ event, isTokenAuth }` shape so the
+  // caller doesn't need to know which path resolved.
+
+  // ─── Branch 1: token-bearer (service-role) ────────────────────────────
+  // When the URL carries `?t=<token>`, the invite token is the access
+  // proof. Service-role for both the guest lookup AND the event fetch so
+  // RLS on every table in the join (notably `profiles_select_self`) is
+  // bypassed.
   //
-  // Defense-in-depth on the event lookup: we constrain by BOTH
-  // `id = guest.event_id` AND `slug = <param>`. A leaked token paired
-  // with a fabricated slug (e.g., to phish a recipient to a different
-  // event's page) will mismatch and return null.
+  // Why this branch runs FIRST and not as a fallback: the previous order
+  // tried anon-RLS first and fell through to token only when the outer
+  // event row came back null. But `profiles_select_self` (from [02])
+  // denies anon SELECT on profiles, so anon fetch on a published event
+  // returns the event row WITH `host: null`. That's a non-null event, so
+  // the short-circuit succeeded and the token branch never ran. The page
+  // then 404'd at `if (!event.host)`. Fixed in [11c.7.2].
+  //
+  // Defense-in-depth: constrain the event lookup by BOTH `id =
+  // guest.event_id` AND `slug = <param>`. A leaked token paired with a
+  // fabricated slug (phishing to a different event) mismatches → null.
   if (inviteToken) {
     const service = createServiceClient()
     const { data: tokenGuest } = await service
@@ -69,19 +74,63 @@ async function rawFetch(slug: string, inviteToken: string | undefined) {
     return { event: null, isTokenAuth: false as const }
   }
 
-  // ─── No-token path ───────────────────────────────────────────────────
-  // Anon-RLS fetch. Host/co-host viewers (with a session) see drafts +
-  // own events via RLS. Anon viewers see published+public events the
-  // policy allows.
+  // ─── Branch 2: authenticated host/cohost (service-role) ──────────────
+  // Logged-in viewers who are the primary host or a co-host of this event.
+  // RLS on `events` would let them see the row, but the join to `profiles`
+  // (host avatar / display_name / locale) is denied by `profiles_select_self`
+  // — they'd get `host: null` and the page would 404. Same bug class as
+  // [11c.7.2], unfixed for session-auth until now.
   //
-  // Known limitation today: `profiles_select_self` denies anon reads,
-  // so a logged-out viewer of a public event will see `host: null` and
-  // 404 at the page-level guard. Resolving requires a partial policy
-  // (anon can SELECT profile rows referenced as events.host_id) and is
-  // out of scope for [11c.7.2]. Logged-in viewers — and anyone with a
-  // valid invite token, who routes through the branch above — are
-  // unaffected.
+  // We can't use the `is_event_host_or_cohost` RPC here: it's
+  // `security definer` and keys off `auth.uid()`, which returns null
+  // under the service-role connection. Inline the membership check as
+  // two cheap indexed queries instead (slug PK, then composite PK on
+  // event_cohosts).
   const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (user) {
+    const service = createServiceClient()
+    const { data: shell } = await service
+      .from('events')
+      .select('id, host_id')
+      .eq('slug', slug)
+      .maybeSingle()
+    if (shell) {
+      const isHost = shell.host_id === user.id
+      let isCohost = false
+      if (!isHost) {
+        const { count } = await service
+          .from('event_cohosts')
+          .select('user_id', { count: 'exact', head: true })
+          .eq('event_id', shell.id)
+          .eq('user_id', user.id)
+        isCohost = (count ?? 0) > 0
+      }
+      if (isHost || isCohost) {
+        const { data: memberEvent } = await service
+          .from('events')
+          .select(EVENT_SELECT)
+          .eq('id', shell.id)
+          .maybeSingle()
+        if (memberEvent) {
+          return { event: memberEvent, isTokenAuth: false as const }
+        }
+      }
+    }
+  }
+
+  // ─── Branch 3: anon/auth RLS fallback ────────────────────────────────
+  // Last resort for viewers who are neither token-bearers nor members.
+  // Currently only reachable by an anon visitor guessing a published-event
+  // slug. The host-profile join still returns null under anon RLS (per
+  // `profiles_select_self`), so this branch 404s by design until the
+  // `audience='public_profile'` flow (CLAUDE.md schema-realities) ships
+  // with a profile policy that surfaces host display data for public
+  // events. Kept as a structural placeholder so that work is one branch
+  // edit rather than a re-architecture.
   const { data: anonEvent } = await supabase
     .from('events')
     .select(EVENT_SELECT)

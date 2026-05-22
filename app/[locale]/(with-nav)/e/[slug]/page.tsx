@@ -199,13 +199,17 @@ export default async function PublicEventPage({
   }
 
   const isHost = !!user && user.id === event.host.id
+  const isCohost =
+    !!user && (event.cohosts ?? []).some((c) => c.user_id === user.id)
   const isDraft = event.status === 'draft'
   const audience = (event.audience ?? 'private') as EventAudience
-  // Restricted access: private event + viewer is neither the host nor a
-  // token-bearer. A token-bearer is invited (their possession of the
-  // 24-char nanoid is the access proof) and should see the RSVP card,
-  // not the locked stub — that's the [12b.1] fix.
-  const restricted = audience === 'private' && !isHost && !isTokenAuth
+  // Restricted access: private event + viewer is none of (host, cohost,
+  // token-bearer). Cohosts and token-bearers are both invited parties —
+  // cohosts via the host's explicit add, token-bearers via possession of
+  // the 24-char nanoid — and should see the full event, not the locked
+  // stub. Token branch fixed in [12b.1]; cohost branch added in [bug-fix-1].
+  const restricted =
+    audience === 'private' && !isHost && !isCohost && !isTokenAuth
 
   const theme = {
     background_type: event.theme.background_type as ThemeBackgroundValue['type'],
@@ -258,7 +262,6 @@ export default async function PublicEventPage({
   ])
 
   const viewerDisplayName = viewerProfile?.display_name ?? undefined
-  const isCohost = cohostsForRender.some((c) => c.user_id === user?.id)
   const canSeeAllGuests = isHost || isCohost
 
   // Per-event location gating. Hosts/co-hosts always see the address
