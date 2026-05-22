@@ -1,5 +1,6 @@
 import { getLocale, getTranslations } from 'next-intl/server'
 import { DeleteGuestButton } from '@/components/guests/DeleteGuestButton'
+import { GuestMessageButton } from '@/components/guests/GuestMessageButton'
 import { SendInviteButton } from '@/components/guests/SendInviteButton'
 import { Pill, type PillProps } from '@/components/ui/pill'
 import { formatPhoneDisplay } from '@/lib/phone'
@@ -12,6 +13,19 @@ export type GuestListItem = {
   rsvp: 'pending' | 'yes' | 'no' | 'maybe'
   invited_at: string | null
   invite_channel: 'sms' | 'email' | null
+  /** ISO timestamp of most recent guest submit. null = host added but
+   *  the guest hasn't responded yet — drives the "No response yet"
+   *  badge variant. Distinct from `rsvp` because a row CAN exist with
+   *  `rsvp: 'pending'` + `responded_at: null` from the [11a] host-add
+   *  flow before [12b] submission lands. */
+  responded_at: string | null
+  /** Counts of adult / child plus-ones the guest is bringing. Only
+   *  meaningful when rsvp === 'yes'. */
+  plus_one_adults: number
+  plus_one_children: number
+  /** Free-form guest-to-host note. Null/empty hides the message
+   *  indicator on the row. */
+  guest_message: string | null
 }
 
 type GuestListProps = {
@@ -19,11 +33,29 @@ type GuestListProps = {
   guests: GuestListItem[]
 }
 
+// Section grouping uses these. Sections always group by stored `rsvp` to
+// keep the heading→count math obvious. Per-row badges use a slightly
+// different lookup below so we can distinguish "no response yet" from
+// stored 'no'.
 const STATUS_VARIANT: Record<GuestListItem['rsvp'], PillProps['variant']> = {
   yes: 'success',
   maybe: 'info',
-  no: 'muted',
+  no: 'destructive',
   pending: 'muted',
+}
+
+// Effective badge state: prefer `responded_at === null` for the
+// "no response yet" determination over `rsvp === 'pending'`. A guest can
+// in theory have rsvp='pending' AND a responded_at (DB edge state); we
+// treat responded_at as the source of truth for whether the guest has
+// actually clicked submit.
+function effectiveStatus(
+  guest: GuestListItem,
+): { key: 'yes' | 'no' | 'maybe' | 'pending'; variant: PillProps['variant'] } {
+  if (guest.responded_at === null) {
+    return { key: 'pending', variant: 'muted' }
+  }
+  return { key: guest.rsvp, variant: STATUS_VARIANT[guest.rsvp] }
 }
 
 const SECTION_ORDER: GuestListItem['rsvp'][] = ['yes', 'maybe', 'no', 'pending']
@@ -105,9 +137,12 @@ async function GuestRow({
 }) {
   const t = await getTranslations('events.guests')
   const tSend = await getTranslations('events.guests.send')
+  const tRsvp = await getTranslations('rsvp')
   const displayName = guest.name?.trim() || '—'
   const phoneDisplay = guest.phone ? formatPhoneDisplay(guest.phone) : null
-  const variant = STATUS_VARIANT[guest.rsvp]
+  const status = effectiveStatus(guest)
+  const messageTrimmed = guest.guest_message?.trim() ?? ''
+  const hasMessage = messageTrimmed.length > 0
 
   let inviteStatus: string
   if (!guest.invited_at) {
@@ -120,6 +155,14 @@ async function GuestRow({
     )
   }
 
+  // Plus-one inline line — only on `yes` rows with non-zero counts.
+  // Composes "Bringing 2 adults and 1 child" / "Bringing 1 adult" / etc.
+  // Reuses the [12b] ICU plurals so host-side and guest-side wording stay
+  // identical.
+  const showPlusOne =
+    guest.rsvp === 'yes' &&
+    (guest.plus_one_adults > 0 || guest.plus_one_children > 0)
+
   return (
     <li className="flex items-center gap-3 py-2.5">
       <div className="min-w-0 flex-1">
@@ -129,10 +172,28 @@ async function GuestRow({
             {[phoneDisplay, guest.email].filter(Boolean).join(' · ')}
           </p>
         )}
+        {showPlusOne && (
+          <p className="truncate pt-0.5 text-xs text-emerald-300/80">
+            {tRsvp('plusOneSummaryBringing')}{' '}
+            {guest.plus_one_adults > 0 &&
+              tRsvp('plusOneAdultsCount', { count: guest.plus_one_adults })}
+            {guest.plus_one_adults > 0 && guest.plus_one_children > 0 && (
+              <> {tRsvp('plusOneAnd')} </>
+            )}
+            {guest.plus_one_children > 0 &&
+              tRsvp('plusOneChildrenCount', { count: guest.plus_one_children })}
+          </p>
+        )}
         <p className="truncate pt-0.5 text-xs text-white/40">{inviteStatus}</p>
       </div>
-      <Pill variant={variant} className="shrink-0">
-        {t(`status.${guest.rsvp}`)}
+      {hasMessage && (
+        <GuestMessageButton
+          message={messageTrimmed}
+          guestLabel={displayName}
+        />
+      )}
+      <Pill variant={status.variant} className="shrink-0">
+        {t(`status.${status.key}`)}
       </Pill>
       <SendInviteButton
         eventId={eventId}

@@ -232,6 +232,17 @@
       "deleteConfirmAction": "Sil",
       "deleteSuccess": "Qonaq silindi",
       "emptyState": "Hələ qonaq yoxdur. Yuxarıdan ilk qonağı əlavə et.",
+      "summary": {
+        "yesCount": "Gəlir",
+        "maybeCount": "Bəlkə",
+        "noCount": "Gələ bilmir",
+        "noResponseCount": "Cavab yox",
+        "expectedAttendeesLabel": "Gözlənilən qonaq sayı",
+        "expectedAttendeesBreakdown": "{guests} qonaq + {plusOnes} əlavə"
+      },
+      "message": {
+        "reveal": "Qonağın mesajını oxu"
+      },
       "errors": {
         "unauthorized": "Daxil olmamısan.",
         "phone_or_email_required": "Telefon nömrəsi və ya email əlavə et.",

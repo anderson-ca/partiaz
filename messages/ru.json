@@ -232,6 +232,17 @@
       "deleteConfirmAction": "Удалить",
       "deleteSuccess": "Гость удалён",
       "emptyState": "Пока нет гостей. Добавь первого выше.",
+      "summary": {
+        "yesCount": "Идут",
+        "maybeCount": "Может быть",
+        "noCount": "Не идут",
+        "noResponseCount": "Без ответа",
+        "expectedAttendeesLabel": "Ожидаемое число гостей",
+        "expectedAttendeesBreakdown": "{guests} гостей + {plusOnes} +1"
+      },
+      "message": {
+        "reveal": "Прочитать сообщение гостя"
+      },
       "errors": {
         "unauthorized": "Ты не вошёл в систему.",
         "phone_or_email_required": "Добавь номер телефона или email.",

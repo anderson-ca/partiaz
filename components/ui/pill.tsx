@@ -21,6 +21,7 @@ const pillVariants = cva(
         warning: 'bg-amber-500/15 text-amber-300',
         info: 'bg-violet-500/15 text-violet-300',
         muted: 'bg-white/5 text-white/60',
+        destructive: 'bg-rose-500/15 text-rose-300',
       },
     },
     defaultVariants: { variant: 'default' },

@@ -5,6 +5,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { AddGuestTabs } from '@/components/guests/AddGuestTabs'
 import { BulkSendButton } from '@/components/guests/BulkSendButton'
 import { GuestList, type GuestListItem } from '@/components/guests/GuestList'
+import { GuestListSummary } from '@/components/guests/GuestListSummary'
 import { createClient } from '@/lib/supabase/server'
 
 export default async function GuestsPage({
@@ -46,7 +47,9 @@ export default async function GuestsPage({
 
   const { data: guestsData } = await supabase
     .from('guests')
-    .select('id, name, phone, email, rsvp, invited_at, invite_channel')
+    .select(
+      'id, name, phone, email, rsvp, invited_at, invite_channel, responded_at, plus_one_adults, plus_one_children, guest_message',
+    )
     .eq('event_id', event.id)
     .order('created_at', { ascending: false })
 
@@ -58,6 +61,10 @@ export default async function GuestsPage({
     rsvp: g.rsvp as GuestListItem['rsvp'],
     invited_at: g.invited_at,
     invite_channel: g.invite_channel as GuestListItem['invite_channel'],
+    responded_at: g.responded_at,
+    plus_one_adults: g.plus_one_adults,
+    plus_one_children: g.plus_one_children,
+    guest_message: g.guest_message,
   }))
 
   const unsentGuestIds = guests
@@ -106,6 +113,7 @@ export default async function GuestsPage({
           existingPhones={existingPhones}
           existingEmails={existingEmails}
         />
+        <GuestListSummary guests={guests} />
         <GuestList eventId={event.id} guests={guests} />
       </div>
     </>

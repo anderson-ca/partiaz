@@ -232,6 +232,17 @@
       "deleteConfirmAction": "Remove",
       "deleteSuccess": "Guest removed",
       "emptyState": "No guests yet. Add your first one above.",
+      "summary": {
+        "yesCount": "Going",
+        "maybeCount": "Maybe",
+        "noCount": "Not going",
+        "noResponseCount": "No response",
+        "expectedAttendeesLabel": "Expected attendees",
+        "expectedAttendeesBreakdown": "{guests} guests + {plusOnes} plus-ones"
+      },
+      "message": {
+        "reveal": "Read guest's message"
+      },
       "errors": {
         "unauthorized": "You're not signed in.",
         "phone_or_email_required": "Add a phone number or email.",
