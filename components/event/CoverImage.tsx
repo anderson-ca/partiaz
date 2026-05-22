@@ -1,5 +1,8 @@
+'use client'
+
 import Image from 'next/image'
 import { isVideoCoverUrl } from '@/lib/cover'
+import { resizeCoverUrl, type CoverThumbSize } from '@/lib/cover-url'
 import { fontFamilyToCssVar } from '@/lib/fonts'
 import { cn } from '@/lib/utils'
 
@@ -24,6 +27,12 @@ type CoverImageProps = {
   overlayText?: string | null
   overlayFont?: CoverOverlayFont | null
   overlayColor?: string | null
+  /** Width preset for Unsplash-source rewriting ([perf-1]). Defaults to
+   *  `'public'` (1200px) which matches the public event page hero. The
+   *  editor preview should pass `'apply'` (800px) to avoid paying for
+   *  hero-scale bytes during the in-editor preview render. Non-Unsplash
+   *  URLs ignore this — the helper passes them through unchanged. */
+  size?: CoverThumbSize
 }
 
 export function CoverImage({
@@ -36,6 +45,7 @@ export function CoverImage({
   overlayText,
   overlayFont,
   overlayColor,
+  size = 'public',
 }: CoverImageProps) {
   if (!url) return null
 
@@ -64,12 +74,20 @@ export function CoverImage({
         />
       ) : (
         <Image
-          src={url}
+          src={resizeCoverUrl(url, size)}
           alt={alt}
           fill
           priority={priority}
           sizes="(max-width: 640px) 100vw, 800px"
           className="object-cover"
+          onLoad={() => {
+            // [perf-audit] dev-only timestamp — marks when the
+            // selected cover image actually paints. Strip after the
+            // optimization round.
+            if (process.env.NODE_ENV === 'development') {
+              console.timeStamp('cover-preview-rendered')
+            }
+          }}
         />
       )}
 

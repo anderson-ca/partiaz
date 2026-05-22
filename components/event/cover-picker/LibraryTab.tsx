@@ -1,10 +1,11 @@
 'use client'
 
 import Image from 'next/image'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Check } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { Pill } from '@/components/ui/pill'
+import { resizeCoverUrl } from '@/lib/cover-url'
 import { cn } from '@/lib/utils'
 
 // Hides the WebKit/Firefox scrollbar while keeping native scroll behaviour.
@@ -45,6 +46,17 @@ export function LibraryTab({
   const t = useTranslations('cover.library')
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState<CategoryKey>('all')
+
+  // [perf-audit] dev-only timestamps. console.timeStamp lands in the
+  // DevTools Performance recording timeline so we can correlate first
+  // paint, mount, and all-thumbs-loaded against image network waterfalls.
+  // Strip these (and the loadedCount ref) after the optimization round.
+  const loadedCountRef = useRef(0)
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.timeStamp('cover-library-mounted')
+    }
+  }, [])
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -133,11 +145,18 @@ export function LibraryTab({
                   )}
                 >
                   <Image
-                    src={ill.image_url}
+                    src={resizeCoverUrl(ill.image_url, 'grid')}
                     alt=""
                     fill
                     sizes="(max-width: 480px) 33vw, 200px"
                     className="object-cover"
+                    onLoad={() => {
+                      if (process.env.NODE_ENV !== 'development') return
+                      loadedCountRef.current += 1
+                      if (loadedCountRef.current === filtered.length) {
+                        console.timeStamp('cover-library-all-loaded')
+                      }
+                    }}
                   />
                   {isSelected && (
                     <div className="absolute inset-0 flex items-center justify-center bg-black/30">

@@ -14,6 +14,7 @@ import { getGuestSummary } from '@/app/actions/guest-summary'
 import { getCurrentGuestForEvent } from '@/app/actions/rsvp'
 import { formatLongDate, type AppLocale } from '@/lib/dates'
 import { getEventForView } from '@/lib/event-fetch'
+import { resizeCoverUrl } from '@/lib/cover-url'
 import { getSiteUrl } from '@/lib/site-url'
 import { FLOATING_SURFACE } from '@/lib/ui/floating-surface'
 import type { ThemeBackgroundValue } from '@/lib/schemas/theme'
@@ -47,7 +48,9 @@ function pickOgImage(coverUrl: string | null): {
   if (!coverUrl || /\.mp4(\?|$)/i.test(coverUrl)) {
     return { url: `${getSiteUrl()}/og-default.png`, isDefault: true }
   }
-  return { url: coverUrl, isDefault: false }
+  // [perf-1] right-size Unsplash sources to the 1200×630 OG card so social
+  // crawlers don't pull a 1760-px upstream. Non-Unsplash URLs pass through.
+  return { url: resizeCoverUrl(coverUrl, 'og'), isDefault: false }
 }
 
 function truncate(s: string, max: number): string {

@@ -797,6 +797,7 @@ function CoverArea({
                 url={currentUrl}
                 alt=""
                 aspect="1 / 1"
+                size="apply"
                 overlayEnabled={overlayEnabled}
                 overlayText={overlayText || eventTitle}
                 overlayFont={overlayFont}

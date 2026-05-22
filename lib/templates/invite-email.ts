@@ -1,3 +1,4 @@
+import { resizeCoverUrl } from '@/lib/cover-url'
 import type { Locale } from './invite-sms'
 
 type Args = {
@@ -93,7 +94,7 @@ export function inviteEmail({
   const whenText = eventStartsAt ? formatWhen(eventStartsAt, locale) : null
 
   const cover = eventCoverUrl
-    ? `<img src="${esc(eventCoverUrl)}" alt="" style="display:block;width:100%;max-width:560px;height:auto;border-radius:12px;margin:0 0 24px 0;" />`
+    ? `<img src="${esc(resizeCoverUrl(eventCoverUrl, 'apply'))}" alt="" style="display:block;width:100%;max-width:560px;height:auto;border-radius:12px;margin:0 0 24px 0;" />`
     : ''
 
   const whenRow = whenText

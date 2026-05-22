@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Check, Dices } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { EffectThumbnail } from '@/components/event/EffectThumbnail'
@@ -31,6 +31,13 @@ export function EffectPicker({
   trigger,
 }: EffectPickerProps) {
   const [open, setOpen] = useState(false)
+
+  // [perf-audit] dev-only mount timestamp. Strip after optimization.
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.timeStamp('effect-picker-mounted')
+    }
+  }, [])
 
   // "None" is pinned at the top so users can always clear the effect.
   const noneEffect = useMemo(

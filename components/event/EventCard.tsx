@@ -7,6 +7,7 @@ import { ThemeBackground } from '@/components/event/ThemeBackground'
 import { EventCardActions } from '@/components/event/EventCardActions'
 import { Pill } from '@/components/ui/pill'
 import { isVideoCoverUrl } from '@/lib/cover'
+import { resizeCoverUrl } from '@/lib/cover-url'
 import { bucketCardDate, type AppLocale } from '@/lib/dates'
 import type { ThemeBackgroundValue } from '@/lib/schemas/theme'
 
@@ -90,7 +91,7 @@ export async function EventCard({ event, isHost, locale }: EventCardProps) {
             />
           ) : (
             <Image
-              src={event.cover_image_url}
+              src={resizeCoverUrl(event.cover_image_url, 'grid')}
               alt=""
               fill
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 384px"
