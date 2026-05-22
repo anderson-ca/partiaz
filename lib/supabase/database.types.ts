@@ -856,6 +856,13 @@ export type Database = {
           id: string
         }[]
       }
+      get_event_member_contacts: {
+        Args: { p_event_id: string }
+        Returns: {
+          email: string
+          phone: string
+        }[]
+      }
       is_event_host_or_cohost: {
         Args: { p_event_id: string }
         Returns: boolean

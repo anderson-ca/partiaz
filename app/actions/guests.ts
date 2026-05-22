@@ -46,8 +46,80 @@ export type AddGuestResult =
         | 'invalid_email'
         | 'duplicate_phone'
         | 'duplicate_email'
+        | 'cannot_add_self'
+        | 'cannot_add_host_or_cohost'
         | 'insert_failed'
     }
+
+type SelfMemberGuard =
+  | { ok: true }
+  | { ok: false; reason: 'cannot_add_self' | 'cannot_add_host_or_cohost' }
+
+/**
+ * Build a closure that checks an input email/phone against the caller's
+ * own identifiers and the event's host/cohost member contacts. Returns
+ * a specific reason code so the UI can distinguish "you can't add
+ * yourself" from "you can't add a co-host".
+ *
+ * Caller identifiers come free from auth.getUser(). Member contacts
+ * come from the `get_event_member_contacts` SECURITY DEFINER RPC —
+ * see supabase/migrations/20260522213647_event_member_contacts_rpc.sql
+ * for why the RPC exists (profiles has no email column; member emails
+ * live in auth.users which authenticated users can't read directly).
+ *
+ * Comparison rules: skip when either side is null/empty; email is
+ * case-insensitive; phone is direct E.164 equality (both sides are
+ * normalized by the time they reach the comparison).
+ */
+async function buildSelfMemberGuard(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  eventId: string,
+  user: { email?: string | null; phone?: string | null },
+): Promise<((input: { email: string | null; phone: string | null }) => SelfMemberGuard) | { error: 'insert_failed' }> {
+  const { data: members, error: membersErr } = await supabase.rpc(
+    'get_event_member_contacts',
+    { p_event_id: eventId },
+  )
+  if (membersErr) {
+    return { error: 'insert_failed' }
+  }
+
+  const callerEmail = user.email?.toLowerCase() ?? null
+  const callerPhone = user.phone ?? null
+
+  const memberEmails = new Set(
+    (members ?? [])
+      .map((m) => m.email?.toLowerCase())
+      .filter((e): e is string => !!e),
+  )
+  const memberPhones = new Set(
+    (members ?? [])
+      .map((m) => m.phone)
+      .filter((p): p is string => !!p),
+  )
+
+  return (input) => {
+    const inEmail = input.email?.toLowerCase() ?? null
+    const inPhone = input.phone ?? null
+
+    // Caller-specific checks first — the caller is also in memberEmails/
+    // memberPhones (must be host or cohost to reach this point), but a
+    // self-match gets the more accurate `cannot_add_self` reason code.
+    if (inEmail && callerEmail && inEmail === callerEmail) {
+      return { ok: false, reason: 'cannot_add_self' }
+    }
+    if (inPhone && callerPhone && inPhone === callerPhone) {
+      return { ok: false, reason: 'cannot_add_self' }
+    }
+    if (inEmail && memberEmails.has(inEmail)) {
+      return { ok: false, reason: 'cannot_add_host_or_cohost' }
+    }
+    if (inPhone && memberPhones.has(inPhone)) {
+      return { ok: false, reason: 'cannot_add_host_or_cohost' }
+    }
+    return { ok: true }
+  }
+}
 
 /**
  * Host or co-host adds a guest to their event manually. Anon writes on
@@ -91,6 +163,16 @@ export async function addGuest(
       return { ok: false, error: 'invalid_email' }
     }
     cleanEmail = rawEmail.toLowerCase()
+  }
+
+  // ─── Self / host / cohost guard ([bug-fix-3]) ─────────────────────────
+  const guardOrError = await buildSelfMemberGuard(supabase, eventId, user)
+  if ('error' in guardOrError) {
+    return { ok: false, error: guardOrError.error }
+  }
+  const guardCheck = guardOrError({ email: cleanEmail, phone: normalizedPhone })
+  if (!guardCheck.ok) {
+    return { ok: false, error: guardCheck.reason }
   }
 
   // ─── Insert via service-role (anon RLS denies; INSERT policy requires
@@ -146,7 +228,17 @@ export async function addGuest(
 }
 
 export type BatchInsertResult =
-  | { ok: true; added: number; skipped: number }
+  | {
+      ok: true
+      added: number
+      skipped: number
+      /** Rows dropped by the self/host/cohost guard ([bug-fix-3]). Distinct
+       *  from `skipped` (which counts DB-dedupe drops); future UI can surface
+       *  per-reason inline warnings without another action-shape change. */
+      rejected: Array<{
+        reason: 'cannot_add_self' | 'cannot_add_host_or_cohost'
+      }>
+    }
   | {
       ok: false
       error:
@@ -237,14 +329,34 @@ export async function addGuestsBatch(
     return { ok: false, error: 'no_valid_input' }
   }
 
+  // ─── Self / host / cohost guard ([bug-fix-3]) — one RPC call, applied
+  //      per row. Rejections bucket into `rejected[]` with their reason
+  //      code so a future inline-warning UI can render per-row feedback. ─
+  const guardOrError = await buildSelfMemberGuard(supabase, eventId, user)
+  if ('error' in guardOrError) {
+    return { ok: false, error: guardOrError.error }
+  }
+  const rejected: Array<{
+    reason: 'cannot_add_self' | 'cannot_add_host_or_cohost'
+  }> = []
+  const postGuard: Row[] = []
+  for (const row of candidates) {
+    const check = guardOrError({ email: row.email, phone: row.phone })
+    if (check.ok) {
+      postGuard.push(row)
+    } else {
+      rejected.push({ reason: check.reason })
+    }
+  }
+
   // ─── Pre-fetch existing duplicates within this event. Two narrow queries
   //      (one per column) beats one wide OR query for readability and
   //      keeps the index hits clean. ─────────────────────────────────────
   const service = createServiceClient()
-  const phonesToCheck = candidates
+  const phonesToCheck = postGuard
     .map((c) => c.phone)
     .filter((p): p is string => !!p)
-  const emailsToCheck = candidates
+  const emailsToCheck = postGuard
     .map((c) => c.email)
     .filter((e): e is string => !!e)
 
@@ -277,7 +389,7 @@ export async function addGuestsBatch(
   const seenPhones = new Set<string>()
   const seenEmails = new Set<string>()
   const toInsert: Row[] = []
-  for (const row of candidates) {
+  for (const row of postGuard) {
     if (row.phone && (existingPhones.has(row.phone) || seenPhones.has(row.phone))) {
       continue
     }
@@ -289,12 +401,12 @@ export async function addGuestsBatch(
     toInsert.push(row)
   }
 
-  const skipped = candidates.length - toInsert.length
+  const skipped = postGuard.length - toInsert.length
   const locale = await getLocale()
 
   if (toInsert.length === 0) {
     revalidatePath(`/${locale}/events`)
-    return { ok: true, added: 0, skipped }
+    return { ok: true, added: 0, skipped, rejected }
   }
 
   const { error: insertErr } = await service.from('guests').insert(toInsert)
@@ -310,7 +422,7 @@ export async function addGuestsBatch(
   }
 
   revalidatePath(`/${locale}/events`)
-  return { ok: true, added: toInsert.length, skipped }
+  return { ok: true, added: toInsert.length, skipped, rejected }
 }
 
 export type DeleteGuestResult =
