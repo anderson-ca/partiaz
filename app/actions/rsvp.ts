@@ -94,10 +94,6 @@ export async function submitRsvp(input: RsvpInput): Promise<SubmitRsvpResult> {
   // ─── 1. Schema-level validation (`.strict()` bounces unknown keys) ────
   const parsed = rsvpInputSchema.safeParse(input)
   if (!parsed.success) {
-    console.error('[submitRsvp] returning invalid_input', {
-      reason: 'schema_violation',
-      issues: parsed.error.issues,
-    })
     return { ok: false, error: 'invalid_input' }
   }
   const data = parsed.data
@@ -106,16 +102,6 @@ export async function submitRsvp(input: RsvpInput): Promise<SubmitRsvpResult> {
   const trimmedMessage = (data.message ?? '').trim()
   const rawPlusAdults = data.plusOneAdults ?? 0
   const rawPlusChildren = data.plusOneChildren ?? 0
-
-  console.log('[submitRsvp] start', {
-    eventSlug: data.eventSlug,
-    status: data.status,
-    hasInviteToken: !!data.inviteToken,
-    hasName: trimmedName.length > 0,
-    plusOneAdults: rawPlusAdults,
-    plusOneChildren: rawPlusChildren,
-    messageLength: trimmedMessage.length,
-  })
 
   // ─── 2. Resolve the event + per-event RSVP toggles ────────────────────
   const supabase = await createClient()
@@ -127,22 +113,12 @@ export async function submitRsvp(input: RsvpInput): Promise<SubmitRsvpResult> {
     .eq('slug', data.eventSlug)
     .maybeSingle()
   if (!event) {
-    console.error('[submitRsvp] returning event_not_found', {
-      eventSlug: data.eventSlug,
-    })
     return { ok: false, error: 'event_not_found' }
   }
   if (event.status !== 'published') {
-    console.error('[submitRsvp] returning event_not_published', {
-      eventSlug: data.eventSlug,
-      status: event.status,
-    })
     return { ok: false, error: 'event_not_published' }
   }
   if (data.status === 'maybe' && !event.allow_maybe) {
-    console.error('[submitRsvp] returning maybe_not_allowed', {
-      eventId: event.id,
-    })
     return { ok: false, error: 'maybe_not_allowed' }
   }
 
@@ -157,26 +133,13 @@ export async function submitRsvp(input: RsvpInput): Promise<SubmitRsvpResult> {
     plusOneChildren = 0
   } else if (!event.plus_one_enabled) {
     if (plusOneAdults > 0 || plusOneChildren > 0) {
-      console.error('[submitRsvp] returning plus_one_not_allowed', {
-        plusOneAdults,
-        plusOneChildren,
-        eventEnabled: event.plus_one_enabled,
-      })
       return { ok: false, error: 'plus_one_not_allowed' }
     }
   } else {
     if (plusOneAdults > event.plus_one_max_adults) {
-      console.error('[submitRsvp] returning too_many_adult_plus_ones', {
-        requested: plusOneAdults,
-        max: event.plus_one_max_adults,
-      })
       return { ok: false, error: 'too_many_adult_plus_ones' }
     }
     if (plusOneChildren > event.plus_one_max_children) {
-      console.error('[submitRsvp] returning too_many_child_plus_ones', {
-        requested: plusOneChildren,
-        max: event.plus_one_max_children,
-      })
       return { ok: false, error: 'too_many_child_plus_ones' }
     }
   }
@@ -187,11 +150,6 @@ export async function submitRsvp(input: RsvpInput): Promise<SubmitRsvpResult> {
     data: { user },
   } = await supabase.auth.getUser()
   const service = createServiceClient()
-
-  console.log('[submitRsvp] lookup', {
-    hasInviteToken: !!data.inviteToken,
-    hasClaimedUserSession: !!user,
-  })
 
   type ExistingRow = {
     id: string
@@ -221,10 +179,6 @@ export async function submitRsvp(input: RsvpInput): Promise<SubmitRsvpResult> {
   }
 
   if (!existing) {
-    console.error(
-      '[submitRsvp] guest_not_found — token/session lookup failed',
-      { hasInviteToken: !!data.inviteToken },
-    )
     return { ok: false, error: 'guest_not_found' }
   }
 
@@ -233,9 +187,6 @@ export async function submitRsvp(input: RsvpInput): Promise<SubmitRsvpResult> {
   // host turned `allow_rsvp_edit` off. Re-submits on an unresponded row
   // (host-created shell) are always fine.
   if (!event.allow_rsvp_edit && existing.responded_at !== null) {
-    console.error('[submitRsvp] returning edit_not_allowed', {
-      responded_at: existing.responded_at,
-    })
     return { ok: false, error: 'edit_not_allowed' }
   }
 
@@ -250,10 +201,6 @@ export async function submitRsvp(input: RsvpInput): Promise<SubmitRsvpResult> {
   if (storedName.length === 0) {
     if (trimmedName.length === 0) {
       if (event.require_names) {
-        console.error('[submitRsvp] returning invalid_input', {
-          reason: 'name_required_but_empty',
-          eventId: event.id,
-        })
         return { ok: false, error: 'invalid_input' }
       }
       // require_names = false → server-side anonymous fallback in the
@@ -275,10 +222,6 @@ export async function submitRsvp(input: RsvpInput): Promise<SubmitRsvpResult> {
       .eq('event_id', event.id)
       .eq('rsvp', 'yes')
     if ((yesCount ?? 0) >= event.capacity) {
-      console.error('[submitRsvp] returning event_full', {
-        yesCount,
-        capacity: event.capacity,
-      })
       return { ok: false, error: 'event_full' }
     }
   }
@@ -308,18 +251,11 @@ export async function submitRsvp(input: RsvpInput): Promise<SubmitRsvpResult> {
     .eq('id', existing.id)
 
   if (updateError) {
-    console.error('[submitRsvp] returning server_error', {
-      dbError: updateError,
-    })
     return { ok: false, error: 'server_error' }
   }
 
   const locale = await getLocale()
   revalidatePath(`/${locale}/e/${data.eventSlug}`)
-  console.log('[submitRsvp] success', {
-    guestId: existing.id,
-    status: data.status,
-  })
   return { ok: true, guestId: existing.id, status: data.status }
 }
 
