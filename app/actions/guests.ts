@@ -6,6 +6,13 @@ import { getLocale } from 'next-intl/server'
 import { buildInviteSmsBody } from '@/lib/invite-sms-body'
 import { generateInviteToken } from '@/lib/invite-token'
 import { normalizePhone } from '@/lib/phone'
+import {
+  checkLimit,
+  guestAddLimiter,
+  guestBatchLimiter,
+  inviteEventLimiter,
+  inviteHostLimiter,
+} from '@/lib/ratelimit'
 import { sendEmail } from '@/lib/resend'
 import { getSiteUrl } from '@/lib/site-url'
 import { createClient } from '@/lib/supabase/server'
@@ -13,6 +20,12 @@ import { createServiceClient } from '@/lib/supabase/service'
 import { inviteEmail } from '@/lib/templates/invite-email'
 import { type Locale } from '@/lib/templates/invite-sms'
 import { sendSms } from '@/lib/twilio'
+
+// Hard caps applied BEFORE rate-limit checks so a single oversized call
+// can't blast through the per-window allotment in one shot. Numbers from
+// [sec-2]: 100 guests per blast, 200 rows per batch upload.
+const SEND_INVITES_MAX_GUESTS = 100
+const ADD_GUESTS_BATCH_MAX = 200
 
 const PG_UNIQUE_VIOLATION = '23505'
 
@@ -41,6 +54,7 @@ export type AddGuestResult =
       ok: false
       error:
         | 'unauthorized'
+        | 'rate_limited'
         | 'phone_or_email_required'
         | 'invalid_phone'
         | 'invalid_email'
@@ -143,6 +157,10 @@ export async function addGuest(
   )
   if (rpcErr || !isMember) return { ok: false, error: 'unauthorized' }
 
+  // ─── Rate limit ([sec-2]) — per-user single-add throttle ──────────────
+  const rl = await checkLimit(guestAddLimiter, user.id)
+  if (!rl.ok) return { ok: false, error: 'rate_limited' }
+
   // ─── Input shape: at least one contact channel required ───────────────
   const rawName = input.name?.trim() ?? ''
   const rawPhone = input.phone?.trim() ?? ''
@@ -243,6 +261,8 @@ export type BatchInsertResult =
       ok: false
       error:
         | 'unauthorized'
+        | 'rate_limited'
+        | 'too_many_guests'
         | 'no_valid_input'
         | 'concurrent_modification'
         | 'insert_failed'
@@ -284,6 +304,15 @@ export async function addGuestsBatch(
     { p_event_id: eventId },
   )
   if (rpcErr || !isMember) return { ok: false, error: 'unauthorized' }
+
+  // ─── Hard cap + rate limit ([sec-2]) ──────────────────────────────────
+  // Hard cap runs first — a single 10k-guest payload would otherwise burn
+  // through the per-window allotment in one call.
+  if (guests.length > ADD_GUESTS_BATCH_MAX) {
+    return { ok: false, error: 'too_many_guests' }
+  }
+  const rl = await checkLimit(guestBatchLimiter, user.id)
+  if (!rl.ok) return { ok: false, error: 'rate_limited' }
 
   // ─── Validate + normalize each input. Drop rows the client somehow
   //      let through that we can't act on. ─────────────────────────────────
@@ -519,6 +548,35 @@ export async function sendInvites(
 
   if (guestIds.length === 0) {
     return { sent: [], failed: [] }
+  }
+
+  // ─── Hard cap + rate limits ([sec-2]) ─────────────────────────────────
+  // The SendInvitesResult shape doesn't have an `ok: false` branch; rate
+  // limit and hard-cap denials surface as uniform `failed[]` rows with
+  // the appropriate reason code. UI consumers already render per-row
+  // failures (e.g., "0 of 50 sent — all rate_limited").
+  //
+  // Two limiters per call: event-level (5/hour) and host-level (20/day).
+  // Both must pass — a host can't sidestep one by hopping events.
+  if (guestIds.length > SEND_INVITES_MAX_GUESTS) {
+    return {
+      sent: [],
+      failed: guestIds.map((id) => ({ guestId: id, reason: 'too_many_guests' })),
+    }
+  }
+  const eventRl = await checkLimit(inviteEventLimiter, eventId)
+  if (!eventRl.ok) {
+    return {
+      sent: [],
+      failed: guestIds.map((id) => ({ guestId: id, reason: 'rate_limited' })),
+    }
+  }
+  const hostRl = await checkLimit(inviteHostLimiter, user.id)
+  if (!hostRl.ok) {
+    return {
+      sent: [],
+      failed: guestIds.map((id) => ({ guestId: id, reason: 'rate_limited' })),
+    }
   }
 
   // ─── Fetch event with host profile join. `host_id` (not `created_by`)
