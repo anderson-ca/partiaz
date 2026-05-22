@@ -1,6 +1,6 @@
 'use client'
 
-import { useParams } from 'next/navigation'
+import { useParams, useSearchParams } from 'next/navigation'
 import { LogIn } from 'lucide-react'
 import { useLocale, useTranslations } from 'next-intl'
 import { Link, usePathname } from '@/i18n/routing'
@@ -12,6 +12,12 @@ export function SignInLink() {
   const locale = useLocale()
   const pathname = usePathname()
   const params = useParams()
+  // usePathname() returns the path only (App Router strips ?... and #...),
+  // so the invite token on /e/<slug>?t=<token> would be dropped from `next`
+  // and the user would 404 post-sign-in. Append the serialized search
+  // string back so OAuth/magic-link/phone-OTP all preserve URL state.
+  // See [bug-audit-oauth-token].
+  const searchParams = useSearchParams()
 
   // Build the locale-prefixed `next` path. usePathname() strips the locale,
   // so we re-add it. Drop dynamic-segment placeholders with their values.
@@ -21,7 +27,10 @@ export function SignInLink() {
       resolved = resolved.replace(`[${key}]`, value)
     }
   }
-  const nextParam = `/${locale}${resolved === '/' ? '' : resolved}`
+  const searchString = searchParams.toString()
+  const nextParam = `/${locale}${resolved === '/' ? '' : resolved}${
+    searchString ? `?${searchString}` : ''
+  }`
 
   return (
     <Link
