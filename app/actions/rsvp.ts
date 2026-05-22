@@ -1,14 +1,9 @@
 'use server'
 
 import 'server-only'
-import { cookies } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import { getLocale, getTranslations } from 'next-intl/server'
-import {
-  COOKIE_MAX_AGE_SEC,
-  COOKIE_PREFIX,
-  generateInviteToken,
-} from '@/lib/invite-token'
+import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
 
@@ -18,22 +13,29 @@ export type RsvpStatus = 'yes' | 'no' | 'maybe'
 // `maxLength` — both client + server enforce the same ceiling.
 const GUEST_MESSAGE_MAX = 280
 
-export type RsvpInput = {
-  eventSlug: string
-  status: RsvpStatus
-  name: string
-  /** Free-form. We branch on `@` to decide email vs phone; future prompt
-   *  may tighten validation. */
-  contact?: string
-  /** Optional note from the guest TO the host. Lives in `guest_message`. */
-  message?: string
-  /** Adult plus-ones the guest is bringing. Defaults to 0. Capped
-   *  server-side at `events.plus_one_max_adults` (and rejected entirely
-   *  when `events.plus_one_enabled` is false). */
-  plusOneAdults?: number
-  /** Child plus-ones, same constraints. */
-  plusOneChildren?: number
-}
+// Strict Zod schema for the RSVP submission payload. The `.strict()` call
+// REJECTS unknown keys — a crafted request that tries to slip an `email`
+// or `phone` field through gets caught here and bounces as `invalid_input`.
+// That's the [12b.3] hardening boundary: guests don't own their own
+// contact info anymore, and the server enforces it at the type/parse level.
+const rsvpInputSchema = z
+  .object({
+    eventSlug: z.string().min(1),
+    status: z.enum(['yes', 'no', 'maybe']),
+    /** Anonymous identity key. Sourced from the `?t=<token>` URL param on
+     *  the public event page and threaded through the dialog. Required for
+     *  anon submissions; ignored when the viewer has a logged-in session. */
+    inviteToken: z.string().min(1).optional(),
+    /** Only meaningful when the existing guest row has a null/empty name.
+     *  Server discards if the row already has a stored name (host control). */
+    name: z.string().max(100).optional(),
+    message: z.string().max(GUEST_MESSAGE_MAX).optional(),
+    plusOneAdults: z.number().int().min(0).optional(),
+    plusOneChildren: z.number().int().min(0).optional(),
+  })
+  .strict()
+
+export type RsvpInput = z.infer<typeof rsvpInputSchema>
 
 export type SubmitRsvpResult =
   | { ok: true; guestId: string; status: RsvpStatus }
@@ -48,6 +50,7 @@ export type SubmitRsvpResult =
         | 'too_many_adult_plus_ones'
         | 'too_many_child_plus_ones'
         | 'edit_not_allowed'
+        | 'guest_not_found'
         | 'invalid_input'
         | 'server_error'
     }
@@ -56,82 +59,62 @@ export type CurrentGuest = {
   id: string
   name: string
   rsvp: RsvpStatus | 'pending'
-  email: string | null
-  phone: string | null
   guest_message: string | null
   plus_one_adults: number
   plus_one_children: number
-  /** ISO timestamp of the most-recent submit. Null = never responded
-   *  (created by the host but the guest hasn't clicked yet). The page
-   *  uses this to decide whether to gate edits on
-   *  `events.allow_rsvp_edit`. */
+  /** ISO timestamp of the most-recent submit. Null = host added but the
+   *  guest hasn't clicked yet. Drives the [12a]/[12b] edit-gate. */
   responded_at: string | null
-}
-
-// Split a free-form contact value into email/phone slots based on the
-// presence of '@'. Trim away whitespace; empty string → null on both.
-function splitContact(raw: string | undefined): {
-  email: string | null
-  phone: string | null
-} {
-  const trimmed = raw?.trim() ?? ''
-  if (!trimmed) return { email: null, phone: null }
-  if (trimmed.includes('@')) return { email: trimmed, phone: null }
-  return { email: null, phone: trimmed }
 }
 
 /**
  * Submit (or update) the viewer's RSVP for an event.
  *
- * Two identity paths:
- *   • Authenticated → `guests.claimed_user_id = auth.uid()` (partial-unique
- *     index enforces one row per user/event)
- *   • Anonymous → an httpOnly per-event cookie holds the row's
- *     `invite_token`. First submit mints a token + cookie; subsequent
- *     submits re-use it.
+ * Identity resolution — STRICT, single-source, no fallbacks ([12b.3]):
+ *   • Logged-in viewer → `guests.claimed_user_id = auth.uid()`
+ *   • Anonymous viewer → `guests.invite_token = input.inviteToken` (the
+ *     `?t=<token>` URL param)
+ *   • Neither resolves a row → `guest_not_found`. The action NEVER inserts
+ *     a new row; the host is the only party that creates guests
+ *     (`addGuest` / `addGuestsBatch` in `app/actions/guests.ts`).
  *
- * Anonymous writes use the service-role client; RLS blocks anon roles from
- * touching `guests` directly. The action validates inputs server-side
- * before any service-role call.
+ * What the action writes:
+ *   • rsvp, guest_message, plus_one_adults, plus_one_children, responded_at
+ *   • name, ONLY when the existing row's name was empty (host left it
+ *     blank for a phone/email-only contact). Once set, never overwritten.
+ *
+ * What the action NEVER writes:
+ *   • email, phone — host-controlled, immutable from the guest side
+ *
+ * Anonymous writes use the service-role client; RLS blocks anon from
+ * touching `guests` directly. The Zod parse is the type/security boundary
+ * for what the guest is allowed to send.
  */
 export async function submitRsvp(input: RsvpInput): Promise<SubmitRsvpResult> {
-  // ─── 1. Cheap input shape validation (event-specific gates run later) ─
-  const rawName = input.name?.trim() ?? ''
-  if (rawName.length > 100) {
-    console.error('[submitRsvp] returning invalid_input', { reason: 'name_too_long', nameLength: rawName.length })
+  // ─── 1. Schema-level validation (`.strict()` bounces unknown keys) ────
+  const parsed = rsvpInputSchema.safeParse(input)
+  if (!parsed.success) {
+    console.error('[submitRsvp] returning invalid_input', {
+      reason: 'schema_violation',
+      issues: parsed.error.issues,
+    })
     return { ok: false, error: 'invalid_input' }
   }
-  const message = input.message?.trim() ?? ''
-  if (message.length > GUEST_MESSAGE_MAX) {
-    console.error('[submitRsvp] returning invalid_input', { reason: 'message_too_long', messageLength: message.length, cap: GUEST_MESSAGE_MAX })
-    return { ok: false, error: 'invalid_input' }
-  }
-  if (input.status !== 'yes' && input.status !== 'no' && input.status !== 'maybe') {
-    console.error('[submitRsvp] returning invalid_input', { reason: 'bad_status', status: input.status })
-    return { ok: false, error: 'invalid_input' }
-  }
-  // Plus-one counts must be non-negative integers. Per-event caps are
-  // checked below after the event row is fetched.
-  const rawPlusAdults = input.plusOneAdults ?? 0
-  const rawPlusChildren = input.plusOneChildren ?? 0
-  if (
-    !Number.isInteger(rawPlusAdults) ||
-    rawPlusAdults < 0 ||
-    !Number.isInteger(rawPlusChildren) ||
-    rawPlusChildren < 0
-  ) {
-    console.error('[submitRsvp] returning invalid_input', { reason: 'bad_plus_one_shape', rawPlusAdults, rawPlusChildren })
-    return { ok: false, error: 'invalid_input' }
-  }
+  const data = parsed.data
+
+  const trimmedName = (data.name ?? '').trim()
+  const trimmedMessage = (data.message ?? '').trim()
+  const rawPlusAdults = data.plusOneAdults ?? 0
+  const rawPlusChildren = data.plusOneChildren ?? 0
 
   console.log('[submitRsvp] start', {
-    eventSlug: input.eventSlug,
-    status: input.status,
-    hasName: !!input.name,
-    hasContact: !!input.contact,
+    eventSlug: data.eventSlug,
+    status: data.status,
+    hasInviteToken: !!data.inviteToken,
+    hasName: trimmedName.length > 0,
     plusOneAdults: rawPlusAdults,
     plusOneChildren: rawPlusChildren,
-    messageLength: message.length,
+    messageLength: trimmedMessage.length,
   })
 
   // ─── 2. Resolve the event + per-event RSVP toggles ────────────────────
@@ -141,261 +124,215 @@ export async function submitRsvp(input: RsvpInput): Promise<SubmitRsvpResult> {
     .select(
       'id, status, capacity, allow_maybe, require_names, plus_one_enabled, plus_one_max_adults, plus_one_max_children, allow_rsvp_edit',
     )
-    .eq('slug', input.eventSlug)
+    .eq('slug', data.eventSlug)
     .maybeSingle()
   if (!event) {
-    console.error('[submitRsvp] returning event_not_found', { eventSlug: input.eventSlug })
+    console.error('[submitRsvp] returning event_not_found', {
+      eventSlug: data.eventSlug,
+    })
     return { ok: false, error: 'event_not_found' }
   }
   if (event.status !== 'published') {
-    console.error('[submitRsvp] returning event_not_published', { eventSlug: input.eventSlug, status: event.status })
+    console.error('[submitRsvp] returning event_not_published', {
+      eventSlug: data.eventSlug,
+      status: event.status,
+    })
     return { ok: false, error: 'event_not_published' }
   }
-
-  // ─── Per-event policy enforcement ─────────────────────────────────────
-  // Defense-in-depth — the UI already hides the Maybe button and marks the
-  // name field optional based on these toggles, but the server is the
-  // source of truth.
-  if (input.status === 'maybe' && !event.allow_maybe) {
-    console.error('[submitRsvp] returning maybe_not_allowed', { eventId: event.id })
+  if (data.status === 'maybe' && !event.allow_maybe) {
+    console.error('[submitRsvp] returning maybe_not_allowed', {
+      eventId: event.id,
+    })
     return { ok: false, error: 'maybe_not_allowed' }
   }
-  let name = rawName
-  if (name.length === 0) {
-    if (event.require_names) {
-      console.error('[submitRsvp] returning invalid_input', { reason: 'name_required_but_empty', eventId: event.id })
-      return { ok: false, error: 'invalid_input' }
-    }
-    // require_names = false → server-side anonymous fallback in the
-    // viewer's locale. Stored as the literal "Anonymous" (or local
-    // equivalent) so the guest list panel reads naturally without sentinel
-    // values to decode.
-    const tCommon = await getTranslations('rsvp')
-    name = tCommon('anonymousFallback')
-  }
 
-  // ─── Plus-one cap enforcement ─────────────────────────────────────────
-  // Plus-ones only make sense on 'yes'. For 'no'/'maybe' the dialog never
-  // sends non-zero counts, but if the client somehow does we coerce to 0
-  // rather than rejecting — saving a 'no' shouldn't fail because of a
-  // dangling stepper value.
+  // ─── 3. Plus-one cap enforcement ──────────────────────────────────────
+  // Plus-ones only apply to 'yes'. For 'no'/'maybe' we coerce to 0 rather
+  // than rejecting — a leftover stepper value shouldn't fail an otherwise
+  // valid submission.
   let plusOneAdults = rawPlusAdults
   let plusOneChildren = rawPlusChildren
-  if (input.status !== 'yes') {
+  if (data.status !== 'yes') {
     plusOneAdults = 0
     plusOneChildren = 0
   } else if (!event.plus_one_enabled) {
     if (plusOneAdults > 0 || plusOneChildren > 0) {
-      console.error('[submitRsvp] returning plus_one_not_allowed', { plusOneAdults, plusOneChildren, eventEnabled: event.plus_one_enabled })
+      console.error('[submitRsvp] returning plus_one_not_allowed', {
+        plusOneAdults,
+        plusOneChildren,
+        eventEnabled: event.plus_one_enabled,
+      })
       return { ok: false, error: 'plus_one_not_allowed' }
     }
   } else {
     if (plusOneAdults > event.plus_one_max_adults) {
-      console.error('[submitRsvp] returning too_many_adult_plus_ones', { requested: plusOneAdults, max: event.plus_one_max_adults })
+      console.error('[submitRsvp] returning too_many_adult_plus_ones', {
+        requested: plusOneAdults,
+        max: event.plus_one_max_adults,
+      })
       return { ok: false, error: 'too_many_adult_plus_ones' }
     }
     if (plusOneChildren > event.plus_one_max_children) {
-      console.error('[submitRsvp] returning too_many_child_plus_ones', { requested: plusOneChildren, max: event.plus_one_max_children })
+      console.error('[submitRsvp] returning too_many_child_plus_ones', {
+        requested: plusOneChildren,
+        max: event.plus_one_max_children,
+      })
       return { ok: false, error: 'too_many_child_plus_ones' }
     }
   }
 
+  // ─── 4. Identity resolution ───────────────────────────────────────────
+  // Two lookup paths, no fallback, no INSERT branch.
   const {
     data: { user },
   } = await supabase.auth.getUser()
-  const cookieStore = await cookies()
-  const cookieName = `${COOKIE_PREFIX}${event.id}`
-  const existingToken = cookieStore.get(cookieName)?.value
-
   const service = createServiceClient()
-  const contact = splitContact(input.contact)
-  const messageOrNull = message.length > 0 ? message : null
-  const locale = await getLocale()
 
-  // ─── 3. Capacity check (yes-only, count-then-insert; documented race) ─
-  //
-  // Postgres doesn't give us a transactional "atomic insert if count < N"
-  // primitive without serializable isolation or an advisory lock. We do a
-  // best-effort count beforehand and accept the small race where two
-  // simultaneous "going" submits could both pass the check when only one
-  // capacity slot remains. Mitigation deferred — if abuse surfaces, swap
-  // to `select … for update` on a counter row or an advisory lock keyed by
-  // event_id. Documented in CLAUDE.md's "Known race conditions" section.
-  if (input.status === 'yes' && event.capacity) {
-    // Editing an existing 'yes' row doesn't consume a new slot. Find out
-    // whether we already have a row before counting against capacity.
-    const existingYesAlreadyCounted = await rowAlreadyCountsAsYes({
-      service,
-      eventId: event.id,
-      user,
-      existingToken,
-    })
-    if (!existingYesAlreadyCounted) {
-      const { count: yesCount } = await service
-        .from('guests')
-        .select('id', { count: 'exact', head: true })
-        .eq('event_id', event.id)
-        .eq('rsvp', 'yes')
-      if ((yesCount ?? 0) >= event.capacity) {
-        console.error('[submitRsvp] returning event_full', { yesCount, capacity: event.capacity })
-        return { ok: false, error: 'event_full' }
-      }
-    }
+  console.log('[submitRsvp] lookup', {
+    hasInviteToken: !!data.inviteToken,
+    hasClaimedUserSession: !!user,
+  })
+
+  type ExistingRow = {
+    id: string
+    name: string | null
+    rsvp: string
+    responded_at: string | null
   }
+  let existing: ExistingRow | null = null
 
-  // ─── 4. Logged-in path ────────────────────────────────────────────────
   if (user) {
-    const { data: existing } = await service
+    const { data: row } = await service
       .from('guests')
-      .select('id, responded_at')
+      .select('id, name, rsvp, responded_at')
       .eq('event_id', event.id)
       .eq('claimed_user_id', user.id)
       .maybeSingle()
-
-    if (existing) {
-      // Edit-policy gate: a row that's already been responded to (has a
-      // non-null `responded_at`) is locked when the host turned
-      // `allow_rsvp_edit` off. Re-submits before the first response are
-      // still fine — those rows are host-created shells the guest is
-      // filling for the first time.
-      if (!event.allow_rsvp_edit && existing.responded_at !== null) {
-        console.error('[submitRsvp] returning edit_not_allowed', { path: 'logged_in', responded_at: existing.responded_at })
-        return { ok: false, error: 'edit_not_allowed' }
-      }
-      const { error } = await service
-        .from('guests')
-        .update({
-          name,
-          email: contact.email,
-          phone: contact.phone,
-          rsvp: input.status,
-          guest_message: messageOrNull,
-          plus_one_adults: plusOneAdults,
-          plus_one_children: plusOneChildren,
-          responded_at: new Date().toISOString(),
-        })
-        .eq('id', existing.id)
-      if (error) {
-        console.error('[submitRsvp] returning server_error', { path: 'logged_in_update', dbError: error })
-        return { ok: false, error: 'server_error' }
-      }
-      revalidatePath(`/${locale}/e/${input.eventSlug}`)
-      console.log('[submitRsvp] success', { path: 'logged_in_update', guestId: existing.id, status: input.status })
-      return { ok: true, guestId: existing.id, status: input.status }
-    }
-
-    const token = generateInviteToken()
-    const { data: inserted, error } = await service
+    existing = row as ExistingRow | null
+  } else if (data.inviteToken) {
+    const { data: row } = await service
       .from('guests')
-      .insert({
-        event_id: event.id,
-        claimed_user_id: user.id,
-        invite_token: token,
-        name,
-        email: contact.email,
-        phone: contact.phone,
-        rsvp: input.status,
-        guest_message: messageOrNull,
-        plus_one_adults: plusOneAdults,
-        plus_one_children: plusOneChildren,
-        responded_at: new Date().toISOString(),
-      })
-      .select('id')
-      .single()
-    if (error || !inserted) {
-      console.error('[submitRsvp] returning server_error', { path: 'logged_in_insert', dbError: error })
-      return { ok: false, error: 'server_error' }
-    }
-    revalidatePath(`/${locale}/e/${input.eventSlug}`)
-    console.log('[submitRsvp] success', { path: 'logged_in_insert', guestId: inserted.id, status: input.status })
-    return { ok: true, guestId: inserted.id, status: input.status }
-  }
-
-  // ─── 5. Anonymous path ────────────────────────────────────────────────
-  if (existingToken) {
-    const { data: existing } = await service
-      .from('guests')
-      .select('id, responded_at')
+      .select('id, name, rsvp, responded_at')
       .eq('event_id', event.id)
-      .eq('invite_token', existingToken)
+      .eq('invite_token', data.inviteToken)
       .is('claimed_user_id', null)
       .maybeSingle()
-
-    if (existing) {
-      if (!event.allow_rsvp_edit && existing.responded_at !== null) {
-        console.error('[submitRsvp] returning edit_not_allowed', { path: 'anon', responded_at: existing.responded_at })
-        return { ok: false, error: 'edit_not_allowed' }
-      }
-      const { error } = await service
-        .from('guests')
-        .update({
-          name,
-          email: contact.email,
-          phone: contact.phone,
-          rsvp: input.status,
-          guest_message: messageOrNull,
-          plus_one_adults: plusOneAdults,
-          plus_one_children: plusOneChildren,
-          responded_at: new Date().toISOString(),
-        })
-        .eq('id', existing.id)
-      if (error) {
-        console.error('[submitRsvp] returning server_error', { path: 'anon_update', dbError: error })
-        return { ok: false, error: 'server_error' }
-      }
-      revalidatePath(`/${locale}/e/${input.eventSlug}`)
-      console.log('[submitRsvp] success', { path: 'anon_update', guestId: existing.id, status: input.status })
-      return { ok: true, guestId: existing.id, status: input.status }
-    }
-    // Cookie has a token, but no matching row (likely host removed the guest
-    // or the cookie was tampered with). Fall through and mint a new identity.
+    existing = row as ExistingRow | null
   }
 
-  const token = generateInviteToken()
-  const { data: inserted, error } = await service
-    .from('guests')
-    .insert({
-      event_id: event.id,
-      claimed_user_id: null,
-      invite_token: token,
-      name,
-      email: contact.email,
-      phone: contact.phone,
-      rsvp: input.status,
-      guest_message: messageOrNull,
-      plus_one_adults: plusOneAdults,
-      plus_one_children: plusOneChildren,
-      responded_at: new Date().toISOString(),
+  if (!existing) {
+    console.error(
+      '[submitRsvp] guest_not_found — token/session lookup failed',
+      { hasInviteToken: !!data.inviteToken },
+    )
+    return { ok: false, error: 'guest_not_found' }
+  }
+
+  // ─── 5. Edit-policy gate ──────────────────────────────────────────────
+  // A row already responded to (responded_at != null) is locked when the
+  // host turned `allow_rsvp_edit` off. Re-submits on an unresponded row
+  // (host-created shell) are always fine.
+  if (!event.allow_rsvp_edit && existing.responded_at !== null) {
+    console.error('[submitRsvp] returning edit_not_allowed', {
+      responded_at: existing.responded_at,
     })
-    .select('id')
-    .single()
-  if (error || !inserted) {
-    console.error('[submitRsvp] returning server_error', { path: 'anon_insert', dbError: error })
+    return { ok: false, error: 'edit_not_allowed' }
+  }
+
+  // ─── 6. Name resolution ───────────────────────────────────────────────
+  // If the stored name is non-empty, KEEP IT. The guest can't rename
+  // themselves through this surface — that's a host control. If the
+  // stored name is empty (host left it blank on add), we accept the
+  // guest's input; if input is also empty, fall back to require_names
+  // policy.
+  const storedName = existing.name?.trim() ?? ''
+  let nameToSet: string | null = null // null = don't touch the column
+  if (storedName.length === 0) {
+    if (trimmedName.length === 0) {
+      if (event.require_names) {
+        console.error('[submitRsvp] returning invalid_input', {
+          reason: 'name_required_but_empty',
+          eventId: event.id,
+        })
+        return { ok: false, error: 'invalid_input' }
+      }
+      // require_names = false → server-side anonymous fallback in the
+      // viewer's locale.
+      const tCommon = await getTranslations('rsvp')
+      nameToSet = tCommon('anonymousFallback')
+    } else {
+      nameToSet = trimmedName
+    }
+  }
+
+  // ─── 7. Capacity check ────────────────────────────────────────────────
+  // Only when changing TO 'yes' from a non-yes state. yes→yes edits don't
+  // consume a new slot; non-yes submits don't count at all.
+  if (data.status === 'yes' && event.capacity && existing.rsvp !== 'yes') {
+    const { count: yesCount } = await service
+      .from('guests')
+      .select('id', { count: 'exact', head: true })
+      .eq('event_id', event.id)
+      .eq('rsvp', 'yes')
+    if ((yesCount ?? 0) >= event.capacity) {
+      console.error('[submitRsvp] returning event_full', {
+        yesCount,
+        capacity: event.capacity,
+      })
+      return { ok: false, error: 'event_full' }
+    }
+  }
+
+  // ─── 8. UPDATE — the only write path ──────────────────────────────────
+  const updatePayload: {
+    rsvp: RsvpStatus
+    guest_message: string | null
+    plus_one_adults: number
+    plus_one_children: number
+    responded_at: string
+    name?: string
+  } = {
+    rsvp: data.status,
+    guest_message: trimmedMessage.length > 0 ? trimmedMessage : null,
+    plus_one_adults: plusOneAdults,
+    plus_one_children: plusOneChildren,
+    responded_at: new Date().toISOString(),
+  }
+  if (nameToSet !== null) {
+    updatePayload.name = nameToSet
+  }
+
+  const { error: updateError } = await service
+    .from('guests')
+    .update(updatePayload)
+    .eq('id', existing.id)
+
+  if (updateError) {
+    console.error('[submitRsvp] returning server_error', {
+      dbError: updateError,
+    })
     return { ok: false, error: 'server_error' }
   }
 
-  cookieStore.set(cookieName, token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    maxAge: COOKIE_MAX_AGE_SEC,
-    path: '/',
+  const locale = await getLocale()
+  revalidatePath(`/${locale}/e/${data.eventSlug}`)
+  console.log('[submitRsvp] success', {
+    guestId: existing.id,
+    status: data.status,
   })
-
-  revalidatePath(`/${locale}/e/${input.eventSlug}`)
-  console.log('[submitRsvp] success', { path: 'anon_insert', guestId: inserted.id, status: input.status })
-  return { ok: true, guestId: inserted.id, status: input.status }
+  return { ok: true, guestId: existing.id, status: data.status }
 }
 
 /**
  * Resolve the viewer's existing RSVP row for an event, if any.
  *
- * Used by the public event page to decide between "RSVP" and "Edit RSVP"
- * CTAs. Returns null for both first-time visitors and viewers whose cookie
- * points at a non-existent row (e.g. host removed them).
+ * Single identity strategy — matches `submitRsvp`'s lookup order. Logged-in
+ * users get their row via `claimed_user_id`; anon visitors must provide
+ * the `?t=<token>` URL param (no cookie fallback as of [12b.3]).
  */
 export async function getCurrentGuestForEvent(
   eventSlug: string,
+  inviteToken: string | undefined,
 ): Promise<CurrentGuest | null> {
   const supabase = await createClient()
   const { data: event } = await supabase
@@ -413,7 +350,7 @@ export async function getCurrentGuestForEvent(
     const { data } = await supabase
       .from('guests')
       .select(
-        'id, name, rsvp, email, phone, guest_message, plus_one_adults, plus_one_children, responded_at',
+        'id, name, rsvp, guest_message, plus_one_adults, plus_one_children, responded_at',
       )
       .eq('event_id', event.id)
       .eq('claimed_user_id', user.id)
@@ -423,8 +360,6 @@ export async function getCurrentGuestForEvent(
       id: data.id,
       name: data.name,
       rsvp: data.rsvp as CurrentGuest['rsvp'],
-      email: data.email,
-      phone: data.phone,
       guest_message: data.guest_message,
       plus_one_adults: data.plus_one_adults,
       plus_one_children: data.plus_one_children,
@@ -432,19 +367,17 @@ export async function getCurrentGuestForEvent(
     }
   }
 
-  const cookieStore = await cookies()
-  const token = cookieStore.get(`${COOKIE_PREFIX}${event.id}`)?.value
-  if (!token) return null
+  if (!inviteToken) return null
 
   // Anon RLS blocks SELECT — go through service-role.
   const service = createServiceClient()
   const { data } = await service
     .from('guests')
     .select(
-      'id, name, rsvp, email, phone, guest_message, plus_one_adults, plus_one_children, responded_at',
+      'id, name, rsvp, guest_message, plus_one_adults, plus_one_children, responded_at',
     )
     .eq('event_id', event.id)
-    .eq('invite_token', token)
+    .eq('invite_token', inviteToken)
     .is('claimed_user_id', null)
     .maybeSingle()
   if (!data) return null
@@ -452,8 +385,6 @@ export async function getCurrentGuestForEvent(
     id: data.id,
     name: data.name,
     rsvp: data.rsvp as CurrentGuest['rsvp'],
-    email: data.email,
-    phone: data.phone,
     guest_message: data.guest_message,
     plus_one_adults: data.plus_one_adults,
     plus_one_children: data.plus_one_children,
@@ -468,8 +399,6 @@ export type RemoveGuestResult =
 /**
  * Host/co-host removes a guest from their event. RLS enforces who can
  * delete; the action just routes the request and returns clean error codes.
- * The removed guest's cookie still points at the deleted row — next time
- * they RSVP, the cookie is silently overwritten with a fresh identity.
  */
 export async function removeGuest(guestId: string): Promise<RemoveGuestResult> {
   const supabase = await createClient()
@@ -493,43 +422,4 @@ export async function removeGuest(guestId: string): Promise<RemoveGuestResult> {
     revalidatePath(`/${locale}/e/${guest.events.slug}`)
   }
   return { ok: true }
-}
-
-// ─── Internal helpers ──────────────────────────────────────────────────────
-
-/**
- * Returns true when the viewer already has a 'yes' RSVP row for this event,
- * meaning a re-submit doesn't consume a new capacity slot. Capacity counts
- * only need to grow when adding a NEW yes — editing yes→yes (or yes→no→yes
- * within the same row) shouldn't trip the cap.
- */
-async function rowAlreadyCountsAsYes({
-  service,
-  eventId,
-  user,
-  existingToken,
-}: {
-  service: ReturnType<typeof createServiceClient>
-  eventId: string
-  user: { id: string } | null
-  existingToken: string | undefined
-}): Promise<boolean> {
-  if (user) {
-    const { data } = await service
-      .from('guests')
-      .select('rsvp')
-      .eq('event_id', eventId)
-      .eq('claimed_user_id', user.id)
-      .maybeSingle()
-    return data?.rsvp === 'yes'
-  }
-  if (!existingToken) return false
-  const { data } = await service
-    .from('guests')
-    .select('rsvp')
-    .eq('event_id', eventId)
-    .eq('invite_token', existingToken)
-    .is('claimed_user_id', null)
-    .maybeSingle()
-  return data?.rsvp === 'yes'
 }

@@ -335,8 +335,7 @@
     "nameLabel": "Your name",
     "namePlaceholder": "How should we list you?",
     "nameOptionalPlaceholder": "Anonymous (optional)",
-    "contactLabel": "Email or phone (optional)",
-    "contactPlaceholder": "So the host can reach you",
+    "rsvpingAsLabel": "RSVPing as: {name}",
     "messageLabel": "Message to host (optional)",
     "messagePlaceholder": "Anything to add? Dietary restrictions, bringing a dish, etc.",
     "plusOneSectionLabel": "Bringing anyone?",
@@ -361,6 +360,8 @@
       "too_many_adult_plus_ones": "Too many adult plus-ones for this event.",
       "too_many_child_plus_ones": "Too many child plus-ones for this event.",
       "edit_not_allowed": "The host has locked RSVP changes for this event.",
+      "guest_not_found": "We can't find your invitation. Ask the host to resend the link.",
+      "name_required": "Please enter your name.",
       "invalid_input": "Please check your information and try again.",
       "server_error": "Something went wrong. Try again."
     },

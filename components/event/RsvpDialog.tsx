@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import { Loader2 } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { submitRsvp, type RsvpStatus } from '@/app/actions/rsvp'
@@ -36,24 +36,28 @@ type RsvpDialogProps = {
   onOpenChange: (next: boolean) => void
   eventSlug: string
   /** Existing RSVP — when set, dialog renders in "Update" mode with values
-   *  pre-filled. */
+   *  pre-filled. As of [12b.3] does NOT carry name or contact; name is
+   *  host-controlled and surfaced separately via `existingName`. */
   initial: {
     status: RsvpStatus
-    name: string
-    contact: string
     message: string
     plusOneAdults: number
     plusOneChildren: number
   } | null
-  /** Pre-fill for first-time RSVP — name from auth profile if present.
-   *  Ignored when `initial` is set. */
+  /** Guest's host-set name. Non-empty → render read-only "RSVPing as: X"
+   *  and never accept name updates. Empty/blank → render a required name
+   *  input so the guest can claim a label on their first response. */
+  existingName: string
+  /** Pre-fill for the name input when `existingName` is blank — typically
+   *  the logged-in viewer's profile display_name. Ignored when
+   *  `existingName` is set. */
   defaultName?: string
   /** Per-event toggle. When false, the Maybe button isn't rendered and the
    *  default initial status is forced to Yes by the parent. */
   allowMaybe: boolean
   /** Per-event toggle. When false, the name field reads as optional with
    *  an "Anonymous (optional)" placeholder; server fills 'Anonymous' on
-   *  empty submission. */
+   *  empty submission. Only relevant when `existingName` is blank. */
   requireNames: boolean
   /** Per-event toggle (added [12a]). When false, the plus-one section is
    *  not rendered and the server rejects any non-zero plus-one submission. */
@@ -68,6 +72,7 @@ export function RsvpDialog({
   onOpenChange,
   eventSlug,
   initial,
+  existingName,
   defaultName,
   allowMaybe,
   requireNames,
@@ -77,17 +82,21 @@ export function RsvpDialog({
 }: RsvpDialogProps) {
   const t = useTranslations('rsvp')
   const isEdit = initial !== null
+  // [12b.3]: the `?t=<invite-token>` URL param is the anon identity proof,
+  // threaded into submitRsvp so the action can resolve the right row
+  // without relying on a cookie that may not have been set yet.
+  const searchParams = useSearchParams()
+  const inviteToken = searchParams.get('t') ?? undefined
+
+  // Render mode: when the host already set a name on the guest row, show
+  // it read-only. The guest can't rename themselves through this surface.
+  const hasStoredName = existingName.trim().length > 0
 
   const [status, setStatus] = React.useState<RsvpStatus>(
     initial?.status ?? 'yes',
   )
-  const [name, setName] = React.useState(initial?.name ?? defaultName ?? '')
-  const [contact, setContact] = React.useState(initial?.contact ?? '')
+  const [name, setName] = React.useState(defaultName ?? '')
   const [message, setMessage] = React.useState(initial?.message ?? '')
-  // Plus-one stepper state. Initialize from `initial` (edit) or 0/0 (new).
-  // The host can REDUCE caps after a guest submitted a higher count — we
-  // clamp the pre-fill to the current cap so a stale-too-high value
-  // doesn't get re-saved on edit.
   const [plusOneAdults, setPlusOneAdults] = React.useState(() =>
     Math.min(initial?.plusOneAdults ?? 0, plusOneMaxAdults),
   )
@@ -98,13 +107,12 @@ export function RsvpDialog({
   const [pending, startTransition] = React.useTransition()
   const router = useRouter()
 
-  // Reset form when the dialog re-opens with different `initial` (e.g. user
-  // edits, host removes, then user re-rsvps).
+  // Reset form when the dialog re-opens with different `initial` (e.g.
+  // user edits, host removes, then user re-rsvps).
   React.useEffect(() => {
     if (open) {
       setStatus(initial?.status ?? 'yes')
-      setName(initial?.name ?? defaultName ?? '')
-      setContact(initial?.contact ?? '')
+      setName(defaultName ?? '')
       setMessage(initial?.message ?? '')
       setPlusOneAdults(Math.min(initial?.plusOneAdults ?? 0, plusOneMaxAdults))
       setPlusOneChildren(
@@ -115,24 +123,24 @@ export function RsvpDialog({
   }, [open, initial, defaultName, plusOneMaxAdults, plusOneMaxChildren])
 
   function handleSubmit() {
-    const trimmed = name.trim()
-    // Name is required client-side only when the host has the
-    // require_names toggle on. The server applies a locale-aware
-    // 'Anonymous' fallback when it's off and the field is empty.
-    if (requireNames && trimmed.length < 1) {
-      setNameError(t('errors.invalid_input'))
-      return
-    }
-    if (trimmed.length > 100) {
-      setNameError(t('errors.invalid_input'))
-      return
+    // Name validation — only relevant when the input is actually rendered.
+    // When `hasStoredName` the field is read-only and we don't send name.
+    let nameToSend: string | undefined
+    if (!hasStoredName) {
+      const trimmed = name.trim()
+      if (requireNames && trimmed.length < 1) {
+        setNameError(t('errors.name_required'))
+        return
+      }
+      if (trimmed.length > 100) {
+        setNameError(t('errors.invalid_input'))
+        return
+      }
+      nameToSend = trimmed || undefined
     }
     setNameError(null)
 
-    // Plus-ones only apply to 'yes' — coerce to 0 for 'no'/'maybe' before
-    // sending so a leftover stepper value (e.g. user toggled yes → adults
-    // 2 → no) doesn't get persisted alongside a non-yes status. The
-    // action also coerces server-side; this is just clean wire payload.
+    // Plus-ones only apply to 'yes' AND when the host enabled them.
     const adultsToSend =
       status === 'yes' && plusOneEnabled ? plusOneAdults : 0
     const childrenToSend =
@@ -142,8 +150,8 @@ export function RsvpDialog({
       const result = await submitRsvp({
         eventSlug,
         status,
-        name: trimmed,
-        contact: contact.trim() || undefined,
+        inviteToken,
+        name: nameToSend,
         message: message.trim() || undefined,
         plusOneAdults: adultsToSend,
         plusOneChildren: childrenToSend,
@@ -174,8 +182,16 @@ export function RsvpDialog({
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Status — pill buttons, single-select. Maybe is hidden when
-              the host has disabled it via the settings panel. */}
+          {/* Identity line — read-only when the host set a name; the guest
+              can't change it through this surface ([12b.3]). */}
+          {hasStoredName && (
+            <p className="text-sm text-white/70">
+              {t('rsvpingAsLabel', { name: existingName })}
+            </p>
+          )}
+
+          {/* Status — pill buttons, single-select. Maybe is hidden when the
+              host has disabled it via the settings panel. */}
           <div
             className={cn(
               'grid gap-2',
@@ -206,10 +222,8 @@ export function RsvpDialog({
             })}
           </div>
 
-          {/* Plus-ones — only rendered when (a) the host enabled them at
-              event-creation/edit time and (b) the guest picked 'yes'.
-              For 'no' / 'maybe' the section vanishes; the parent component
-              also sends zeros to the server in those cases. */}
+          {/* Plus-ones — only when (a) host enabled them and (b) guest
+              picked 'yes'. */}
           {plusOneEnabled && status === 'yes' && (
             <div className="space-y-2 rounded-xl bg-white/5 p-3">
               <p className="text-xs font-medium uppercase tracking-wide text-white/50">
@@ -230,51 +244,36 @@ export function RsvpDialog({
             </div>
           )}
 
-          {/* Name */}
-          <div>
-            <label
-              htmlFor="rsvp-name"
-              className="mb-1.5 block text-xs font-medium text-white/70"
-            >
-              {t('nameLabel')}
-            </label>
-            <Input
-              id="rsvp-name"
-              type="text"
-              maxLength={100}
-              required={requireNames}
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder={
-                requireNames
-                  ? t('namePlaceholder')
-                  : t('nameOptionalPlaceholder')
-              }
-              className="w-full rounded-md border border-white/15 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/40 focus-visible:border-violet-400/60 focus-visible:ring-2 focus-visible:ring-violet-400/40"
-            />
-            {nameError && (
-              <p className="mt-1 text-xs text-rose-300">{nameError}</p>
-            )}
-          </div>
-
-          {/* Contact */}
-          <div>
-            <label
-              htmlFor="rsvp-contact"
-              className="mb-1.5 block text-xs font-medium text-white/70"
-            >
-              {t('contactLabel')}
-            </label>
-            <Input
-              id="rsvp-contact"
-              type="text"
-              maxLength={200}
-              value={contact}
-              onChange={(e) => setContact(e.target.value)}
-              placeholder={t('contactPlaceholder')}
-              className="w-full rounded-md border border-white/15 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/40 focus-visible:border-violet-400/60 focus-visible:ring-2 focus-visible:ring-violet-400/40"
-            />
-          </div>
+          {/* Name — input only when the host hasn't already set one on
+              the guest row. Once stored, the read-only display above
+              replaces this. */}
+          {!hasStoredName && (
+            <div>
+              <label
+                htmlFor="rsvp-name"
+                className="mb-1.5 block text-xs font-medium text-white/70"
+              >
+                {t('nameLabel')}
+              </label>
+              <Input
+                id="rsvp-name"
+                type="text"
+                maxLength={100}
+                required={requireNames}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder={
+                  requireNames
+                    ? t('namePlaceholder')
+                    : t('nameOptionalPlaceholder')
+                }
+                className="w-full rounded-md border border-white/15 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/40 focus-visible:border-violet-400/60 focus-visible:ring-2 focus-visible:ring-violet-400/40"
+              />
+              {nameError && (
+                <p className="mt-1 text-xs text-rose-300">{nameError}</p>
+              )}
+            </div>
+          )}
 
           {/* Message */}
           <div>

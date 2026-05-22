@@ -240,7 +240,9 @@ export default async function PublicEventPage({
   const isPublished = event.status === 'published'
 
   const [currentGuest, guestSummary, viewerProfile] = await Promise.all([
-    isPublished ? getCurrentGuestForEvent(slug) : Promise.resolve(null),
+    isPublished
+      ? getCurrentGuestForEvent(slug, inviteToken)
+      : Promise.resolve(null),
     getGuestSummary(event.id, !!event.show_guest_names),
     user
       ? supabase

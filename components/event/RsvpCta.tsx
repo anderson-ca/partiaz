@@ -52,12 +52,10 @@ export function RsvpCta({
     : 'pending'
   const hasResponse = currentGuest && status !== 'pending'
 
-  // Build the contact string back from email/phone columns. The action
-  // splits it on save; we re-join here so the user's previously-entered
-  // value lands back in the same single field.
-  const contactForEdit = currentGuest
-    ? currentGuest.email ?? currentGuest.phone ?? ''
-    : ''
+  // [12b.3]: name is host-controlled. When the host added the guest with a
+  // name set, the dialog shows it read-only. Empty → dialog shows a
+  // required input. We never echo email/phone back into the form.
+  const existingName = currentGuest?.name?.trim() ?? ''
 
   // If the host has since disabled Maybe but the guest's stored status is
   // 'maybe', drop the pre-fill so the dialog opens with no status selected
@@ -69,8 +67,6 @@ export function RsvpCta({
   const initial = currentGuest
     ? {
         status: initialStatus,
-        name: currentGuest.name,
-        contact: contactForEdit,
         message: currentGuest.guest_message ?? '',
         plusOneAdults: currentGuest.plus_one_adults ?? 0,
         plusOneChildren: currentGuest.plus_one_children ?? 0,
@@ -135,6 +131,7 @@ export function RsvpCta({
         onOpenChange={setOpen}
         eventSlug={eventSlug}
         initial={initial}
+        existingName={existingName}
         defaultName={defaultName}
         allowMaybe={allowMaybe}
         requireNames={requireNames}

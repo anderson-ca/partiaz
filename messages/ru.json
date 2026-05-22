@@ -335,8 +335,7 @@
     "nameLabel": "Твоё имя",
     "namePlaceholder": "Как тебя записать?",
     "nameOptionalPlaceholder": "Аноним (по желанию)",
-    "contactLabel": "Email или телефон (по желанию)",
-    "contactPlaceholder": "Чтобы организатор мог связаться",
+    "rsvpingAsLabel": "Отвечает: {name}",
     "messageLabel": "Сообщение организатору (по желанию)",
     "messagePlaceholder": "Что добавить? Ограничения по еде, что-то приносишь и т.д.",
     "plusOneSectionLabel": "Кого приведёшь?",
@@ -361,6 +360,8 @@
       "too_many_adult_plus_ones": "Слишком много взрослых +1 для этого события.",
       "too_many_child_plus_ones": "Слишком много детей +1 для этого события.",
       "edit_not_allowed": "Организатор закрыл изменение RSVP.",
+      "guest_not_found": "Мы не нашли твоё приглашение. Попроси организатора прислать ссылку ещё раз.",
+      "name_required": "Введи имя.",
       "invalid_input": "Проверь данные и попробуй ещё раз.",
       "server_error": "Что-то пошло не так. Попробуй ещё раз."
     },

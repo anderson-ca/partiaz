@@ -335,8 +335,7 @@
     "nameLabel": "Adın",
     "namePlaceholder": "Səni necə yazaq?",
     "nameOptionalPlaceholder": "Anonim (istəyə görə)",
-    "contactLabel": "E-poçt və ya telefon (istəyə görə)",
-    "contactPlaceholder": "Təşkilatçı səninlə əlaqə saxlaya bilsin",
+    "rsvpingAsLabel": "Cavab verən: {name}",
     "messageLabel": "Təşkilatçıya mesaj (istəyə görə)",
     "messagePlaceholder": "Əlavə demək istədiyin? Yemək məhdudiyyətləri, gətirdiklərin və s.",
     "plusOneSectionLabel": "Yanında kim olacaq?",
@@ -361,6 +360,8 @@
       "too_many_adult_plus_ones": "Çox böyük əlavə qonaq seçilib.",
       "too_many_child_plus_ones": "Çox uşaq əlavə qonaq seçilib.",
       "edit_not_allowed": "Təşkilatçı RSVP dəyişikliyini bağlayıb.",
+      "guest_not_found": "Dəvətin tapılmadı. Təşkilatçıdan linki yenidən göndərməyi xahiş et.",
+      "name_required": "Adını daxil et.",
       "invalid_input": "Məlumatlarını yoxla və yenidən cəhd et.",
       "server_error": "Nəsə alınmadı. Yenidən cəhd et."
     },
