@@ -186,6 +186,10 @@ export default async function PublicEventPage({
   // fallback lives inside the helper now.
   const result = await getEventForView(slug, inviteToken)
   const event = result?.event ?? null
+  // True when the page resolved via the `?t=<invite-token>` bearer path
+  // (see [11c.7.2]). A token-bearer is, by definition, an invited guest —
+  // so they should NOT be treated as restricted on a private event.
+  const isTokenAuth = result?.isTokenAuth ?? false
 
   if (!event || !event.theme || !event.font_preset || !event.host) {
     notFound()
@@ -194,10 +198,11 @@ export default async function PublicEventPage({
   const isHost = !!user && user.id === event.host.id
   const isDraft = event.status === 'draft'
   const audience = (event.audience ?? 'private') as EventAudience
-  // Restricted access: private event + viewer is not the host. Real RSVP'd
-  // users get the unrestricted view in Prompt 10; for now, every non-host
-  // visitor on a private event sees the locked card.
-  const restricted = audience === 'private' && !isHost
+  // Restricted access: private event + viewer is neither the host nor a
+  // token-bearer. A token-bearer is invited (their possession of the
+  // 24-char nanoid is the access proof) and should see the RSVP card,
+  // not the locked stub — that's the [12b.1] fix.
+  const restricted = audience === 'private' && !isHost && !isTokenAuth
 
   const theme = {
     background_type: event.theme.background_type as ThemeBackgroundValue['type'],
