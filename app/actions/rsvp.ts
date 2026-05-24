@@ -4,6 +4,7 @@ import 'server-only'
 import { revalidatePath } from 'next/cache'
 import { getLocale, getTranslations } from 'next-intl/server'
 import { z } from 'zod'
+import { checkLimit, rsvpLimiter } from '@/lib/ratelimit'
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
 
@@ -52,6 +53,7 @@ export type SubmitRsvpResult =
         | 'edit_not_allowed'
         | 'guest_not_found'
         | 'invalid_input'
+        | 'rate_limited'
         | 'server_error'
     }
 
@@ -181,6 +183,14 @@ export async function submitRsvp(input: RsvpInput): Promise<SubmitRsvpResult> {
   if (!existing) {
     return { ok: false, error: 'guest_not_found' }
   }
+
+  // ─── 4a. Rate limit ([sec-3]) ────────────────────────────────────────
+  // Keyed by guest.id so a different guest on the same event isn't blocked.
+  // Placed AFTER identity resolves so we have a stable key, and BEFORE the
+  // edit-policy + capacity-count queries to short-circuit before any
+  // further DB work on a denied request.
+  const rl = await checkLimit(rsvpLimiter, existing.id)
+  if (!rl.ok) return { ok: false, error: 'rate_limited' }
 
   // ─── 5. Edit-policy gate ──────────────────────────────────────────────
   // A row already responded to (responded_at != null) is locked when the

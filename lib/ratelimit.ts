@@ -55,6 +55,28 @@ export const guestAddLimiter = new Ratelimit({
   analytics: false,
 })
 
+// ── Secondary endpoints ([sec-3]) ────────────────────────────────────────
+// RSVP submit: 10/h per guest is well above any legitimate edit loop
+// (host flipping Yes/Maybe/No a few times) but catches a script flapping
+// capacity counts.
+export const rsvpLimiter = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(10, '1 h'),
+  prefix: 'rl:rsvp',
+  analytics: false,
+})
+
+// Event creation: 10/h per user is far above any human cadence; catches
+// automation without ever bothering a real user. Slug space is 6 char
+// base56 (~30B) — exhausting it is impractical, but this is cheap
+// defense-in-depth on top of the slug-collision retry loop.
+export const createEventLimiter = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(10, '1 h'),
+  prefix: 'rl:event:create',
+  analytics: false,
+})
+
 // ── Auth: magic link (unauthenticated, IP + email keyed) ─────────────────
 // Two-axis: per-email caps individual-account spam; per-IP caps the
 // "30 different emails from one bot" case where no individual email

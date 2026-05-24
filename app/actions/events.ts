@@ -3,6 +3,7 @@
 import 'server-only'
 import { revalidatePath } from 'next/cache'
 import { getLocale } from 'next-intl/server'
+import { checkLimit, createEventLimiter } from '@/lib/ratelimit'
 import { eventInputSchema, type EventInput } from '@/lib/schemas/event'
 import { generateSlug } from '@/lib/slug'
 import { createClient } from '@/lib/supabase/server'
@@ -74,6 +75,12 @@ export async function createEvent(
     data: { user },
   } = await supabase.auth.getUser()
   if (!user) return { ok: false, error: 'unauthenticated' }
+
+  // ─── Rate limit ([sec-3]) ─────────────────────────────────────────────
+  // 10/h per user is well above any human cadence; catches automation
+  // without ever bothering a real host.
+  const rl = await checkLimit(createEventLimiter, user.id)
+  if (!rl.ok) return { ok: false, error: 'rate_limited' }
 
   const finalTitle = parsed.data.title || 'Untitled Event'
   const overlay = normalizeOverlay(parsed.data, finalTitle)
