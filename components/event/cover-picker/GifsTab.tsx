@@ -119,14 +119,21 @@ export function GifsTab({ onSelect }: GifsTabProps) {
                   'transition-transform duration-150 hover:scale-[1.02] active:scale-[0.98]',
                 )}
               >
-                {/* GIF preview — animated thumbnail so the user sees motion
-                    before committing. We store the .mp4 instead of the .gif
-                    on selection (smaller, more efficient at runtime). */}
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={g.preview_gif_url}
-                  alt={g.title}
-                  loading="lazy"
+                {/* MP4 preview — Giphy's fixed_width MP4 is the same asset
+                    we save as cover_image_url on selection, ~10x smaller
+                    than the equivalent gif and smoother playback. muted +
+                    playsInline are required for iOS inline autoplay;
+                    preload="metadata" loads only the container header so
+                    autoplay fires reliably without burning bandwidth on
+                    unseen results. ([perf-2]) */}
+                <video
+                  src={g.mp4_url}
+                  muted
+                  loop
+                  autoPlay
+                  playsInline
+                  preload="metadata"
+                  aria-label={g.title}
                   className="h-full w-full object-cover"
                 />
               </button>
