@@ -109,6 +109,21 @@
         "handwritten": "Əl yazısı",
         "mono": "Monospace"
       },
+      "description": {
+        "placeholder": "Qonaqlara tədbirin haqqında danış…",
+        "toolbar": {
+          "bold": "Qalın",
+          "italic": "Kursiv",
+          "bulletList": "Madde işarəli siyahı",
+          "numberedList": "Nömrəli siyahı",
+          "link": "Keçid"
+        },
+        "linkUrl": {
+          "placeholder": "https://…",
+          "save": "Yadda saxla",
+          "cancel": "Ləğv et"
+        }
+      },
       "untitledTitle": "Adsız tədbir",
       "titlePlaceholder": "Adsız tədbir",
       "saveDraft": "Qaralamanı saxla",

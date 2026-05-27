@@ -109,6 +109,21 @@
         "handwritten": "Рукописные",
         "mono": "Моноширинные"
       },
+      "description": {
+        "placeholder": "Расскажите гостям о событии…",
+        "toolbar": {
+          "bold": "Жирный",
+          "italic": "Курсив",
+          "bulletList": "Маркированный список",
+          "numberedList": "Нумерованный список",
+          "link": "Ссылка"
+        },
+        "linkUrl": {
+          "placeholder": "https://…",
+          "save": "Сохранить",
+          "cancel": "Отмена"
+        }
+      },
       "untitledTitle": "Без названия",
       "titlePlaceholder": "Без названия",
       "saveDraft": "Сохранить черновик",

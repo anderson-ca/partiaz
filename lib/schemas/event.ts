@@ -44,7 +44,11 @@ export const eventInputSchema = z
     ends_at: isoTimestamp,
     location_text: z.string().max(255).nullable().optional(),
     location_address: z.string().max(255).nullable().optional(),
-    description: z.string().max(2000).nullable().optional(),
+    // HTTP-boundary sanity guard against multi-MB payloads. The real
+    // 2000-char limit is enforced post-sanitization on plain-text length
+    // in app/actions/events.ts (HTML overhead means a 2000-char plain-text
+    // description can land at ~7-8KB HTML; 10KB gives reasonable headroom).
+    description: z.string().max(10000).nullable().optional(),
 
     // Event-settings booleans (added in 10.1 — schema columns existed since
     // Prompt 03 but were unwired). All optional so updateEvent calls that

@@ -4,10 +4,13 @@ import 'server-only'
 import { revalidatePath } from 'next/cache'
 import { getLocale } from 'next-intl/server'
 import { checkLimit, createEventLimiter } from '@/lib/ratelimit'
+import { sanitizeDescription, descriptionPlainTextLength } from '@/lib/sanitize'
 import { eventInputSchema, type EventInput } from '@/lib/schemas/event'
 import { generateSlug } from '@/lib/slug'
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
+
+const MAX_DESCRIPTION_PLAIN_TEXT = 2000
 
 const PG_UNIQUE_VIOLATION = '23505'
 const SLUG_RETRIES = 3
@@ -37,8 +40,40 @@ function normalizeMeta(input: EventInput) {
     ends_at: input.ends_at ?? null,
     location_text: blankToNull(input.location_text),
     location_address: blankToNull(input.location_address),
-    description: blankToNull(input.description),
+    // description handled separately — sanitize + length-check via
+    // validateAndSanitizeDescription so the action can return a specific
+    // error code on overlength.
   }
+}
+
+type DescriptionValidation =
+  | { ok: true; value: string | null }
+  | { ok: false; error: 'description_too_long' }
+
+/**
+ * Sanitize + length-check a TipTap-produced HTML description ([ui-6b]).
+ * Empty / whitespace-only / no-text input → null (matches the prior
+ * blankToNull behavior so empty drafts don't store `<p></p>`).
+ *
+ * Sanitization runs BEFORE the length check so the 2000-char limit
+ * applies to the post-sanitization plain text — markup stripped during
+ * sanitization can't smuggle text-equivalent content past the cap.
+ */
+function validateAndSanitizeDescription(
+  input: string | null | undefined,
+): DescriptionValidation {
+  if (input == null) return { ok: true, value: null }
+  const trimmed = input.trim()
+  if (trimmed.length === 0) return { ok: true, value: null }
+
+  const sanitized = sanitizeDescription(trimmed)
+  const plainLength = descriptionPlainTextLength(sanitized)
+
+  if (plainLength === 0) return { ok: true, value: null }
+  if (plainLength > MAX_DESCRIPTION_PLAIN_TEXT) {
+    return { ok: false, error: 'description_too_long' }
+  }
+  return { ok: true, value: sanitized }
 }
 
 function normalizeOverlay(input: EventInput, fallbackTitle: string) {
@@ -85,6 +120,9 @@ export async function createEvent(
   const finalTitle = parsed.data.title || 'Untitled Event'
   const overlay = normalizeOverlay(parsed.data, finalTitle)
   const meta = normalizeMeta(parsed.data)
+  const descValidation = validateAndSanitizeDescription(parsed.data.description)
+  if (!descValidation.ok) return { ok: false, error: descValidation.error }
+  const description = descValidation.value
 
   // 6-char base56 collisions are vanishingly rare (~30B possibilities), but
   // a unique-violation retry costs us nothing and makes the create path
@@ -97,6 +135,7 @@ export async function createEvent(
         ...parsed.data,
         ...overlay,
         ...meta,
+        description,
         title: finalTitle,
         host_id: user.id,
         slug,
@@ -139,6 +178,9 @@ export async function updateEvent(
   const finalTitle = parsed.data.title || 'Untitled Event'
   const overlay = normalizeOverlay(parsed.data, finalTitle)
   const meta = normalizeMeta(parsed.data)
+  const descValidation = validateAndSanitizeDescription(parsed.data.description)
+  if (!descValidation.ok) return { ok: false, error: descValidation.error }
+  const description = descValidation.value
 
   const { error } = await supabase
     .from('events')
@@ -146,6 +188,7 @@ export async function updateEvent(
       ...parsed.data,
       ...overlay,
       ...meta,
+      description,
       title: finalTitle,
     })
     .eq('slug', slug)

@@ -15,6 +15,7 @@ import { getCurrentGuestForEvent } from '@/app/actions/rsvp'
 import { formatLongDate, type AppLocale } from '@/lib/dates'
 import { getEventForView } from '@/lib/event-fetch'
 import { resizeCoverUrl } from '@/lib/cover-url'
+import { sanitizeDescription } from '@/lib/sanitize'
 import { getSiteUrl } from '@/lib/site-url'
 import { FLOATING_SURFACE } from '@/lib/ui/floating-surface'
 import type { ThemeBackgroundValue } from '@/lib/schemas/theme'
@@ -56,6 +57,14 @@ function pickOgImage(coverUrl: string | null): {
 function truncate(s: string, max: number): string {
   if (s.length <= max) return s
   return s.slice(0, max - 1).trimEnd() + '…'
+}
+
+// Tag-detection heuristic for branching plain-text vs HTML render. Matches
+// any `<` followed by an ASCII letter — that's a tag start. Plain text
+// containing math like "x < 5" doesn't match because the next char is a
+// digit/space, not a letter. Pre-feature descriptions are all plain text.
+function descriptionHasHtml(s: string): boolean {
+  return /<[a-zA-Z][^>]*>/.test(s)
 }
 
 const INVITED_YOU_TO: Record<string, (host: string, title: string) => string> = {
@@ -408,12 +417,26 @@ export default async function PublicEventPage({
               </DetailRow>
             )}
 
-            {/* Free-text description — preserve whitespace, no markdown. */}
-            {event.description && (
-              <p className="whitespace-pre-wrap text-base text-white/80">
-                {event.description}
-              </p>
-            )}
+            {/* Description render — branches on tag detection ([ui-6b]).
+                Pre-feature plain-text descriptions render unchanged in a
+                whitespace-pre-wrap <p>. Rich-text descriptions (TipTap
+                HTML output, server-sanitized at write time) render via
+                dangerouslySetInnerHTML with defense-in-depth re-sanitization.
+                Prose selectors here mirror the editor's preview styling
+                (DescriptionInput.tsx) — keep them in sync. */}
+            {event.description &&
+              (descriptionHasHtml(event.description) ? (
+                <div
+                  className="text-base text-white/80 [&_a]:text-brand-300 [&_a]:underline [&_a:hover]:text-brand-200 [&_em]:italic [&_li]:my-1 [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-5 [&_p:not(:last-child)]:mb-3 [&_strong]:font-semibold [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-5"
+                  dangerouslySetInnerHTML={{
+                    __html: sanitizeDescription(event.description),
+                  }}
+                />
+              ) : (
+                <p className="whitespace-pre-wrap text-base text-white/80">
+                  {event.description}
+                </p>
+              ))}
 
             <HostBlock
               hostName={hostName}

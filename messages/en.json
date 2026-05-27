@@ -109,6 +109,21 @@
         "handwritten": "Handwritten",
         "mono": "Mono"
       },
+      "description": {
+        "placeholder": "Tell guests about your event…",
+        "toolbar": {
+          "bold": "Bold",
+          "italic": "Italic",
+          "bulletList": "Bullet list",
+          "numberedList": "Numbered list",
+          "link": "Link"
+        },
+        "linkUrl": {
+          "placeholder": "https://…",
+          "save": "Save",
+          "cancel": "Cancel"
+        }
+      },
       "untitledTitle": "Untitled Event",
       "titlePlaceholder": "Untitled Event",
       "saveDraft": "Save draft",
