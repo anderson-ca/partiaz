@@ -543,6 +543,7 @@ export type Database = {
           id: string
           letter_spacing: string
           name: string
+          order_index: number
           supports_az: boolean
           supports_ru: boolean
           text_transform: string
@@ -555,6 +556,7 @@ export type Database = {
           id?: string
           letter_spacing?: string
           name: string
+          order_index?: number
           supports_az?: boolean
           supports_ru?: boolean
           text_transform?: string
@@ -567,6 +569,7 @@ export type Database = {
           id?: string
           letter_spacing?: string
           name?: string
+          order_index?: number
           supports_az?: boolean
           supports_ru?: boolean
           text_transform?: string

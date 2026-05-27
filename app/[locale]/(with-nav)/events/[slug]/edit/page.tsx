@@ -77,7 +77,7 @@ export default async function EditEventPage({
         'id,name,category,font_family,font_weight,letter_spacing,text_transform',
       )
       .order('category')
-      .order('name'),
+      .order('order_index'),
     supabase
       .from('cover_illustrations')
       .select('id,image_url,category')

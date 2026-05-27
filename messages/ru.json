@@ -102,6 +102,13 @@
   },
   "events": {
     "editor": {
+      "fontCategories": {
+        "sans": "Без засечек",
+        "serif": "С засечками",
+        "display": "Декоративные",
+        "handwritten": "Рукописные",
+        "mono": "Моноширинные"
+      },
       "untitledTitle": "Без названия",
       "titlePlaceholder": "Без названия",
       "saveDraft": "Сохранить черновик",

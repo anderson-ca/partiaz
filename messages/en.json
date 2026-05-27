@@ -102,6 +102,13 @@
   },
   "events": {
     "editor": {
+      "fontCategories": {
+        "sans": "Sans",
+        "serif": "Serif",
+        "display": "Display",
+        "handwritten": "Handwritten",
+        "mono": "Mono"
+      },
       "untitledTitle": "Untitled Event",
       "titlePlaceholder": "Untitled Event",
       "saveDraft": "Save draft",

@@ -102,6 +102,13 @@
   },
   "events": {
     "editor": {
+      "fontCategories": {
+        "sans": "Sans-serif",
+        "serif": "Serif",
+        "display": "Dekorativ",
+        "handwritten": "Əl yazısı",
+        "mono": "Monospace"
+      },
       "untitledTitle": "Adsız tədbir",
       "titlePlaceholder": "Adsız tədbir",
       "saveDraft": "Qaralamanı saxla",

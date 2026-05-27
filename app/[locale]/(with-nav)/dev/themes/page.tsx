@@ -46,7 +46,7 @@ export default async function ThemesDevPage({
         'id,name,category,font_family,font_weight,letter_spacing,text_transform',
       )
       .order('category')
-      .order('name'),
+      .order('order_index'),
   ])
 
   const themes = (themesRes.data ?? []) as unknown as ThemeRow[]
