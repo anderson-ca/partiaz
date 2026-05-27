@@ -63,7 +63,7 @@
   "dashboard": {
     "welcomeWithName": "Xoş gəldin, {name}!",
     "welcomeNoName": "PartiAZ-a xoş gəldin",
-    "eventsCount": "{count, plural, =0 {Hələ tədbirin yoxdur.} other {# tədbirin var.}}",
+    "eventsCount": "{count, plural, =0 {Hələ heç nə təşkil etmirsən — gəl başlayaq.} other {# tədbir təşkil edirsən.}}",
     "tabUpcoming": "Gələcək",
     "tabHosting": "Təşkil edirəm",
     "tabPast": "Keçmiş",
@@ -71,6 +71,15 @@
     "emptyCta": "İlk tədbirini yarat",
     "newEventTile": "Yeni tədbir",
     "pastEmpty": "Hələ keçmiş tədbir yoxdur.",
+    "empty": {
+      "hostingTitle": "Hələ tədbirin yoxdur",
+      "hostingSubtext": "İnsanları bir araya gətir. İlk tədbirini bir dəqiqəyə başla.",
+      "hostingCta": "İlk tədbirini yarat",
+      "upcomingTitle": "Yaxınlaşan tədbir yoxdur",
+      "upcomingSubtext": "Qəbul etdiyin dəvətnamələr burada görünəcək.",
+      "pastTitle": "Keçmiş tədbir yoxdur",
+      "pastSubtext": "Təşkil etdiyin və ya iştirak etdiyin tədbirlər keçəndən sonra burada görünəcək."
+    },
     "cardStatusDraft": "Qaralama",
     "cardStatusPublic": "Açıq",
     "cardHostingBadge": "Təşkilatçı",

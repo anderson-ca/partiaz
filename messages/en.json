@@ -63,7 +63,7 @@
   "dashboard": {
     "welcomeWithName": "Welcome, {name}!",
     "welcomeNoName": "Welcome to PartiAZ",
-    "eventsCount": "{count, plural, =0 {You have no events yet.} one {You have 1 event.} other {You have # events.}}",
+    "eventsCount": "{count, plural, =0 {Not hosting anything yet — let's change that.} one {You're hosting 1 event.} other {You're hosting # events.}}",
     "tabUpcoming": "Upcoming",
     "tabHosting": "Hosting",
     "tabPast": "Past",
@@ -71,6 +71,15 @@
     "emptyCta": "Create your first event",
     "newEventTile": "New Event",
     "pastEmpty": "No past events yet.",
+    "empty": {
+      "hostingTitle": "No events yet",
+      "hostingSubtext": "Bring people together. Start your first event in a minute.",
+      "hostingCta": "Create your first event",
+      "upcomingTitle": "No upcoming events",
+      "upcomingSubtext": "Invitations you accept will show up here.",
+      "pastTitle": "No past events",
+      "pastSubtext": "Events you've hosted or RSVP'd to will appear here once they pass."
+    },
     "cardStatusDraft": "Draft",
     "cardStatusPublic": "Public",
     "cardHostingBadge": "Hosting",

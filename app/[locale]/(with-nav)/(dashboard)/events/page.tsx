@@ -143,7 +143,7 @@ export default async function DashboardPage({
           <h1 className="text-4xl font-semibold tracking-tight text-white md:text-5xl">
             {greeting}
           </h1>
-          <p className="mt-2 text-lg text-white/60">
+          <p className="mt-2 text-lg text-foreground-muted">
             {t('eventsCount', { count: events.length })}
           </p>
         </header>

@@ -60,7 +60,7 @@ export async function EventCard({ event, isHost, locale }: EventCardProps) {
     // them bubbling into a navigation. Hover ring lives on the root via the
     // `group` + group-hover trick on the Link layer below.
     <div
-      className="group relative overflow-hidden rounded-2xl ring-1 ring-white/10 transition hover:ring-white/30"
+      className="group relative overflow-hidden rounded-2xl ring-1 ring-border-subtle transition hover:ring-border-strong"
       style={{ aspectRatio: '4 / 5' }}
     >
       {/* Navigation layer — covers the card area but lives below decoration
@@ -68,7 +68,7 @@ export async function EventCard({ event, isHost, locale }: EventCardProps) {
       <Link
         href={`/${locale}/e/${event.slug}`}
         aria-label={event.title}
-        className="absolute inset-0 z-0 rounded-2xl transition-transform duration-200 group-hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+        className="absolute inset-0 z-0 rounded-2xl transition-transform duration-200 group-hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400/40"
       />
 
       {/* Background layer: cover wins over theme when present, theme as

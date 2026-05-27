@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { CalendarPlus } from 'lucide-react'
+import { CalendarPlus, History, Inbox } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import {
   Tabs,
@@ -47,7 +47,7 @@ export function EventTabs({
 
   return (
     <Tabs defaultValue="hosting" className="w-full">
-      <TabsList className="mb-6 inline-flex h-auto gap-2 rounded-full bg-white/5 p-1 backdrop-blur-sm">
+      <TabsList className="mb-6 inline-flex h-auto gap-2 rounded-full bg-surface-subtle p-1 backdrop-blur-sm">
         <TabPillTrigger value="upcoming" label={t('tabUpcoming')} count={counts.upcoming} />
         <TabPillTrigger value="hosting" label={t('tabHosting')} count={counts.hosting} />
         <TabPillTrigger value="past" label={t('tabPast')} count={counts.past} />
@@ -55,7 +55,7 @@ export function EventTabs({
 
       <TabsContent value="upcoming">
         {counts.upcoming === 0 ? (
-          <EmptyEventsState locale={locale} />
+          <EmptyEventsState tab="upcoming" locale={locale} />
         ) : (
           <div className={GRID_CLASS}>
             {upcomingCards}
@@ -66,7 +66,7 @@ export function EventTabs({
 
       <TabsContent value="hosting">
         {counts.hosting === 0 ? (
-          <EmptyEventsState locale={locale} />
+          <EmptyEventsState tab="hosting" locale={locale} />
         ) : (
           <div className={GRID_CLASS}>
             {hostingCards}
@@ -77,11 +77,7 @@ export function EventTabs({
 
       <TabsContent value="past">
         {counts.past === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-white/5 bg-white/5 px-6 py-16 text-center backdrop-blur-sm">
-            <p className="max-w-sm text-sm text-white/60">
-              {t('pastEmpty')}
-            </p>
-          </div>
+          <EmptyEventsState tab="past" locale={locale} />
         ) : (
           <div className={GRID_CLASS}>{pastCards}</div>
         )}
@@ -108,7 +104,7 @@ function TabPillTrigger({
         'gap-2 rounded-full border-0 px-4 py-2 text-sm font-medium text-white/60 transition-all duration-150',
         'hover:bg-white/5 hover:text-white',
         'data-[state=active]:bg-white/10 data-[state=active]:text-white data-[state=active]:shadow-none',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/40',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400/40',
       )}
     >
       <span>{label}</span>
@@ -122,17 +118,44 @@ function TabPillTrigger({
   )
 }
 
-function EmptyEventsState({ locale }: { locale: string }) {
-  const t = useTranslations('dashboard')
+type EmptyTab = 'hosting' | 'upcoming' | 'past'
+
+const TAB_ICON: Record<EmptyTab, typeof CalendarPlus> = {
+  hosting: CalendarPlus,
+  upcoming: Inbox,
+  past: History,
+}
+
+function EmptyEventsState({
+  tab,
+  locale,
+}: {
+  tab: EmptyTab
+  locale: string
+}) {
+  const t = useTranslations('dashboard.empty')
+  const Icon = TAB_ICON[tab]
+  // Only the hosting tab gets a creation CTA — upcoming + past are passive
+  // states (guests see invitations arrive in upcoming; past is historical).
+  const showCta = tab === 'hosting'
   return (
-    <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-white/5 bg-white/5 px-6 py-16 text-center backdrop-blur-sm">
+    <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-border-faint bg-surface-subtle px-6 py-16 text-center backdrop-blur-sm">
       <span className="flex h-14 w-14 items-center justify-center rounded-full bg-white/10 text-white">
-        <CalendarPlus className="h-6 w-6" />
+        <Icon className="h-6 w-6" />
       </span>
-      <h3 className="text-lg font-semibold text-white">{t('emptyTitle')}</h3>
-      <Button asChild size="lg">
-        <Link href={`/${locale}/events/new`}>{t('emptyCta')}</Link>
-      </Button>
+      <div className="space-y-1.5">
+        <h3 className="text-lg font-semibold text-white">
+          {t(`${tab}Title` as 'hostingTitle' | 'upcomingTitle' | 'pastTitle')}
+        </h3>
+        <p className="max-w-sm text-sm text-white/60">
+          {t(`${tab}Subtext` as 'hostingSubtext' | 'upcomingSubtext' | 'pastSubtext')}
+        </p>
+      </div>
+      {showCta && (
+        <Button asChild size="lg">
+          <Link href={`/${locale}/events/new`}>{t('hostingCta')}</Link>
+        </Button>
+      )}
     </div>
   )
 }
