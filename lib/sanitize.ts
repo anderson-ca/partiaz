@@ -1,83 +1,72 @@
-import DOMPurify from 'isomorphic-dompurify'
+import sanitizeHtml from 'sanitize-html'
 
 /**
  * HTML sanitization for the rich-text description editor ([ui-6b]).
  *
- * Single source of truth for the allowlist — same function runs on
- * server (Server Actions, where the trust boundary actually lives) and
- * could run on client if a future preview-without-save flow needs it.
- * isomorphic-dompurify wraps DOMPurify; on the server it uses jsdom,
- * on the client it uses native DOM.
+ * Pure-CJS server-only path via sanitize-html. The original
+ * isomorphic-dompurify implementation lazy-loaded jsdom which lazy-loaded
+ * html-encoding-sniffer@6 which transitively depends on @exodus/bytes
+ * (ESM-only) — Node's CommonJS require() chokes on the ESM module and
+ * crashes every route that imports this file. Hotfix rolled back to a
+ * DOM-less HTML parser (sanitize-html uses htmlparser2 under the hood).
  *
- * Allowlist (D5):
+ * Allowlist (D5 from [ui-6b]):
  *   Tags:   p, br, strong, em, b, i, ul, ol, li, a
- *   Attrs:  href, target, rel  (target + rel are force-set by the hook
- *           below regardless of input — see afterSanitizeAttributes)
+ *   Attrs:  a[href, target, rel]
+ *   Schemes for href: http, https, mailto, tel — javascript: and data:
+ *           are rejected by omission. allowedSchemesAppliedToAttributes
+ *           pins the scheme check to <a href> specifically.
  *
- * URI schemes for href:
- *   Explicit ALLOWED_URI_REGEXP requires http(s) / mailto / tel / or
- *   a relative path. javascript: and data: URLs are both rejected —
- *   DOMPurify defaults already strip these, but pinning the regex
- *   protects against upstream default changes (defense-in-depth flagged
- *   in the [ui-6b] decision points).
+ * Link safety: transformTags.a spreads incoming attribs then force-
+ *   overwrites target='_blank' and rel='noopener noreferrer nofollow'.
+ *   Attacker-supplied target/rel are clobbered. nofollow prevents Google
+ *   ranking manipulation; noopener+noreferrer prevent tab-nabbing.
  *
- * Link safety:
- *   Every <a> tag gets target="_blank" rel="noopener noreferrer nofollow"
- *   force-applied via the afterSanitizeAttributes hook. User-supplied
- *   target/rel are overwritten. nofollow prevents Google ranking
- *   manipulation; noopener+noreferrer prevent tab-nabbing.
+ * sanitize-html applies the scheme filter BEFORE transformTags runs, so
+ * an href='javascript:...' is dropped before the transform can preserve
+ * it. Belt and suspenders.
  */
 
-// Module-load side effect: configure the link-safety hook once. Hooks
-// are global to the DOMPurify instance. removeAllHooks first so module
-// reloads (e.g., HMR) don't compound multiple hook registrations.
-DOMPurify.removeAllHooks?.()
-DOMPurify.addHook('afterSanitizeAttributes', (node) => {
-  // Element-vs-Text distinction via tagName presence — avoids referencing
-  // the global Element constructor which isn't defined in plain Node
-  // contexts (e.g., unit-test scripts running without jsdom polyfill).
-  if (
-    'tagName' in node &&
-    typeof node.tagName === 'string' &&
-    node.tagName === 'A'
-  ) {
-    node.setAttribute('target', '_blank')
-    node.setAttribute('rel', 'noopener noreferrer nofollow')
-  }
-})
-
-const SANITIZE_CONFIG = {
-  ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'b', 'i', 'ul', 'ol', 'li', 'a'],
-  ALLOWED_ATTR: ['href', 'target', 'rel'],
-  ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto|tel):|[/.])/i,
+const ALLOWLIST: sanitizeHtml.IOptions = {
+  allowedTags: ['p', 'br', 'strong', 'em', 'b', 'i', 'ul', 'ol', 'li', 'a'],
+  allowedAttributes: {
+    a: ['href', 'target', 'rel'],
+  },
+  allowedSchemes: ['http', 'https', 'mailto', 'tel'],
+  allowedSchemesAppliedToAttributes: ['href'],
+  transformTags: {
+    a: (tagName, attribs) => ({
+      tagName,
+      attribs: {
+        ...attribs,
+        target: '_blank',
+        rel: 'noopener noreferrer nofollow',
+      },
+    }),
+  },
 }
 
-const STRIP_ALL_CONFIG = {
-  ALLOWED_TAGS: [] as string[],
-  ALLOWED_ATTR: [] as string[],
-  KEEP_CONTENT: true,
+const STRIP_ALL: sanitizeHtml.IOptions = {
+  allowedTags: [],
+  allowedAttributes: {},
 }
 
 /**
  * Sanitize TipTap HTML output against the description allowlist.
  * Strips disallowed tags + attrs, forces link safety attrs, rejects
- * javascript: and data: schemes in href.
+ * javascript:/data: in href.
  */
 export function sanitizeDescription(html: string): string {
-  return DOMPurify.sanitize(html, SANITIZE_CONFIG)
+  return sanitizeHtml(html, ALLOWLIST)
 }
 
 /**
- * Plain-text length of HTML content — used for the 2000-char limit
- * enforcement on the server side (D4). Strips ALL markup, decodes
- * entities, collapses whitespace, returns character count.
- *
- * Using DOMPurify with KEEP_CONTENT + zero allowed tags is the
- * single-source-of-truth approach: same parser, same edge cases as
- * the real sanitizer. Regex-based strip would diverge on entity
- * decoding and HTML5 parser quirks.
+ * Plain-text length of HTML content — used for the 2000-char server-side
+ * limit (D4). Strips ALL markup, collapses whitespace, returns count.
+ * Whitespace-collapse matches TipTap CharacterCount's behavior so the
+ * client-side count display and server-side enforcement stay in sync.
  */
 export function descriptionPlainTextLength(html: string): number {
-  const text = DOMPurify.sanitize(html, STRIP_ALL_CONFIG)
+  const text = sanitizeHtml(html, STRIP_ALL)
   return text.replace(/\s+/g, ' ').trim().length
 }
