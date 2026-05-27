@@ -10,7 +10,7 @@
  * illegibly over a themed page).
  */
 export const FLOATING_SURFACE =
-  'border border-white/10 bg-zinc-900/95 text-white shadow-2xl backdrop-blur-xl'
+  'border border-border-subtle bg-surface-floating text-white shadow-2xl backdrop-blur-xl'
 
 /**
  * Glass styling for page-spanning chrome bars (navbar, footer, etc.) — distinct
@@ -19,7 +19,7 @@ export const FLOATING_SURFACE =
  * subtle border-bottom instead of a full ring.
  */
 export const NAV_SURFACE =
-  'bg-zinc-950/40 backdrop-blur-xl border-b border-white/5'
+  'bg-surface-nav backdrop-blur-xl border-b border-border-faint'
 
 /**
  * Companion mapping for shadcn neutral tokens when used INSIDE a
@@ -29,11 +29,11 @@ export const NAV_SURFACE =
  */
 export const ON_FLOATING = {
   textPrimary: 'text-white',
-  textSecondary: 'text-white/70',
-  textMuted: 'text-white/50',
-  border: 'border-white/10',
-  borderStrong: 'border-white/30',
+  textSecondary: 'text-foreground-muted',
+  textMuted: 'text-foreground-subtle',
+  border: 'border-border-subtle',
+  borderStrong: 'border-border-strong',
   ring: 'ring-white ring-offset-zinc-900',
-  bgSubtle: 'bg-white/5',
+  bgSubtle: 'bg-surface-subtle',
   bgError: 'text-red-400',
 } as const

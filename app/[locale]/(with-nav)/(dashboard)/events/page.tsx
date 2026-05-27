@@ -138,13 +138,6 @@ export default async function DashboardPage({
 
   return (
     <>
-      {/* Fixed gradient covers the entire viewport, including the area
-          UNDER the sticky navbar (z-40). Without this, the navbar's
-          backdrop-blur mixes with the body's white background and reads
-          as a flat gray strip. With it, the blur picks up the violet/
-          indigo and the navbar fades naturally into the gradient. */}
-      <div className="fixed inset-0 -z-10 bg-linear-to-br from-violet-950 via-indigo-950 to-zinc-950" />
-
       <div className="mx-auto max-w-6xl px-4 py-8 md:px-8 md:py-12">
         <header className="mb-8 md:mb-12">
           <h1 className="text-4xl font-semibold tracking-tight text-white md:text-5xl">

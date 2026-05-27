@@ -38,7 +38,7 @@ export default async function LoginPage({
   const tPage = await getTranslations('auth.loginPage')
 
   return (
-    <div className="relative min-h-screen bg-linear-to-br from-violet-950 via-indigo-950 to-zinc-950">
+    <div className="relative min-h-screen">
       {/* LocaleSwitcher floats top-right outside the card so users can flip
           languages without committing to the form. The (auth) route group
           has no global navbar, so we mount the switcher inline here. */}

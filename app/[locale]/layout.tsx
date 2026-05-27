@@ -48,7 +48,7 @@ export default async function LocaleLayout({
       lang={locale}
       className={`${geistSans.variable} ${geistMono.variable} ${allFontVariables}`}
     >
-      <body className="antialiased">
+      <body className="min-h-screen bg-linear-to-br from-violet-950 via-indigo-950 to-zinc-950 antialiased">
         <NextIntlClientProvider locale={locale} messages={messages}>
           {children}
           <Toaster position="bottom-center" />

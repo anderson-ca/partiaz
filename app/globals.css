@@ -51,6 +51,57 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* ─── [ui-1] Brand palette ─────────────────────────────────────────────
+   * 11-stop scale anchored on the existing violet/indigo gradient. Hue
+   * fixed at 292° (between violet and indigo), restrained chroma at the
+   * extremes for a "premium-restrained" feel. NOT consumed by any
+   * utility class in [ui-1] itself — foundation for downstream prompts
+   * to migrate violet-{400…950} literals onto `bg-brand-*` / `text-brand-*`
+   * / `border-brand-*` utilities.
+   */
+  --color-brand-50:  oklch(0.969 0.014 292);
+  --color-brand-100: oklch(0.943 0.026 292);
+  --color-brand-200: oklch(0.894 0.052 292);
+  --color-brand-300: oklch(0.811 0.103 292);
+  --color-brand-400: oklch(0.702 0.170 292);
+  --color-brand-500: oklch(0.606 0.235 292);
+  --color-brand-600: oklch(0.541 0.265 292);
+  --color-brand-700: oklch(0.491 0.255 292);
+  --color-brand-800: oklch(0.432 0.220 292);
+  --color-brand-900: oklch(0.380 0.180 292);
+  --color-brand-950: oklch(0.281 0.125 292);
+
+  /* ─── [ui-1] Surface tokens ────────────────────────────────────────────
+   * Translucent layer values, pixel-identical to the current zinc-based
+   * surfaces so [ui-1] is a no-visual-change foundation. `surface-overlay`
+   * is new (modal/dialog backdrop) with no in-repo consumer yet.
+   */
+  --color-surface-subtle:   oklch(1 0 0 / 0.05);
+  --color-surface-floating: oklch(0.205 0.006 285.82 / 0.95);
+  --color-surface-nav:      oklch(0.141 0.005 285.82 / 0.40);
+  --color-surface-overlay:  oklch(0 0 0 / 0.50);
+
+  /* ─── [ui-1] Foreground hierarchy ──────────────────────────────────────
+   * Three semantic levels for text emphasis on dark surfaces. Default
+   * "strong" text stays as `text-white` literal — there's no base
+   * `--color-foreground` token because shadcn already defines that
+   * (resolving to light-mode black for its unused light variant);
+   * redefining would shift Button/Input primitives.
+   */
+  --color-foreground-muted:  oklch(1 0 0 / 0.70);
+  --color-foreground-subtle: oklch(1 0 0 / 0.50);
+  --color-foreground-faint:  oklch(1 0 0 / 0.30);
+
+  /* ─── [ui-1] Border hierarchy ──────────────────────────────────────────
+   * Four levels matching real usage: 5% (nav bottom edge), 10%
+   * (floating-surface, dominant), 15% (inputs), 30% (emphasized).
+   * Distinct from shadcn's `--color-border` token — both coexist.
+   */
+  --color-border-faint:   oklch(1 0 0 / 0.05);
+  --color-border-subtle:  oklch(1 0 0 / 0.10);
+  --color-border-default: oklch(1 0 0 / 0.15);
+  --color-border-strong:  oklch(1 0 0 / 0.30);
 }
 
 :root {
