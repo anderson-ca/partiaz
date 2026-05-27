@@ -86,10 +86,10 @@ export async function generateMetadata({
   // benign.
   if (!event || !event.host) {
     return {
-      title: 'parti.az',
+      title: 'PartiAZ',
       openGraph: {
-        title: 'parti.az',
-        siteName: 'parti.az',
+        title: 'PartiAZ',
+        siteName: 'PartiAZ',
         type: 'website',
         url: canonicalUrl(slug),
         images: [
@@ -104,7 +104,7 @@ export async function generateMetadata({
     }
   }
 
-  const hostName = event.host.display_name?.trim() || 'parti.az'
+  const hostName = event.host.display_name?.trim() || 'PartiAZ'
   const hostLocaleRaw = event.host.locale ?? 'az'
   const hostLocale =
     hostLocaleRaw === 'ru' || hostLocaleRaw === 'en' ? hostLocaleRaw : 'az'
@@ -146,7 +146,7 @@ export async function generateMetadata({
     openGraph: {
       title: event.title,
       description,
-      siteName: 'parti.az',
+      siteName: 'PartiAZ',
       type: 'website',
       url: canonicalUrl(event.slug),
       locale: ogLocale,

@@ -30,7 +30,7 @@ const STRINGS: Record<Locale, Strings> = {
     when: 'Vaxt',
     where: 'Yer',
     cta: 'RSVP göndər',
-    footer: 'parti.az — tədbirlər üçün dəvətnamələr',
+    footer: 'PartiAZ — tədbirlər üçün dəvətnamələr',
   },
   ru: {
     subject: (t) => `Приглашение: ${t}`,
@@ -39,7 +39,7 @@ const STRINGS: Record<Locale, Strings> = {
     when: 'Когда',
     where: 'Где',
     cta: 'Ответить',
-    footer: 'parti.az — приглашения на мероприятия',
+    footer: 'PartiAZ — приглашения на мероприятия',
   },
   en: {
     subject: (t) => `You're invited: ${t}`,
@@ -48,7 +48,7 @@ const STRINGS: Record<Locale, Strings> = {
     when: 'When',
     where: 'Where',
     cta: 'RSVP',
-    footer: 'parti.az — invitations made easy',
+    footer: 'PartiAZ — invitations made easy',
   },
 }
 

@@ -11,7 +11,7 @@ export async function Logo() {
       locale={locale}
       className="text-lg font-semibold tracking-tight text-white transition-opacity hover:opacity-80"
     >
-      parti.az
+      PartiAZ
     </Link>
   )
 }

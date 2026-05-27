@@ -600,7 +600,7 @@ export async function sendInvites(
 
   const host = event.host as { display_name: string | null; locale: string }
   const locale = (host.locale === 'ru' || host.locale === 'en' ? host.locale : 'az') as Locale
-  const hostName = host.display_name?.trim() || 'parti.az'
+  const hostName = host.display_name?.trim() || 'PartiAZ'
 
   // ─── Fetch the requested guests, restricted to this event. Tampering
   //      with `guestIds` to target someone else's guests would just match

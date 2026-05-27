@@ -55,7 +55,7 @@ export default async function LoginPage({
         >
           <header className="mb-6">
             <h1 className="text-3xl font-semibold tracking-tight text-white">
-              parti.az
+              PartiAZ
             </h1>
             <p className="mt-1 text-sm text-white/60">{t('title')}</p>
           </header>

@@ -58,7 +58,7 @@
   },
   "dashboard": {
     "welcomeWithName": "Xoş gəldin, {name}!",
-    "welcomeNoName": "parti.az-a xoş gəldin",
+    "welcomeNoName": "PartiAZ-a xoş gəldin",
     "eventsCount": "{count, plural, =0 {Hələ tədbirin yoxdur.} other {# tədbirin var.}}",
     "tabUpcoming": "Gələcək",
     "tabHosting": "Təşkil edirəm",
@@ -409,7 +409,7 @@
     "saveFirstHint": "Köməkçi əlavə etmək üçün əvvəlcə tədbiri saxla.",
     "addButton": "Köməkçi əlavə et",
     "dialogTitle": "Köməkçi təşkilatçı əlavə et",
-    "dialogDescription": "parti.az-da olan birinin e-poçtunu yaz. Bu tədbiri redaktə edə biləcək.",
+    "dialogDescription": "PartiAZ-da olan birinin e-poçtunu yaz. Bu tədbiri redaktə edə biləcək.",
     "emailPlaceholder": "onun.epoctu@nümunə.az",
     "searchButton": "İstifadəçini tap",
     "confirmAddButton": "Köməkçi kimi əlavə et",

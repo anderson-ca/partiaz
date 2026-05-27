@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og'
 
 // 1200×630 violet placeholder served at /og-default.png for events whose
-// cover_image_url is null OR points to a video. Plain "parti.az" wordmark
+// cover_image_url is null OR points to a video. Plain "PartiAZ" wordmark
 // on solid violet; replace with a branded asset later. Lives as a route
 // rather than `/public/og-default.png` because we have no SVG-to-PNG
 // tooling on dev machines and `next/og` ships with Next 15 — same URL
@@ -25,8 +25,8 @@ export async function GET() {
           letterSpacing: '-0.02em',
         }}
       >
-        parti.az
-      </div>
+        PartiAZ
+</div>
     ),
     {
       width: 1200,

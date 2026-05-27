@@ -1,7 +1,7 @@
 import 'server-only'
 import { Resend } from 'resend'
 
-const FROM = '"parti.az" <noreply@cardoso.im>'
+const FROM = '"PartiAZ" <noreply@cardoso.im>'
 
 let cached: Resend | null = null
 

@@ -19,7 +19,7 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'parti.az',
+  title: 'PartiAZ',
   description: 'Event invitations and RSVPs for Baku.',
 }
 
