@@ -108,7 +108,11 @@ export async function createEvent(
     if (!error) return { ok: true, slug: data.slug }
     // Retry only on slug collision; bail on any other DB error.
     if (error.code !== PG_UNIQUE_VIOLATION) {
-      return { ok: false, error: error.message }
+      // Opaque code to the client; real message logged for Vercel/dev
+      // debugging so operators can still diagnose. Raw error.message
+      // leaks RLS reasons + constraint names to the wire ([sec-4]).
+      console.error('[createEvent] insert failed:', error)
+      return { ok: false, error: 'insert_failed' }
     }
   }
 
@@ -149,7 +153,10 @@ export async function updateEvent(
     // catches stale slugs in the URL faster than waiting for an RLS deny.
     .eq('host_id', user.id)
 
-  if (error) return { ok: false, error: error.message }
+  if (error) {
+    console.error('[updateEvent] update failed:', error)
+    return { ok: false, error: 'update_failed' }
+  }
 
   revalidatePath(`/e/${slug}`)
   revalidatePath(`/events/${slug}/edit`)
