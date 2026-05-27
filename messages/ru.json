@@ -41,7 +41,11 @@
     },
     "loginPage": {
       "orDivider": "или",
-      "emailSectionTitle": "Войти по email"
+      "emailSectionTitle": "Войти по email",
+      "tagline": "приглашения на мероприятия",
+      "errors": {
+        "oauthFailed": "Не удалось войти через Google. Попробуй снова или выбери другой способ."
+      }
     },
     "login": {
       "title": "Войдите в аккаунт",

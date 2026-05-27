@@ -1,7 +1,7 @@
 'use client'
 
 import { useActionState } from 'react'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Mail } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
 import { createClient } from '@/lib/supabase/client'
@@ -45,7 +45,7 @@ export function LoginForm({ next }: LoginFormProps) {
         <div className="space-y-2">
           <label
             htmlFor="email"
-            className="block text-sm font-medium text-white/80"
+            className="block text-sm font-medium text-foreground-muted"
           >
             {t('emailLabel')}
           </label>
@@ -57,7 +57,7 @@ export function LoginForm({ next }: LoginFormProps) {
             autoComplete="email"
             required
             disabled={state.status === 'sent'}
-            className="block w-full rounded-md border border-white/15 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/40 focus:border-violet-400/60 focus:outline-none focus:ring-2 focus:ring-violet-400/40 disabled:opacity-50"
+            className="block w-full rounded-md border border-border-default bg-surface-subtle px-3 py-2 text-sm text-white placeholder:text-foreground-faint focus:border-brand-400/60 focus:outline-none focus:ring-2 focus:ring-brand-400/40 disabled:opacity-50"
           />
         </div>
         <Button
@@ -65,7 +65,11 @@ export function LoginForm({ next }: LoginFormProps) {
           className="w-full"
           disabled={pending || state.status === 'sent'}
         >
-          {pending && <Loader2 className="h-4 w-4 animate-spin" />}
+          {pending ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Mail className="h-4 w-4" />
+          )}
           {pending ? tCommon('sending') : t('magicLinkButton')}
         </Button>
         {state.status === 'sent' && (
@@ -75,14 +79,6 @@ export function LoginForm({ next }: LoginFormProps) {
           <p className="mt-3 text-sm text-rose-400">{t('errorGeneric')}</p>
         )}
       </form>
-
-      <div className="flex items-center gap-3">
-        <span className="h-px flex-1 bg-white/10" />
-        <span className="text-xs uppercase tracking-wide text-white/40">
-          {t('or')}
-        </span>
-        <span className="h-px flex-1 bg-white/10" />
-      </div>
 
       <Button
         type="button"

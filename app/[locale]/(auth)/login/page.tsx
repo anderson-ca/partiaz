@@ -1,3 +1,4 @@
+import { AlertCircle } from 'lucide-react'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { redirect } from 'next/navigation'
 import { PhoneAuthForm } from '@/components/auth/PhoneAuthForm'
@@ -13,16 +14,20 @@ export default async function LoginPage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>
-  searchParams: Promise<{ next?: string }>
+  searchParams: Promise<{ next?: string; error?: string }>
 }) {
   const { locale } = await params
-  const { next: rawNext } = await searchParams
+  const { next: rawNext, error: rawError } = await searchParams
   setRequestLocale(locale)
 
   // Sanitize the redirect target before plumbing it through to the magic
   // link / OAuth callbacks. Anything not a safe relative path becomes null —
   // protocol-relative `//evil.com/...` and friends never reach the user.
   const next = isSafeRelativePath(rawNext) ? rawNext : null
+
+  // OAuth callback failures bounce here with ?error=oauth_failed. Only that
+  // single code is emitted today (see app/auth/callback/route.ts).
+  const oauthFailed = rawError === 'oauth_failed'
 
   const supabase = await createClient()
   const {
@@ -34,7 +39,6 @@ export default async function LoginPage({
     redirect(next ?? `/${locale}/events`)
   }
 
-  const t = await getTranslations('auth.login')
   const tPage = await getTranslations('auth.loginPage')
 
   return (
@@ -53,12 +57,27 @@ export default async function LoginPage({
             'w-full max-w-md rounded-2xl p-8 md:p-10',
           )}
         >
-          <header className="mb-6">
+          <header className="mb-6 text-center">
             <h1 className="text-3xl font-semibold tracking-tight text-white">
               PartiAZ
             </h1>
-            <p className="mt-1 text-sm text-white/60">{t('title')}</p>
+            <p className="mt-2 text-base text-foreground-muted">
+              {tPage('tagline')}
+            </p>
           </header>
+
+          {/* OAuth callback failure surfacing. Rose-tinted alert reads as
+              "previous attempt failed; try again below" — sits between the
+              hero and the methods so it's the next thing scanned. Rose
+              literals are consistent with the existing errorGeneric
+              pattern; a --color-error-* semantic token can land in a
+              future prompt. */}
+          {oauthFailed && (
+            <div className="mb-4 flex items-start gap-2 rounded-lg border border-rose-400/30 bg-rose-500/10 px-3 py-2.5 text-sm text-rose-200">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+              <span>{tPage('errors.oauthFailed')}</span>
+            </div>
+          )}
 
           {/* Phone is the primary auth method for AZ — most users have
               WhatsApp and OTP is faster than email round-trip. Promoted to
@@ -68,7 +87,7 @@ export default async function LoginPage({
 
           <div className="my-6 flex items-center gap-3">
             <span className="h-px flex-1 bg-white/10" />
-            <span className="text-xs uppercase tracking-wide text-white/40">
+            <span className="text-xs uppercase tracking-wide text-foreground-faint">
               {tPage('orDivider')}
             </span>
             <span className="h-px flex-1 bg-white/10" />

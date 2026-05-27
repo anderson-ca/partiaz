@@ -41,7 +41,11 @@
     },
     "loginPage": {
       "orDivider": "və ya",
-      "emailSectionTitle": "E-poçtla daxil ol"
+      "emailSectionTitle": "E-poçtla daxil ol",
+      "tagline": "tədbirlər üçün dəvətnamələr",
+      "errors": {
+        "oauthFailed": "Google ilə daxil olma alınmadı. Yenidən cəhd et və ya başqa üsul seç."
+      }
     },
     "login": {
       "title": "Hesabınıza daxil olun",

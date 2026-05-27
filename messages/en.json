@@ -41,7 +41,11 @@
     },
     "loginPage": {
       "orDivider": "or",
-      "emailSectionTitle": "Sign in with email"
+      "emailSectionTitle": "Sign in with email",
+      "tagline": "Invitations made easy",
+      "errors": {
+        "oauthFailed": "Google sign-in failed. Try again or use a different method."
+      }
     },
     "login": {
       "title": "Sign in to your account",

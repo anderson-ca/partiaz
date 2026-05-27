@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import { useRouter } from 'next/navigation'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Phone } from 'lucide-react'
 import { useLocale, useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import {
@@ -124,7 +124,7 @@ export function PhoneAuthForm({ next }: PhoneAuthFormProps) {
         <div className="space-y-2">
           <label
             htmlFor="phone-input"
-            className="block text-sm font-medium text-white/80"
+            className="block text-sm font-medium text-foreground-muted"
           >
             {t('phoneLabel')}
           </label>
@@ -142,7 +142,7 @@ export function PhoneAuthForm({ next }: PhoneAuthFormProps) {
                 handleSendCode()
               }
             }}
-            className="block w-full rounded-md border border-white/15 bg-white/5 px-3 py-2 text-base text-white placeholder:text-white/40 focus:border-violet-400/60 focus:outline-none focus:ring-2 focus:ring-violet-400/40"
+            className="block w-full rounded-md border border-border-default bg-surface-subtle px-3 py-2 text-base text-white placeholder:text-foreground-faint focus:border-brand-400/60 focus:outline-none focus:ring-2 focus:ring-brand-400/40"
           />
           <p className="text-xs text-white/60">{t('helperText')}</p>
         </div>
@@ -152,7 +152,11 @@ export function PhoneAuthForm({ next }: PhoneAuthFormProps) {
           onClick={handleSendCode}
           disabled={pending || !phoneInput.trim()}
         >
-          {pending && <Loader2 className="h-4 w-4 animate-spin" />}
+          {pending ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Phone className="h-4 w-4" />
+          )}
           {pending ? t('sending') : t('sendCodeButton')}
         </Button>
       </div>
@@ -163,7 +167,7 @@ export function PhoneAuthForm({ next }: PhoneAuthFormProps) {
     return (
       <div className="space-y-3">
         <div className="space-y-1 text-center">
-          <p className="text-sm text-white/80">
+          <p className="text-sm text-foreground-muted">
             {t('otpSentTo', {
               phone: normalizedPhone
                 ? formatPhoneDisplay(normalizedPhone)
@@ -194,7 +198,7 @@ export function PhoneAuthForm({ next }: PhoneAuthFormProps) {
                 <InputOTPSlot
                   key={i}
                   index={i}
-                  className="h-12 w-10 border-white/15 bg-white/5 text-white"
+                  className="h-12 w-10 border-border-default bg-surface-subtle text-white"
                 />
               ))}
             </InputOTPGroup>
@@ -213,7 +217,7 @@ export function PhoneAuthForm({ next }: PhoneAuthFormProps) {
 
         <div className="text-center">
           {resendIn > 0 ? (
-            <span className="text-xs text-white/40">
+            <span className="text-xs text-foreground-faint">
               {t('resendAvailableIn', { seconds: resendIn })}
             </span>
           ) : (
@@ -255,7 +259,7 @@ export function PhoneAuthForm({ next }: PhoneAuthFormProps) {
             handleCompleteSignup()
           }
         }}
-        className="block w-full rounded-md border border-white/15 bg-white/5 px-3 py-2 text-base text-white placeholder:text-white/40 focus:border-violet-400/60 focus:outline-none focus:ring-2 focus:ring-violet-400/40"
+        className="block w-full rounded-md border border-border-default bg-surface-subtle px-3 py-2 text-base text-white placeholder:text-foreground-faint focus:border-brand-400/60 focus:outline-none focus:ring-2 focus:ring-brand-400/40"
       />
       <Button
         type="button"
