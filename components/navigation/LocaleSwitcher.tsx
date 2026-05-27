@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useTransition } from 'react'
-import { Check, Globe } from 'lucide-react'
+import { Check, Languages } from 'lucide-react'
 import { useLocale, useTranslations } from 'next-intl'
 import { useSearchParams } from 'next/navigation'
 import {
@@ -27,7 +27,7 @@ const LOCALE_LABELS: Record<Locale, string> = {
 }
 
 const TRIGGER_CLASS =
-  'flex h-9 w-9 items-center justify-center rounded-full text-white transition-all duration-150 hover:bg-white/10 active:scale-[0.95] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/40 disabled:opacity-50'
+  'flex h-9 w-9 items-center justify-center rounded-full text-white transition-all duration-150 hover:bg-white/10 active:scale-[0.95] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400/40 disabled:opacity-50'
 
 export function LocaleSwitcher() {
   const t = useTranslations('nav')
@@ -77,7 +77,7 @@ export function LocaleSwitcher() {
         disabled
         className={TRIGGER_CLASS}
       >
-        <Globe className="h-4 w-4" />
+        <Languages className="h-4 w-4" />
       </button>
     )
   }
@@ -91,7 +91,7 @@ export function LocaleSwitcher() {
           disabled={pending}
           className={TRIGGER_CLASS}
         >
-          <Globe className="h-4 w-4" />
+          <Languages className="h-4 w-4" />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
@@ -99,7 +99,7 @@ export function LocaleSwitcher() {
         sideOffset={8}
         className={cn(FLOATING_SURFACE, 'min-w-44 rounded-xl p-1')}
       >
-        <DropdownMenuLabel className="px-2 py-1.5 text-xs uppercase tracking-wide text-white/50">
+        <DropdownMenuLabel className="px-2 py-1.5 text-xs uppercase tracking-wide text-foreground-subtle">
           {t('languageMenuLabel')}
         </DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-white/10" />

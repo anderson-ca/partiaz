@@ -19,7 +19,15 @@ export const FLOATING_SURFACE =
  * subtle border-bottom instead of a full ring.
  */
 export const NAV_SURFACE =
-  'bg-surface-nav backdrop-blur-xl border-b border-border-faint'
+  'bg-surface-nav backdrop-blur-2xl border-b border-border-faint'
+
+/**
+ * Footer twin of NAV_SURFACE — same glass treatment, top border instead
+ * of bottom. Composed inline rather than refactoring NAV_SURFACE into a
+ * border-less primitive (one-off, keeps the existing API stable).
+ */
+export const FOOTER_SURFACE =
+  'bg-surface-nav backdrop-blur-2xl border-t border-border-faint'
 
 /**
  * Companion mapping for shadcn neutral tokens when used INSIDE a

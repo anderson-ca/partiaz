@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from 'next/font/google'
 import { NextIntlClientProvider, hasLocale } from 'next-intl'
 import { getMessages, setRequestLocale } from 'next-intl/server'
 import { notFound } from 'next/navigation'
+import NextTopLoader from 'nextjs-toploader'
 import { routing } from '@/i18n/routing'
 import { allFontVariables } from '@/lib/fonts'
 import { Toaster } from '@/components/ui/sonner'
@@ -49,6 +50,17 @@ export default async function LocaleLayout({
       className={`${geistSans.variable} ${geistMono.variable} ${allFontVariables}`}
     >
       <body className="min-h-screen bg-linear-to-br from-violet-950 via-indigo-950 to-zinc-950 antialiased">
+        {/* Top loader bar — fires on every <Link> navigation. Patches
+            window.history.pushState/replaceState so it transparently
+            covers next-intl's router calls too. brand-400 inline (not
+            via CSS var) because NextTopLoader is a Client Component and
+            var() can resolve unreliably at runtime; coupling annotated. */}
+        <NextTopLoader
+          color="oklch(0.702 0.170 292)"
+          height={3}
+          showSpinner={false}
+          shadow="0 0 10px oklch(0.702 0.170 292 / 0.5)"
+        />
         <NextIntlClientProvider locale={locale} messages={messages}>
           {children}
           <Toaster position="bottom-center" />

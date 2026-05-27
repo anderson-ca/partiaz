@@ -59,7 +59,7 @@ export function UserMenu({
         <button
           type="button"
           aria-label={displayName ?? 'Account'}
-          className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full ring-1 ring-white/15 transition-all duration-150 hover:ring-white/30 active:scale-[0.95] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/40"
+          className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full ring-1 ring-white/15 transition-all duration-150 hover:ring-white/30 active:scale-[0.95] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400/40"
         >
           {avatarUrl ? (
             // Avatar URLs come from arbitrary providers (Google, manual
