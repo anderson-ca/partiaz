@@ -158,6 +158,11 @@
       "locationNamePlaceholder": "Mənzil, ofis, və s.",
       "locationAddressLabel": "Ünvan",
       "locationAddressPlaceholder": "Küçə, bina, rayon…",
+      "locationAutocomplete": {
+        "searchPlaceholder": "Yer axtar…",
+        "searching": "Axtarılır…",
+        "clear": "Təmizlə"
+      },
       "descriptionLabel": "Təsvir",
       "descriptionPlaceholder": "Tədbir nə haqqındadır? Geyim tərzi, gətirməli olduqlar, gözləntilər…",
       "descriptionCharCount": "{used} / {max}",

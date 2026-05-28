@@ -158,6 +158,11 @@
       "locationNamePlaceholder": "Квартира, офис и т.д.",
       "locationAddressLabel": "Адрес",
       "locationAddressPlaceholder": "Улица, дом, район…",
+      "locationAutocomplete": {
+        "searchPlaceholder": "Найти место…",
+        "searching": "Поиск…",
+        "clear": "Очистить"
+      },
       "descriptionLabel": "Описание",
       "descriptionPlaceholder": "О чём событие? Дресс-код, что взять, чего ждать…",
       "descriptionCharCount": "{used} / {max}",

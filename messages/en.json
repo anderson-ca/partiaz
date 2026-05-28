@@ -158,6 +158,11 @@
       "locationNamePlaceholder": "Maria's apartment, The office, etc.",
       "locationAddressLabel": "Address",
       "locationAddressPlaceholder": "Street, building, district…",
+      "locationAutocomplete": {
+        "searchPlaceholder": "Search for a location…",
+        "searching": "Searching…",
+        "clear": "Clear"
+      },
       "descriptionLabel": "Description",
       "descriptionPlaceholder": "What's the event about? Dress code, what to bring, what to expect…",
       "descriptionCharCount": "{used} / {max}",

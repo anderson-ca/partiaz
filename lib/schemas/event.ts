@@ -42,8 +42,12 @@ export const eventInputSchema = z
     // flips from 'draft' → 'published' (enforced in app/actions/events.ts).
     starts_at: isoTimestamp,
     ends_at: isoTimestamp,
-    location_text: z.string().max(255).nullable().optional(),
-    location_address: z.string().max(255).nullable().optional(),
+    // 500-cap (was 255) to accommodate Google Places formatted addresses
+    // for Azerbaijani street + district + region combinations — sometimes
+    // 150+ chars. DB column is plain `text` (unbounded), so this is the
+    // only enforcement boundary.
+    location_text: z.string().max(500).nullable().optional(),
+    location_address: z.string().max(500).nullable().optional(),
     // HTTP-boundary sanity guard against multi-MB payloads. The real
     // 2000-char limit is enforced post-sanitization on plain-text length
     // in app/actions/events.ts (HTML overhead means a 2000-char plain-text
