@@ -513,5 +513,52 @@
     "title_line": "{hostName} sizi {eventTitle} tədbirinə dəvət edir",
     "date_label": "Vaxt: {formattedDate}",
     "rsvp_cta": "Cavab: {url}"
+  },
+  "landing": {
+    "nav": {
+      "signIn": "Daxil ol",
+      "getStarted": "Başla"
+    },
+    "hero": {
+      "headline": "İştirak etməyə dəyər bir tədbir təşkil et.",
+      "subhead": "Gözəl tədbir səhifələri. Sadə RSVP. Bakı üçün.",
+      "ctaPrimary": "İlk tədbirini yarat",
+      "ctaSecondary": "Daxil ol"
+    },
+    "showcase": {
+      "heading": "Hər tədbir öz səhifəsidir.",
+      "subtext": "80+ mövzu. 25 effekt. Ovqatına uyğun şriftlər."
+    },
+    "valueProps": {
+      "heading": "İnsanların həqiqətən tədbir təşkil etdiyi kimi.",
+      "cards": {
+        "themes": {
+          "title": "Tədbirinə uyğun mövzulu səhifələr",
+          "body": "Əl yazısı doğum günlərindən qızıl folqa toylara qədər — dəvətnamən tədbirin əhvalını əks etdirir."
+        },
+        "rsvps": {
+          "title": "Qeydiyyatsız RSVP",
+          "body": "Qonaqlar bir toxunuşla cavablandırır. Tətbiq yox, hesab yox, maneə yox."
+        },
+        "languages": {
+          "title": "Sənin dilində danışır",
+          "body": "Azərbaycan, rus və ingilis dilləri — qonaqların başa düşdükləri kimi görür."
+        }
+      }
+    },
+    "baku": {
+      "label": "PartiAZ",
+      "heading": "Bakıda, Bakı üçün yaradılıb.",
+      "subtext": "Üç dildə. AZ-yerli ödəniş seçimləri tezliklə — m10, Birbank, IBAN. Yerli olaraq qurulub, Bakının yığılma tərzi üçün."
+    },
+    "cta": {
+      "heading": "Növbəti tədbirin buradan başlayır.",
+      "subtext": "İlk PartiAZ tədbirini bir dəqiqəyə yarat. Pulsuz.",
+      "button": "İlk tədbirini yarat"
+    },
+    "footer": {
+      "tagline": "İştirak etməyə dəyər bir tədbir təşkil et.",
+      "signIn": "Daxil ol"
+    }
   }
 }

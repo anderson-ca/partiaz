@@ -513,5 +513,52 @@
     "title_line": "{hostName} invited you to {eventTitle}",
     "date_label": "When: {formattedDate}",
     "rsvp_cta": "RSVP: {url}"
+  },
+  "landing": {
+    "nav": {
+      "signIn": "Sign in",
+      "getStarted": "Get started"
+    },
+    "hero": {
+      "headline": "Plan something worth showing up for.",
+      "subhead": "Beautiful event pages. Easy RSVPs. Built for Baku.",
+      "ctaPrimary": "Create your first event",
+      "ctaSecondary": "Sign in"
+    },
+    "showcase": {
+      "heading": "Every event is its own page.",
+      "subtext": "80+ themes. 25 effects. Fonts that match your vibe."
+    },
+    "valueProps": {
+      "heading": "Made for how people actually plan events.",
+      "cards": {
+        "themes": {
+          "title": "Themed pages that match your event",
+          "body": "From handwritten birthdays to gold-foil weddings, your invitation looks like the event feels."
+        },
+        "rsvps": {
+          "title": "RSVPs without sign-ups",
+          "body": "Guests respond with one tap. No app, no account, no friction."
+        },
+        "languages": {
+          "title": "Speaks your language",
+          "body": "Native Azerbaijani, Russian, and English — your guests see what they understand."
+        }
+      }
+    },
+    "baku": {
+      "label": "PartiAZ",
+      "heading": "Made in Baku, for Baku.",
+      "subtext": "Trilingual by default. AZ-native payment options coming soon — m10, Birbank, IBAN. Built locally, designed for how Baku gathers."
+    },
+    "cta": {
+      "heading": "Your next event starts here.",
+      "subtext": "Create your first PartiAZ event in a minute. Free.",
+      "button": "Create your first event"
+    },
+    "footer": {
+      "tagline": "Plan something worth showing up for.",
+      "signIn": "Sign in"
+    }
   }
 }

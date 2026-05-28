@@ -184,3 +184,39 @@
     @apply font-sans;
   }
 }
+
+/* ─── [ui-9] Landing animations ─────────────────────────────────────────
+ * Brand-tinted radial-gradient orbs behind the hero + Baku sections.
+ * Scale + opacity ease in a 12s loop — slow enough to read as ambient
+ * rather than attention-grabbing. Pulled into globals.css (vs inline)
+ * because Tailwind v4 doesn't ship arbitrary @keyframes utilities.
+ *
+ * Both classes are pure visual flourish; the page renders identically
+ * (just statically) under prefers-reduced-motion: reduce.
+ */
+@keyframes landing-orb-pulse {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.12);
+    opacity: 1;
+  }
+}
+
+.landing-orb {
+  animation: landing-orb-pulse 12s ease-in-out infinite;
+}
+
+.landing-orb-ambient {
+  animation: landing-orb-pulse 18s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-orb,
+  .landing-orb-ambient {
+    animation: none;
+  }
+}
