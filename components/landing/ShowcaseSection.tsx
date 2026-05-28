@@ -3,14 +3,13 @@ import { ShowcaseCard, type ShowcaseTheme } from './ShowcaseCard'
 import type { FontPresetForRender } from '@/components/event/EventTitle'
 
 // ─── Synthetic event data ────────────────────────────────────────────────
-// All four entries are hand-composed objects matching the production
-// data shapes (theme.background_value follows the seed catalog JSON,
-// fontPreset follows the font_presets row shape). NOT a DB fetch — landing
-// renders deterministically at request time without hitting Supabase.
-//
-// Theme values copied verbatim from supabase/migrations/20260507211248_seed_catalog.sql
-// so any future tweak to a catalog row needs a mirror edit here. Acceptable
-// for v1 — these are static showcase samples, not live data.
+// All four entries are gradient-type themes from the seed catalog — pure
+// CSS values, no image fetch. The earlier mix (Cotton Candy + three
+// Unsplash themes) was broken in production because the seed's Unsplash
+// URLs use a bare photo-<id> form that doesn't resolve on Unsplash's CDN
+// (real URLs need a hash-suffixed path), giving the showcase three
+// broken-image icons. Sidestepping the issue entirely with gradient-only
+// picks. Verified against supabase/migrations/20260507211248_seed_catalog.sql.
 
 const COTTON_CANDY: ShowcaseTheme = {
   background_type: 'gradient',
@@ -20,36 +19,27 @@ const COTTON_CANDY: ShowcaseTheme = {
   },
 }
 
-const MONO_BOUQUET: ShowcaseTheme = {
-  background_type: 'unsplash',
+const LAVENDER_MIST: ShowcaseTheme = {
+  background_type: 'gradient',
   background_value: {
-    type: 'unsplash',
-    photo_id: '1MZl_G6lWhQ',
-    url: 'https://images.unsplash.com/photo-1MZl_G6lWhQ?w=1600&q=80',
-    overlay_css:
-      'linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.15))',
+    type: 'gradient',
+    css: 'linear-gradient(135deg, #f5f0ff 0%, #d6c8f2 60%, #a890e0 100%)',
   },
 }
 
-const NEON_LIGHT: ShowcaseTheme = {
-  background_type: 'unsplash',
+const COSMIC: ShowcaseTheme = {
+  background_type: 'gradient',
   background_value: {
-    type: 'unsplash',
-    photo_id: 'LeG68PrXA6Y',
-    url: 'https://images.unsplash.com/photo-LeG68PrXA6Y?w=1600&q=80',
-    overlay_css:
-      'linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.15))',
+    type: 'gradient',
+    css: 'conic-gradient(from 220deg at 50% 50%, #4c1d95, #db2777, #f59e0b, #4c1d95)',
   },
 }
 
-const SANDSTONE: ShowcaseTheme = {
-  background_type: 'unsplash',
+const PEACH_CREAM: ShowcaseTheme = {
+  background_type: 'gradient',
   background_value: {
-    type: 'unsplash',
-    photo_id: 'gREi-9tI5Mg',
-    url: 'https://images.unsplash.com/photo-gREi-9tI5Mg?w=1600&q=80',
-    overlay_css:
-      'linear-gradient(rgba(255,255,255,0.25), rgba(255,255,255,0.05))',
+    type: 'gradient',
+    css: 'linear-gradient(160deg, #ffe8d6 0%, #ffc09f 50%, #ff8c69 100%)',
   },
 }
 
@@ -116,15 +106,15 @@ export async function ShowcaseSection() {
             dateLocale="az"
           />
           <ShowcaseCard
-            theme={MONO_BOUQUET}
+            theme={LAVENDER_MIST}
             fontPreset={PLAYFAIR}
-            textColor="#ffffff"
+            textColor="#2c1f4a"
             title="Saturday Supper Club"
             date={eventDate(21)}
             dateLocale="en"
           />
           <ShowcaseCard
-            theme={NEON_LIGHT}
+            theme={COSMIC}
             fontPreset={YESEVA}
             textColor="#ffffff"
             title="Концерт под звёздами"
@@ -132,9 +122,9 @@ export async function ShowcaseSection() {
             dateLocale="ru"
           />
           <ShowcaseCard
-            theme={SANDSTONE}
+            theme={PEACH_CREAM}
             fontPreset={CORMORANT}
-            textColor="#1a1a1a"
+            textColor="#3d1f10"
             title="Toy mərasimi"
             date={eventDate(35)}
             dateLocale="az"
