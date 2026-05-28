@@ -46,12 +46,21 @@ export function DescriptionInput({ value, onChange }: DescriptionInputProps) {
         // BubbleMenu only exposes bold/italic/lists/link; preventing
         // these at the extension level means paste-from-Word and
         // similar can't smuggle a <blockquote> or <h2> in either.
+        //
+        // link: false — StarterKit v3 ships Link by default; without
+        // this disable, our explicit Link.configure() below would
+        // register a SECOND link mark, corrupting ProseMirror's schema
+        // and silently breaking the editor command chain (BubbleMenu
+        // toggles fail, getHTML output can drift, form submit doesn't
+        // see updates). We want our explicit Link config — target/rel/
+        // protocols — so disable StarterKit's instead of removing ours.
         heading: false,
         blockquote: false,
         codeBlock: false,
         code: false,
         horizontalRule: false,
         strike: false,
+        link: false,
       }),
       Link.configure({
         openOnClick: false,
