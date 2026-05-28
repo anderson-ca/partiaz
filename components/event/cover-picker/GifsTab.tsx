@@ -43,12 +43,6 @@ export function GifsTab({ onSelect }: GifsTabProps) {
         setResults([])
       } else {
         setResults(result.results)
-        // [perf-audit] dev-only — marks when the results array is set
-        // on state. The grid renders synchronously after this; image
-        // network waterfalls follow. Strip after optimization.
-        if (process.env.NODE_ENV === 'development') {
-          console.timeStamp('gifs-results-rendered')
-        }
       }
     })
   }

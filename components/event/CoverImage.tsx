@@ -1,5 +1,3 @@
-'use client'
-
 import Image from 'next/image'
 import { isVideoCoverUrl } from '@/lib/cover'
 import { resizeCoverUrl, type CoverThumbSize } from '@/lib/cover-url'
@@ -80,14 +78,6 @@ export function CoverImage({
           priority={priority}
           sizes="(max-width: 640px) 100vw, 800px"
           className="object-cover"
-          onLoad={() => {
-            // [perf-audit] dev-only timestamp — marks when the
-            // selected cover image actually paints. Strip after the
-            // optimization round.
-            if (process.env.NODE_ENV === 'development') {
-              console.timeStamp('cover-preview-rendered')
-            }
-          }}
         />
       )}
 
