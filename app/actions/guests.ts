@@ -62,6 +62,7 @@ export type AddGuestResult =
         | 'duplicate_email'
         | 'cannot_add_self'
         | 'cannot_add_host_or_cohost'
+        | 'guard_check_failed'
         | 'insert_failed'
     }
 
@@ -89,13 +90,19 @@ async function buildSelfMemberGuard(
   supabase: Awaited<ReturnType<typeof createClient>>,
   eventId: string,
   user: { email?: string | null; phone?: string | null },
-): Promise<((input: { email: string | null; phone: string | null }) => SelfMemberGuard) | { error: 'insert_failed' }> {
+): Promise<((input: { email: string | null; phone: string | null }) => SelfMemberGuard) | { error: 'guard_check_failed' }> {
   const { data: members, error: membersErr } = await supabase.rpc(
     'get_event_member_contacts',
     { p_event_id: eventId },
   )
   if (membersErr) {
-    return { error: 'insert_failed' }
+    // [debug-guest-action-error-clarity] Distinct error code so callers don't
+    // misreport this as an insert failure (the insert hasn't run yet). Log
+    // the actual RPC error so future operators see "function not found"
+    // or whatever the real cause is in Vercel function logs, instead of
+    // requiring a service-role probe against the cloud DB to diagnose.
+    console.error('[guest-guard] member-contacts RPC failed:', membersErr)
+    return { error: 'guard_check_failed' }
   }
 
   const callerEmail = user.email?.toLowerCase() ?? null
@@ -155,6 +162,9 @@ export async function addGuest(
     'is_event_host_or_cohost',
     { p_event_id: eventId },
   )
+  if (rpcErr) {
+    console.error('[addGuest] is_event_host_or_cohost RPC failed:', rpcErr)
+  }
   if (rpcErr || !isMember) return { ok: false, error: 'unauthorized' }
 
   // ─── Rate limit ([sec-2]) — per-user single-add throttle ──────────────
@@ -227,6 +237,7 @@ export async function addGuest(
         return { ok: false, error: 'duplicate_email' }
       }
     }
+    console.error('[addGuest] insert failed:', error)
     return { ok: false, error: 'insert_failed' }
   }
 
@@ -265,6 +276,7 @@ export type BatchInsertResult =
         | 'too_many_guests'
         | 'no_valid_input'
         | 'concurrent_modification'
+        | 'guard_check_failed'
         | 'insert_failed'
     }
 
@@ -303,6 +315,9 @@ export async function addGuestsBatch(
     'is_event_host_or_cohost',
     { p_event_id: eventId },
   )
+  if (rpcErr) {
+    console.error('[addGuestsBatch] is_event_host_or_cohost RPC failed:', rpcErr)
+  }
   if (rpcErr || !isMember) return { ok: false, error: 'unauthorized' }
 
   // ─── Hard cap + rate limit ([sec-2]) ──────────────────────────────────
@@ -447,6 +462,7 @@ export async function addGuestsBatch(
       // rolled back; ask the host to retry.
       return { ok: false, error: 'concurrent_modification' }
     }
+    console.error('[addGuestsBatch] insert failed:', insertErr)
     return { ok: false, error: 'insert_failed' }
   }
 

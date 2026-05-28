@@ -290,6 +290,7 @@
         "invalid_email": "That email doesn't look right.",
         "duplicate_phone": "Someone with that phone is already on the list.",
         "duplicate_email": "Someone with that email is already on the list.",
+        "guard_check_failed": "Something went wrong checking permissions. Try again.",
         "insert_failed": "Couldn't add the guest. Try again.",
         "delete_failed": "Couldn't remove the guest. Try again."
       },
@@ -347,6 +348,7 @@
           "unauthorized": "You're not signed in.",
           "no_valid_input": "Nothing to add. Check the input and try again.",
           "concurrent_modification": "Someone else added a guest at the same time. Try again.",
+          "guard_check_failed": "Something went wrong checking permissions. Try again.",
           "insert_failed": "Couldn't add the guests. Try again."
         }
       }

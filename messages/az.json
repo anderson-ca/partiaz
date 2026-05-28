@@ -290,6 +290,7 @@
         "invalid_email": "Bu email düzgün görünmür.",
         "duplicate_phone": "Bu telefon nömrəsi ilə artıq qonaq siyahıdadır.",
         "duplicate_email": "Bu email ilə artıq qonaq siyahıdadır.",
+        "guard_check_failed": "İcazələri yoxlayarkən xəta baş verdi. Yenidən cəhd et.",
         "insert_failed": "Qonağı əlavə etmək alınmadı. Yenidən cəhd et.",
         "delete_failed": "Qonağı silmək alınmadı. Yenidən cəhd et."
       },
@@ -347,6 +348,7 @@
           "unauthorized": "Daxil olmamısan.",
           "no_valid_input": "Əlavə ediləcək heç nə yoxdur. Daxiletməni yoxla və yenidən cəhd et.",
           "concurrent_modification": "Eyni vaxtda başqası qonaq əlavə etdi. Yenidən cəhd et.",
+          "guard_check_failed": "İcazələri yoxlayarkən xəta baş verdi. Yenidən cəhd et.",
           "insert_failed": "Qonaqları əlavə etmək alınmadı. Yenidən cəhd et."
         }
       }
