@@ -518,6 +518,42 @@
     "date_label": "Когда: {formattedDate}",
     "rsvp_cta": "RSVP: {url}"
   },
+  "settings": {
+    "title": "Настройки",
+    "backToSettings": "Назад к настройкам",
+    "sections": {
+      "paymentMethods": {
+        "label": "Способы оплаты"
+      }
+    },
+    "paymentMethods": {
+      "title": "Способы оплаты",
+      "subtitle": "Гости увидят их в событиях, где вы включите информацию об оплате. Они нажимают, чтобы скопировать — деньги не проходят через partiaz.",
+      "iban": {
+        "label": "IBAN",
+        "placeholder": "AZ21 NABZ 0000 0000 1370 1000 1944",
+        "error": {
+          "format": "Не соответствует формату AZ IBAN.",
+          "checksum": "Контрольная сумма IBAN неверна — проверьте номер."
+        }
+      },
+      "m10": {
+        "label": "Телефон m10",
+        "placeholder": "+994 50 123 45 67",
+        "error": "Не похоже на действительный номер AZ."
+      },
+      "birbank": {
+        "label": "Телефон Birbank",
+        "placeholder": "+994 50 123 45 67",
+        "error": "Не похоже на действительный номер AZ."
+      },
+      "save": "Сохранить",
+      "saved": "Сохранено",
+      "error": {
+        "update": "Не удалось сохранить. Попробуйте ещё раз."
+      }
+    }
+  },
   "landing": {
     "nav": {
       "signIn": "Войти",

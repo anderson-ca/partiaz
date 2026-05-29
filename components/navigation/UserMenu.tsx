@@ -1,9 +1,9 @@
 'use client'
 
 import { useTransition } from 'react'
+import Link from 'next/link'
 import { LogOut, Settings as SettingsIcon } from 'lucide-react'
 import { useLocale, useTranslations } from 'next-intl'
-import { toast } from 'sonner'
 import { signOut } from '@/app/actions/auth'
 import {
   DropdownMenu,
@@ -99,14 +99,13 @@ export function UserMenu({
         </DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-white/10" />
         <DropdownMenuItem
-          onSelect={(e) => {
-            e.preventDefault()
-            toast(t('settingsComingSoon'))
-          }}
+          asChild
           className="gap-2 rounded-lg px-2 py-1.5 text-sm text-white focus:bg-white/10 focus:text-white"
         >
-          <SettingsIcon className="h-4 w-4" />
-          {t('settings')}
+          <Link href={`/${locale}/settings`}>
+            <SettingsIcon className="h-4 w-4" />
+            {t('settings')}
+          </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator className="bg-white/10" />
         <DropdownMenuItem

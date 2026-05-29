@@ -518,6 +518,42 @@
     "date_label": "When: {formattedDate}",
     "rsvp_cta": "RSVP: {url}"
   },
+  "settings": {
+    "title": "Settings",
+    "backToSettings": "Back to settings",
+    "sections": {
+      "paymentMethods": {
+        "label": "Payment methods"
+      }
+    },
+    "paymentMethods": {
+      "title": "Payment methods",
+      "subtitle": "Guests see these on events where you enable payment info. They tap to copy — no money flows through partiaz.",
+      "iban": {
+        "label": "IBAN",
+        "placeholder": "AZ21 NABZ 0000 0000 1370 1000 1944",
+        "error": {
+          "format": "Doesn't match the AZ IBAN format.",
+          "checksum": "The IBAN failed its checksum — double-check the number."
+        }
+      },
+      "m10": {
+        "label": "m10 phone",
+        "placeholder": "+994 50 123 45 67",
+        "error": "Doesn't look like a valid AZ phone."
+      },
+      "birbank": {
+        "label": "Birbank phone",
+        "placeholder": "+994 50 123 45 67",
+        "error": "Doesn't look like a valid AZ phone."
+      },
+      "save": "Save",
+      "saved": "Saved",
+      "error": {
+        "update": "Couldn't save. Try again."
+      }
+    }
+  },
   "landing": {
     "nav": {
       "signIn": "Sign in",

@@ -518,6 +518,42 @@
     "date_label": "Vaxt: {formattedDate}",
     "rsvp_cta": "Cavab: {url}"
   },
+  "settings": {
+    "title": "Tənzimləmələr",
+    "backToSettings": "Tənzimləmələrə qayıt",
+    "sections": {
+      "paymentMethods": {
+        "label": "Ödəniş üsulları"
+      }
+    },
+    "paymentMethods": {
+      "title": "Ödəniş üsulları",
+      "subtitle": "Ödəniş məlumatını aktivləşdirdiyiniz tədbirlərdə qonaqlar bunları görəcək. Toxunmaqla kopyalayırlar — pul partiaz vasitəsilə keçmir.",
+      "iban": {
+        "label": "IBAN",
+        "placeholder": "AZ21 NABZ 0000 0000 1370 1000 1944",
+        "error": {
+          "format": "AZ IBAN formatı ilə uyğun deyil.",
+          "checksum": "IBAN yoxlama kodu səhvdir — nömrəni təkrar yoxlayın."
+        }
+      },
+      "m10": {
+        "label": "m10 telefon",
+        "placeholder": "+994 50 123 45 67",
+        "error": "Düzgün AZ telefon nömrəsi görünmür."
+      },
+      "birbank": {
+        "label": "Birbank telefon",
+        "placeholder": "+994 50 123 45 67",
+        "error": "Düzgün AZ telefon nömrəsi görünmür."
+      },
+      "save": "Saxla",
+      "saved": "Saxlanıldı",
+      "error": {
+        "update": "Saxlamaq alınmadı. Yenidən cəhd edin."
+      }
+    }
+  },
   "landing": {
     "nav": {
       "signIn": "Daxil ol",
