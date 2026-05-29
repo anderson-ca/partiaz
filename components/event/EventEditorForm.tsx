@@ -8,7 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import type { ISourceOptions } from '@tsparticles/engine'
-import { Loader2, Trash2, Users } from 'lucide-react'
+import { Loader2, Pencil, Trash2, Users } from 'lucide-react'
 import { createEvent, updateEvent } from '@/app/actions/events'
 import { Button } from '@/components/ui/button'
 import { ColorPicker } from '@/components/event/ColorPicker'
@@ -32,6 +32,10 @@ import { DateTimePicker } from '@/components/event/DateTimePicker'
 import { DeleteEventDialog } from '@/components/event/DeleteEventDialog'
 import { DescriptionInput } from '@/components/event/DescriptionInput'
 import { EditorRail } from '@/components/event/EditorRail'
+import {
+  EventPageRender,
+  type EventPageEvent,
+} from '@/components/event/EventPageRender'
 import { LocationInput } from '@/components/event/LocationInput'
 import { LazyEffectOverlay as EffectOverlay } from '@/components/event/LazyEffectOverlay'
 import { PublishToggle } from '@/components/event/PublishToggle'
@@ -45,7 +49,8 @@ import { ThemeBackground } from '@/components/event/ThemeBackground'
 import { fontFamilyToCssVar } from '@/lib/fonts'
 import type { AppLocale } from '@/lib/dates'
 import { eventInputSchema, type EventInput } from '@/lib/schemas/event'
-import type { ThemeRow } from '@/lib/schemas/theme'
+import type { ThemeBackgroundValue, ThemeRow } from '@/lib/schemas/theme'
+import { FLOATING_SURFACE } from '@/lib/ui/floating-surface'
 import { cn } from '@/lib/utils'
 
 export type EventEditorInitial = {
@@ -54,6 +59,8 @@ export type EventEditorInitial = {
   status: 'draft' | 'published' | 'canceled'
   title: string
   host_id: string
+  host_display_name: string | null
+  host_avatar_url: string | null
   theme_id: string
   effect_id: string | null
   font_preset_id: string
@@ -83,6 +90,17 @@ export type EventEditorInitial = {
   guests: GuestRow[]
 }
 
+/** Identity for HostBlock rendering in the preview surface. In edit mode
+ *  this is the primary host (fetched by the edit page from the event row's
+ *  host_id join). In create mode this is the logged-in user, since they're
+ *  the host of the about-to-be-created event. Wired with a real `profiles`
+ *  fetch in COMMIT 4 of [ux-preview-mode]; passed as a placeholder in
+ *  create mode for COMMIT 3. */
+export type EventEditorViewer = {
+  display_name: string | null
+  avatar_url: string | null
+}
+
 type EventEditorFormProps = {
   themes: ThemeRow[]
   effects: EffectRowMin[]
@@ -96,6 +114,8 @@ type EventEditorFormProps = {
   mode: 'create' | 'edit'
   /** Locale for redirect after create. */
   locale: string
+  /** Display data for the host shown in the preview surface's HostBlock. */
+  viewer: EventEditorViewer
 }
 
 function pickDefaultTheme(themes: ThemeRow[]): ThemeRow {
@@ -128,6 +148,7 @@ export function EventEditorForm({
   currentUserId,
   mode,
   locale,
+  viewer,
 }: EventEditorFormProps) {
   const t = useTranslations('events.editor')
   const tCommon = useTranslations('common')
@@ -242,11 +263,11 @@ export function EventEditorForm({
   )
 
   const [pending, setPending] = useState(false)
-  // Preview mode toggle — surface wired in [ux-preview-mode] COMMIT 3.
-  // Lives at this level so the editor's `useForm` instance stays mounted
-  // across the toggle — preserving every field value, dirty state, and
-  // validation status while the renderer swaps in.
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // Preview mode toggle. Lives at this level so the editor's `useForm`
+  // instance stays mounted across the toggle — preserving every field
+  // value, dirty state, and validation status while the renderer swaps in
+  // (RHF holds values in its store, not in the input DOM, so re-mounting
+  // inputs reads back from the store on the next render).
   const [previewing, setPreviewing] = useState(false)
 
   async function onSubmit(values: EventInput) {
@@ -286,12 +307,128 @@ export function EventEditorForm({
     ? `var(${fontFamilyToCssVar[selectedFont.font_family] ?? '--font-inter'})`
     : 'inherit'
 
+  // Build the EventPageEvent shape consumed by EventPageRender from the
+  // in-flight form values + the resolved theme/effect/font catalog rows.
+  // Called lazily during preview render so we read a fresh snapshot from
+  // RHF's store (no per-keystroke subscription at this level).
+  function syntheticFromForm(): EventPageEvent {
+    const v = form.getValues()
+    const fp: EventPageEvent['font_preset'] = selectedFont
+      ? {
+          font_family: selectedFont.font_family,
+          font_weight: selectedFont.font_weight,
+          letter_spacing: selectedFont.letter_spacing,
+          text_transform: selectedFont.text_transform,
+        }
+      : {
+          font_family: 'Inter',
+          font_weight: 500,
+          letter_spacing: 'normal',
+          text_transform: 'none',
+        }
+    return {
+      id: initialEvent?.id ?? 'preview',
+      slug: initialEvent?.slug ?? 'preview',
+      title: v.title || '',
+      status: initialEvent?.status ?? 'draft',
+      audience: 'private',
+      theme: {
+        background_type:
+          selectedTheme.background_type as ThemeBackgroundValue['type'],
+        background_value:
+          selectedTheme.background_value as ThemeBackgroundValue,
+      },
+      effect: selectedEffect
+        ? {
+            id: selectedEffect.id,
+            name: selectedEffect.name,
+            engine:
+              selectedEffect.engine === 'tsparticles' ? 'tsparticles' : 'css',
+            config: selectedEffect.config as ISourceOptions,
+          }
+        : null,
+      font_preset: fp,
+      text_color: v.text_color,
+      cover_image_url: v.cover_image_url ?? null,
+      cover_overlay_enabled: v.cover_overlay_enabled ?? false,
+      cover_overlay_text: v.cover_overlay_text ?? null,
+      overlay_font: overlayFont
+        ? {
+            font_family: overlayFont.font_family,
+            font_weight: overlayFont.font_weight,
+            letter_spacing: overlayFont.letter_spacing,
+            text_transform: overlayFont.text_transform,
+          }
+        : null,
+      cover_overlay_color: v.cover_overlay_color ?? null,
+      starts_at: v.starts_at ?? null,
+      ends_at: v.ends_at ?? null,
+      location_text: v.location_text ?? null,
+      location_address: v.location_address ?? null,
+      location_hidden_until_rsvp: v.location_hidden_until_rsvp ?? false,
+      description: v.description ?? null,
+      host: {
+        id: initialEvent?.host_id ?? currentUserId,
+        display_name: viewer.display_name,
+        avatar_url: viewer.avatar_url,
+      },
+      cohosts: (initialEvent?.cohosts ?? []).map((c) => ({
+        user_id: c.user_id,
+        display_name: c.display_name ?? 'Anonymous',
+        avatar_url: c.avatar_url,
+      })),
+      show_guest_count: v.show_guest_count ?? true,
+      show_guest_names: v.show_guest_names ?? true,
+      allow_maybe: v.allow_maybe ?? true,
+      require_names: v.require_names ?? true,
+      allow_rsvp_edit: v.allow_rsvp_edit ?? true,
+      plus_one_enabled: v.plus_one_enabled ?? false,
+      plus_one_max_adults: v.plus_one_max_adults ?? 1,
+      plus_one_max_children: v.plus_one_max_children ?? 0,
+    }
+  }
+
   return (
     <form
       onSubmit={form.handleSubmit(onSubmit)}
       className="contents"
       noValidate
     >
+      {previewing ? (
+        <>
+          <EventPageRender
+            event={syntheticFromForm()}
+            locale={locale}
+            viewer={{
+              isHost: true,
+              isCohost: false,
+              isTokenAuth: false,
+              viewerDisplayName: viewer.display_name ?? undefined,
+            }}
+            restricted={false}
+            currentGuest={null}
+            guestSummary={{ going: 0, maybe: 0, no: 0, goingNames: [] }}
+            previewMode
+          />
+          {/* Back-to-editor pill. Same top-20 right-4 anchor as the
+              public-page Edit FAB (which we hide in preview) so the
+              visual handoff between modes feels consistent. */}
+          <button
+            type="button"
+            onClick={() => setPreviewing(false)}
+            className={cn(
+              FLOATING_SURFACE,
+              'fixed top-20 right-4 z-30 inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium text-white',
+              'transition-all duration-150 hover:bg-zinc-800/95 active:scale-[0.95]',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/40',
+            )}
+          >
+            <Pencil className="h-4 w-4" />
+            Editor
+          </button>
+        </>
+      ) : (
+        <>
       {/* Layer 0: themed full-bleed background, scrolls fixed */}
       <ThemeBackground theme={selectedTheme} className="fixed inset-0" />
 
@@ -430,6 +567,8 @@ export function EventEditorForm({
         }
         onPreview={() => setPreviewing(true)}
       />
+        </>
+      )}
     </form>
   )
 }

@@ -53,6 +53,12 @@ export default async function NewEventPage({
   const fontPresets = (fontsRes.data ?? []) as FontPresetForPicker[]
   const illustrations = (illustrationsRes.data ?? []) as CoverIllustration[]
 
+  // Placeholder viewer for the preview surface's HostBlock. Replaced by a
+  // real `profiles` fetch in [ux-preview-mode] COMMIT 4. Until then, the
+  // create-mode preview shows blank host identity — functional but not
+  // accurate.
+  const viewer = { display_name: null, avatar_url: null }
+
   return (
     <EventEditorForm
       mode="create"
@@ -62,6 +68,7 @@ export default async function NewEventPage({
       illustrations={illustrations}
       currentUserId={user.id}
       locale={locale}
+      viewer={viewer}
     />
   )
 }

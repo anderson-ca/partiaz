@@ -125,6 +125,7 @@ export function EventPageRender({
   restricted,
   currentGuest,
   guestSummary,
+  previewMode = false,
 }: EventPageRenderProps) {
   const t = useTranslations('events.public')
   const tFields = useTranslations('events.fields')
@@ -133,7 +134,12 @@ export function EventPageRender({
 
   const { isHost, isCohost } = viewer
   const isDraft = event.status === 'draft'
-  const isPublished = event.status === 'published'
+  // In preview mode we always render the RSVP card regardless of the
+  // event's actual draft/published state — the host is asking "what will
+  // guests see?" and the answer is "the published surface". The Edit FAB
+  // and draft banner are separately suppressed below since the user is
+  // already inside the editor.
+  const isPublished = previewMode || event.status === 'published'
 
   const hostName = event.host.display_name ?? 'Anonymous'
 
@@ -185,8 +191,10 @@ export function EventPageRender({
           collide with the navbar's user controls in the top-right corner.
           Mirrors the new Button language (transitions, focus ring, active
           press) without using the Button primitive — the FAB has bespoke
-          backdrop styling that doesn't fit the variant palette. */}
-      {isHost && (
+          backdrop styling that doesn't fit the variant palette.
+          Hidden in preview mode — the host is already in the editor and
+          a "go to editor" link would loop them back to where they are. */}
+      {isHost && !previewMode && (
         <Link
           href={`/${locale}/events/${event.slug}/edit`}
           aria-label={t('editAriaLabel')}
@@ -202,8 +210,10 @@ export function EventPageRender({
       )}
 
       <main className="relative z-20 mx-auto w-full max-w-5xl px-4 pt-16 pb-16 md:px-8 md:pt-12">
-        {/* Draft banner — host viewing their own draft */}
-        {isHost && isDraft && (
+        {/* Draft banner — host viewing their own draft. Hidden in preview
+            mode (host is already in the editor; banner CTA would be a
+            self-link). */}
+        {isHost && isDraft && !previewMode && (
           <div className="mb-6 flex justify-center">
             <div
               className={cn(
@@ -374,6 +384,7 @@ export function EventPageRender({
                   plusOneEnabled={event.plus_one_enabled}
                   plusOneMaxAdults={event.plus_one_max_adults}
                   plusOneMaxChildren={event.plus_one_max_children}
+                  previewMode={previewMode}
                 />
               </div>
             )}

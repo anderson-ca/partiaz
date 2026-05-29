@@ -29,7 +29,7 @@ export default async function EditEventPage({
   const { data: event, error } = await supabase
     .from('events')
     .select(
-      'id,slug,status,title,host_id,theme_id,effect_id,font_preset_id,text_color,cover_image_url,cover_image_source,cover_overlay_enabled,cover_overlay_text,cover_overlay_font_id,cover_overlay_color,starts_at,ends_at,location_text,location_address,description,capacity,show_guest_count,show_guest_names,allow_maybe,require_names,location_hidden_until_rsvp,plus_one_enabled,plus_one_max_adults,plus_one_max_children,allow_rsvp_edit',
+      'id,slug,status,title,host_id,theme_id,effect_id,font_preset_id,text_color,cover_image_url,cover_image_source,cover_overlay_enabled,cover_overlay_text,cover_overlay_font_id,cover_overlay_color,starts_at,ends_at,location_text,location_address,description,capacity,show_guest_count,show_guest_names,allow_maybe,require_names,location_hidden_until_rsvp,plus_one_enabled,plus_one_max_adults,plus_one_max_children,allow_rsvp_edit,host:profiles!events_host_id_fkey(display_name,avatar_url)',
     )
     .eq('slug', slug)
     .maybeSingle()
@@ -127,6 +127,8 @@ export default async function EditEventPage({
     status: event.status as EventEditorInitial['status'],
     title: event.title,
     host_id: event.host_id,
+    host_display_name: event.host?.display_name ?? null,
+    host_avatar_url: event.host?.avatar_url ?? null,
     cohosts,
     theme_id: event.theme_id,
     effect_id: event.effect_id,
@@ -166,6 +168,10 @@ export default async function EditEventPage({
       initialEvent={initialEvent}
       currentUserId={user.id}
       locale={locale}
+      viewer={{
+        display_name: initialEvent.host_display_name,
+        avatar_url: initialEvent.host_avatar_url,
+      }}
     />
   )
 }

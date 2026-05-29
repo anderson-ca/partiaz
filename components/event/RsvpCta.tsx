@@ -31,6 +31,9 @@ type RsvpCtaProps = {
   plusOneEnabled: boolean
   plusOneMaxAdults: number
   plusOneMaxChildren: number
+  /** Editor-preview rendering: button visuals stay but the dialog never
+   *  mounts and the click fires a "preview only" toast. */
+  previewMode?: boolean
 }
 
 export function RsvpCta({
@@ -43,6 +46,7 @@ export function RsvpCta({
   plusOneEnabled,
   plusOneMaxAdults,
   plusOneMaxChildren,
+  previewMode = false,
 }: RsvpCtaProps) {
   const t = useTranslations('rsvp')
   const [open, setOpen] = React.useState(false)
@@ -120,25 +124,28 @@ export function RsvpCta({
             hasResponse && 'bg-white/10 text-white hover:bg-white/20',
           )}
           variant={hasResponse ? 'secondary' : 'default'}
-          onClick={() => setOpen(true)}
+          onClick={previewMode ? undefined : () => setOpen(true)}
+          disabled={previewMode}
         >
           {hasResponse ? t('ctaEdit') : t('cta')}
         </Button>
       )}
 
-      <RsvpDialog
-        open={open}
-        onOpenChange={setOpen}
-        eventSlug={eventSlug}
-        initial={initial}
-        existingName={existingName}
-        defaultName={defaultName}
-        allowMaybe={allowMaybe}
-        requireNames={requireNames}
-        plusOneEnabled={plusOneEnabled}
-        plusOneMaxAdults={plusOneMaxAdults}
-        plusOneMaxChildren={plusOneMaxChildren}
-      />
+      {!previewMode && (
+        <RsvpDialog
+          open={open}
+          onOpenChange={setOpen}
+          eventSlug={eventSlug}
+          initial={initial}
+          existingName={existingName}
+          defaultName={defaultName}
+          allowMaybe={allowMaybe}
+          requireNames={requireNames}
+          plusOneEnabled={plusOneEnabled}
+          plusOneMaxAdults={plusOneMaxAdults}
+          plusOneMaxChildren={plusOneMaxChildren}
+        />
+      )}
     </div>
   )
 }
