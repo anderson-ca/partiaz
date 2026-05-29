@@ -349,8 +349,17 @@ export default async function PublicEventPage({
         )}
 
         <div className="grid grid-cols-1 gap-8 md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] md:gap-12">
-          {/* LEFT: title + details */}
-          <div className="order-2 space-y-6 md:order-1">
+          {/* LEFT: title + details.
+              Inner scrim wraps all body text so it stays readable against
+              every theme — light pastels (where white-on-white was breaking
+              readability) and busy patterned backgrounds alike. Frosted
+              glass aesthetic matches FLOATING_SURFACE/NAV_SURFACE; particle
+              effects render via the fixed EffectOverlay below this stacking
+              context, so they're not occluded — they soften behind the
+              backdrop-blur where the scrim covers them.
+              [ui-invitation-text-readability] */}
+          <div className="order-2 md:order-1">
+            <div className="space-y-6 rounded-2xl bg-black/30 p-6 backdrop-blur-xl sm:p-8">
             <EventTitle
               text={event.title}
               fontPreset={{
@@ -445,6 +454,7 @@ export default async function PublicEventPage({
               hostedByLabel={t('hostedBy')}
               cohostSuffix={cohostSuffix}
             />
+            </div>
           </div>
 
           {/* RIGHT: cover + RSVP + guest list */}
