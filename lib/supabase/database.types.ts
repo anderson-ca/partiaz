@@ -390,6 +390,7 @@ export type Database = {
           rsvp_button_style: string
           show_guest_count: boolean
           show_guest_names: boolean
+          show_payment_info: boolean
           show_timestamps: boolean
           slug: string
           starts_at: string | null
@@ -437,6 +438,7 @@ export type Database = {
           rsvp_button_style?: string
           show_guest_count?: boolean
           show_guest_names?: boolean
+          show_payment_info?: boolean
           show_timestamps?: boolean
           slug: string
           starts_at?: string | null
@@ -484,6 +486,7 @@ export type Database = {
           rsvp_button_style?: string
           show_guest_count?: boolean
           show_guest_names?: boolean
+          show_payment_info?: boolean
           show_timestamps?: boolean
           slug?: string
           starts_at?: string | null
@@ -713,6 +716,7 @@ export type Database = {
           display_name: string | null
           id: string
           locale: string
+          payment_methods: Json | null
           phone: string | null
         }
         Insert: {
@@ -721,6 +725,7 @@ export type Database = {
           display_name?: string | null
           id: string
           locale?: string
+          payment_methods?: Json | null
           phone?: string | null
         }
         Update: {
@@ -729,6 +734,7 @@ export type Database = {
           display_name?: string | null
           id?: string
           locale?: string
+          payment_methods?: Json | null
           phone?: string | null
         }
         Relationships: []

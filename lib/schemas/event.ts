@@ -72,6 +72,13 @@ export const eventInputSchema = z
     plus_one_max_adults: z.number().int().min(0).max(5).optional(),
     plus_one_max_children: z.number().int().min(0).max(5).optional(),
     allow_rsvp_edit: z.boolean().optional(),
+
+    // Payment-info display toggle (added in ui-8.1). Per-event opt-in to
+    // surface the host's structured payment methods (IBAN, m10, Birbank
+    // — stored on profiles.payment_methods) on the public event page.
+    // `.optional()` to match the surrounding settings pattern: updateEvent
+    // calls that don't touch this field leave the DB value untouched.
+    show_payment_info: z.boolean().optional(),
   })
   // Cross-field: end must come after start. The check tolerates either
   // value being null (drafts in progress); only enforces ordering when both
