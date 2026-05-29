@@ -23,41 +23,49 @@ export default async function NewEventPage({
     redirect(`/${locale}/login?next=/${locale}/events/new`)
   }
 
-  const [themesRes, effectsRes, fontsRes, illustrationsRes] = await Promise.all([
-    supabase
-      .from('themes')
-      .select(
-        'id,name,category,background_type,background_value,recommended_text_color,order_index',
-      )
-      .order('background_type')
-      .order('order_index'),
-    supabase
-      .from('effects')
-      .select('id,name,category,engine,config,order_index')
-      .order('order_index'),
-    supabase
-      .from('font_presets')
-      .select(
-        'id,name,category,font_family,font_weight,letter_spacing,text_transform',
-      )
-      .order('category')
-      .order('order_index'),
-    supabase
-      .from('cover_illustrations')
-      .select('id,image_url,category')
-      .order('display_order', { ascending: true }),
-  ])
+  const [themesRes, effectsRes, fontsRes, illustrationsRes, profileRes] =
+    await Promise.all([
+      supabase
+        .from('themes')
+        .select(
+          'id,name,category,background_type,background_value,recommended_text_color,order_index',
+        )
+        .order('background_type')
+        .order('order_index'),
+      supabase
+        .from('effects')
+        .select('id,name,category,engine,config,order_index')
+        .order('order_index'),
+      supabase
+        .from('font_presets')
+        .select(
+          'id,name,category,font_family,font_weight,letter_spacing,text_transform',
+        )
+        .order('category')
+        .order('order_index'),
+      supabase
+        .from('cover_illustrations')
+        .select('id,image_url,category')
+        .order('display_order', { ascending: true }),
+      // Logged-in user's profile — surfaces in the [ux-preview-mode]
+      // editor preview's HostBlock as the about-to-be host of the
+      // not-yet-created event. RLS allows users to read their own row
+      // via `profiles_select_self`.
+      supabase
+        .from('profiles')
+        .select('display_name,avatar_url')
+        .eq('id', user.id)
+        .maybeSingle(),
+    ])
 
   const themes = (themesRes.data ?? []) as unknown as ThemeRow[]
   const effects = (effectsRes.data ?? []) as EffectRowMin[]
   const fontPresets = (fontsRes.data ?? []) as FontPresetForPicker[]
   const illustrations = (illustrationsRes.data ?? []) as CoverIllustration[]
-
-  // Placeholder viewer for the preview surface's HostBlock. Replaced by a
-  // real `profiles` fetch in [ux-preview-mode] COMMIT 4. Until then, the
-  // create-mode preview shows blank host identity — functional but not
-  // accurate.
-  const viewer = { display_name: null, avatar_url: null }
+  const viewer = {
+    display_name: profileRes.data?.display_name ?? null,
+    avatar_url: profileRes.data?.avatar_url ?? null,
+  }
 
   return (
     <EventEditorForm

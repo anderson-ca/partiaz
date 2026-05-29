@@ -126,6 +126,8 @@
       },
       "untitledTitle": "Без названия",
       "titlePlaceholder": "Без названия",
+      "preview": "Предпросмотр",
+      "backToEditor": "Назад к редактору",
       "saveDraft": "Сохранить черновик",
       "saving": "Сохраняем…",
       "saveSuccess": "Сохранено",

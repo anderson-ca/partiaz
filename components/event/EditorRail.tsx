@@ -1,6 +1,7 @@
 'use client'
 
 import { Eye, Settings as SettingsIcon } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { EffectThumbnail } from '@/components/event/EffectThumbnail'
 import { ThemeBackground } from '@/components/event/ThemeBackground'
@@ -35,6 +36,7 @@ export function EditorRail({
   onSelectEffect,
   onPreview,
 }: EditorRailProps) {
+  const t = useTranslations('events.editor')
   return (
     <div
       className={cn(
@@ -84,7 +86,7 @@ export function EditorRail({
         />
 
         <RailIconButton
-          label="Preview"
+          label={t('preview')}
           icon={<Eye className="h-5 w-5" />}
           onClick={onPreview}
         />

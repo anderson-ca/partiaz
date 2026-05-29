@@ -126,6 +126,8 @@
       },
       "untitledTitle": "Untitled Event",
       "titlePlaceholder": "Untitled Event",
+      "preview": "Preview",
+      "backToEditor": "Back to editor",
       "saveDraft": "Save draft",
       "saving": "Saving…",
       "saveSuccess": "Saved",

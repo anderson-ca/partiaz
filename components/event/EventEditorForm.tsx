@@ -424,7 +424,7 @@ export function EventEditorForm({
             )}
           >
             <Pencil className="h-4 w-4" />
-            Editor
+            {t('backToEditor')}
           </button>
         </>
       ) : (
