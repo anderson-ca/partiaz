@@ -31,7 +31,13 @@ const buttonVariants = cva(
     'transition-all duration-150',
     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/40',
     'active:scale-[0.98]',
-    'disabled:pointer-events-none disabled:opacity-50',
+    // Cursor + disable: HTML `disabled` already blocks onClick/focus reliably,
+    // so dropping the prior `disabled:pointer-events-none` lets the
+    // disabled cursor actually render (pointer-events:none would suppress
+    // hover/cursor state). Idle state gets explicit cursor-pointer for
+    // browser consistency (Firefox doesn't always default <button> to
+    // pointer). [ux-pending-state-and-cursors]
+    'cursor-pointer disabled:cursor-not-allowed disabled:opacity-50',
     "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   ),
   {

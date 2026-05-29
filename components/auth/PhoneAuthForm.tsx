@@ -133,6 +133,7 @@ export function PhoneAuthForm({ next }: PhoneAuthFormProps) {
             type="tel"
             inputMode="tel"
             autoComplete="tel"
+            disabled={pending}
             placeholder={t('phonePlaceholder')}
             value={phoneInput}
             onChange={(e) => setPhoneInput(e.target.value)}
@@ -177,7 +178,8 @@ export function PhoneAuthForm({ next }: PhoneAuthFormProps) {
           <button
             type="button"
             onClick={handleUseDifferentPhone}
-            className="text-xs text-violet-300 hover:text-violet-200"
+            disabled={pending}
+            className="cursor-pointer text-xs text-violet-300 hover:text-violet-200 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {t('useDifferentPhone')}
           </button>
@@ -188,6 +190,7 @@ export function PhoneAuthForm({ next }: PhoneAuthFormProps) {
             maxLength={6}
             value={otp}
             onChange={setOtp}
+            disabled={pending}
             onComplete={() => {
               // Auto-submit once all 6 digits are in.
               if (!pending) handleVerify()
@@ -226,7 +229,7 @@ export function PhoneAuthForm({ next }: PhoneAuthFormProps) {
               onClick={handleResend}
               disabled={pending}
               className={cn(
-                'text-xs text-violet-300 hover:text-violet-200',
+                'cursor-pointer text-xs text-violet-300 hover:text-violet-200 disabled:cursor-not-allowed',
                 pending && 'opacity-50',
               )}
             >
@@ -250,6 +253,7 @@ export function PhoneAuthForm({ next }: PhoneAuthFormProps) {
         type="text"
         autoComplete="name"
         maxLength={100}
+        disabled={pending}
         placeholder={t('namePlaceholder')}
         value={name}
         onChange={(e) => setName(e.target.value)}

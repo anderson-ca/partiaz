@@ -206,8 +206,9 @@ export function RsvpDialog({
                   key={s}
                   type="button"
                   onClick={() => setStatus(s)}
+                  disabled={pending}
                   className={cn(
-                    'flex flex-col items-center gap-1 rounded-xl border px-3 py-3 text-xs font-medium transition-all duration-150',
+                    'flex cursor-pointer flex-col items-center gap-1 rounded-xl border px-3 py-3 text-xs font-medium transition-all duration-150 disabled:cursor-not-allowed disabled:opacity-60',
                     active
                       ? 'border-violet-400 bg-violet-500/15 text-white'
                       : 'border-white/15 bg-white/5 text-white/70 hover:bg-white/10',
@@ -234,12 +235,14 @@ export function RsvpDialog({
                 value={plusOneAdults}
                 onChange={setPlusOneAdults}
                 max={plusOneMaxAdults}
+                disabled={pending}
               />
               <StepperRow
                 label={t('plusOneChildrenLabel')}
                 value={plusOneChildren}
                 onChange={setPlusOneChildren}
                 max={plusOneMaxChildren}
+                disabled={pending}
               />
             </div>
           )}
@@ -260,6 +263,7 @@ export function RsvpDialog({
                 type="text"
                 maxLength={100}
                 required={requireNames}
+                disabled={pending}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder={
@@ -287,6 +291,7 @@ export function RsvpDialog({
               id="rsvp-message"
               rows={3}
               maxLength={GUEST_MESSAGE_MAX}
+              disabled={pending}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder={t('messagePlaceholder')}

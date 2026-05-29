@@ -77,7 +77,7 @@ export function AddGuestForm({ eventId }: AddGuestFormProps) {
   }
 
   const inputClass =
-    'w-full rounded-md border border-white/15 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/40 focus:border-violet-400/60 focus:outline-hidden focus:ring-2 focus:ring-violet-400/40'
+    'w-full rounded-md border border-white/15 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/40 focus:border-violet-400/60 focus:outline-hidden focus:ring-2 focus:ring-violet-400/40 disabled:cursor-not-allowed disabled:opacity-60'
 
   return (
     <form
@@ -99,6 +99,7 @@ export function AddGuestForm({ eventId }: AddGuestFormProps) {
             id="guest-name"
             type="text"
             value={name}
+            disabled={pending}
             onChange={(e) => setName(e.target.value)}
             placeholder={t('namePlaceholder')}
             className={inputClass}
@@ -123,6 +124,7 @@ export function AddGuestForm({ eventId }: AddGuestFormProps) {
               id="guest-phone"
               type="tel"
               value={phone}
+              disabled={pending}
               onChange={(e) => setPhone(e.target.value)}
               placeholder={country.placeholderExample}
               className={`${inputClass} rounded-l-none`}
@@ -143,6 +145,7 @@ export function AddGuestForm({ eventId }: AddGuestFormProps) {
             id="guest-email"
             type="email"
             value={email}
+            disabled={pending}
             onChange={(e) => setEmail(e.target.value)}
             placeholder={t('emailPlaceholder')}
             className={inputClass}
