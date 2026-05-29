@@ -18,6 +18,10 @@ type EditorRailProps = {
   onSelectTheme: (themeId: string) => void
   onSelectColorOverride: (hex: string) => void
   onSelectEffect: (effectId: string | null) => void
+  /** Fired when the user taps the Preview rail button. Parent flips into
+   *  preview mode and renders the public-page surface from the in-flight
+   *  form values. */
+  onPreview: () => void
 }
 
 export function EditorRail({
@@ -29,6 +33,7 @@ export function EditorRail({
   onSelectTheme,
   onSelectColorOverride,
   onSelectEffect,
+  onPreview,
 }: EditorRailProps) {
   return (
     <div
@@ -81,7 +86,7 @@ export function EditorRail({
         <RailIconButton
           label="Preview"
           icon={<Eye className="h-5 w-5" />}
-          onClick={() => toast('Preview mode coming soon')}
+          onClick={onPreview}
         />
       </div>
     </div>

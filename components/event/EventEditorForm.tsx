@@ -242,6 +242,12 @@ export function EventEditorForm({
   )
 
   const [pending, setPending] = useState(false)
+  // Preview mode toggle — surface wired in [ux-preview-mode] COMMIT 3.
+  // Lives at this level so the editor's `useForm` instance stays mounted
+  // across the toggle — preserving every field value, dirty state, and
+  // validation status while the renderer swaps in.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [previewing, setPreviewing] = useState(false)
 
   async function onSubmit(values: EventInput) {
     setPending(true)
@@ -422,6 +428,7 @@ export function EventEditorForm({
         onSelectEffect={(id) =>
           form.setValue('effect_id', id, { shouldDirty: true })
         }
+        onPreview={() => setPreviewing(true)}
       />
     </form>
   )
