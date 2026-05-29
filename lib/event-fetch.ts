@@ -12,12 +12,12 @@ export const EVENT_SELECT = `id, slug, title, status, audience, text_color, cove
        capacity, show_guest_count, show_guest_names, allow_maybe,
        require_names, location_hidden_until_rsvp,
        plus_one_enabled, plus_one_max_adults, plus_one_max_children,
-       allow_rsvp_edit,
+       allow_rsvp_edit, show_payment_info,
        theme:themes(id,name,category,background_type,background_value,recommended_text_color,order_index),
        effect:effects(id,name,category,engine,config),
        font_preset:font_presets!events_font_preset_id_fkey(id,name,category,font_family,font_weight,letter_spacing,text_transform),
        overlay_font:font_presets!events_cover_overlay_font_id_fkey(font_family,font_weight,letter_spacing,text_transform),
-       host:profiles!events_host_id_fkey(id,display_name,avatar_url,locale),
+       host:profiles!events_host_id_fkey(id,display_name,avatar_url,locale,payment_methods),
        cohosts:event_cohosts(user_id,profile:profiles!event_cohosts_user_id_fkey(display_name,avatar_url))`
 
 type FetchResult = {

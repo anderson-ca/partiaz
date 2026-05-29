@@ -49,6 +49,7 @@ import { ThemeBackground } from '@/components/event/ThemeBackground'
 import { fontFamilyToCssVar } from '@/lib/fonts'
 import type { AppLocale } from '@/lib/dates'
 import { eventInputSchema, type EventInput } from '@/lib/schemas/event'
+import type { StoredPaymentMethods } from '@/lib/schemas/payment'
 import type { ThemeBackgroundValue, ThemeRow } from '@/lib/schemas/theme'
 import { FLOATING_SURFACE } from '@/lib/ui/floating-surface'
 import { cn } from '@/lib/utils'
@@ -61,6 +62,7 @@ export type EventEditorInitial = {
   host_id: string
   host_display_name: string | null
   host_avatar_url: string | null
+  host_payment_methods: StoredPaymentMethods
   theme_id: string
   effect_id: string | null
   font_preset_id: string
@@ -86,6 +88,7 @@ export type EventEditorInitial = {
   plus_one_max_adults: number
   plus_one_max_children: number
   allow_rsvp_edit: boolean
+  show_payment_info: boolean
   cohosts: CoHost[]
   guests: GuestRow[]
 }
@@ -99,6 +102,12 @@ export type EventEditorInitial = {
 export type EventEditorViewer = {
   display_name: string | null
   avatar_url: string | null
+  /** Editor user's payment_methods. Used in create-mode preview only —
+   *  in edit mode the host's stored value (from initialEvent) takes
+   *  precedence since the EVENT host's methods are what guests see,
+   *  not whoever happens to be editing (cohosts can edit but won't be
+   *  the host shown on the public page). */
+  payment_methods: StoredPaymentMethods
 }
 
 type EventEditorFormProps = {
@@ -188,6 +197,7 @@ export function EventEditorForm({
           plus_one_max_adults: initialEvent.plus_one_max_adults,
           plus_one_max_children: initialEvent.plus_one_max_children,
           allow_rsvp_edit: initialEvent.allow_rsvp_edit,
+          show_payment_info: initialEvent.show_payment_info,
         }
       : {
           title: '',
@@ -215,6 +225,7 @@ export function EventEditorForm({
           plus_one_max_adults: 1,
           plus_one_max_children: 0,
           allow_rsvp_edit: true,
+          show_payment_info: false,
         },
   })
 
@@ -371,6 +382,12 @@ export function EventEditorForm({
         id: initialEvent?.host_id ?? currentUserId,
         display_name: viewer.display_name,
         avatar_url: viewer.avatar_url,
+        // Edit mode: the event's PRIMARY host's stored methods take
+        // priority — cohosts can edit the event but won't be shown as
+        // the host on the public page. Create mode: fall through to
+        // the viewer (the about-to-be host).
+        payment_methods:
+          initialEvent?.host_payment_methods ?? viewer.payment_methods,
       },
       cohosts: (initialEvent?.cohosts ?? []).map((c) => ({
         user_id: c.user_id,
@@ -385,6 +402,7 @@ export function EventEditorForm({
       plus_one_enabled: v.plus_one_enabled ?? false,
       plus_one_max_adults: v.plus_one_max_adults ?? 1,
       plus_one_max_children: v.plus_one_max_children ?? 0,
+      show_payment_info: v.show_payment_info ?? false,
     }
   }
 
@@ -824,6 +842,7 @@ function SettingsSection({
     plus_one_max_adults: form.watch('plus_one_max_adults') ?? 1,
     plus_one_max_children: form.watch('plus_one_max_children') ?? 0,
     allow_rsvp_edit: form.watch('allow_rsvp_edit') ?? true,
+    show_payment_info: form.watch('show_payment_info') ?? false,
   }
   return (
     <section className="mx-auto mt-8 max-w-5xl px-4 md:px-8 md:pr-28">

@@ -10,6 +10,7 @@ import {
 } from '@/app/actions/profile'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { formatIbanForDisplay } from '@/lib/schemas/payment'
 
 // Map Zod issue messages from the server back to i18n keys per field.
 // The payment schema (lib/schemas/payment.ts) emits these three codes;
@@ -34,13 +35,6 @@ const ERROR_TO_KEY: Record<
     m10_phone: 'paymentMethods.m10.error',
     birbank_phone: 'paymentMethods.birbank.error',
   },
-}
-
-// Pretty-print a stored spaceless IBAN as groups of 4 for editing.
-// The Zod schema strips spaces on save so round-tripping is clean.
-function formatIbanForDisplay(s: string): string {
-  if (!s) return ''
-  return s.replace(/(.{4})/g, '$1 ').trim()
 }
 
 type PaymentMethodsFormProps = {

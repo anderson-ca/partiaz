@@ -4,6 +4,7 @@ import {
   EventEditorForm,
   type EventEditorInitial,
 } from '@/components/event/EventEditorForm'
+import type { StoredPaymentMethods } from '@/lib/schemas/payment'
 import type { EffectRowMin } from '@/components/event/EffectPicker'
 import type { FontPresetForPicker } from '@/components/event/FontPicker'
 import type { CoverIllustration } from '@/components/event/cover-picker/LibraryTab'
@@ -29,7 +30,7 @@ export default async function EditEventPage({
   const { data: event, error } = await supabase
     .from('events')
     .select(
-      'id,slug,status,title,host_id,theme_id,effect_id,font_preset_id,text_color,cover_image_url,cover_image_source,cover_overlay_enabled,cover_overlay_text,cover_overlay_font_id,cover_overlay_color,starts_at,ends_at,location_text,location_address,description,capacity,show_guest_count,show_guest_names,allow_maybe,require_names,location_hidden_until_rsvp,plus_one_enabled,plus_one_max_adults,plus_one_max_children,allow_rsvp_edit,host:profiles!events_host_id_fkey(display_name,avatar_url)',
+      'id,slug,status,title,host_id,theme_id,effect_id,font_preset_id,text_color,cover_image_url,cover_image_source,cover_overlay_enabled,cover_overlay_text,cover_overlay_font_id,cover_overlay_color,starts_at,ends_at,location_text,location_address,description,capacity,show_guest_count,show_guest_names,allow_maybe,require_names,location_hidden_until_rsvp,plus_one_enabled,plus_one_max_adults,plus_one_max_children,allow_rsvp_edit,show_payment_info,host:profiles!events_host_id_fkey(display_name,avatar_url,payment_methods)',
     )
     .eq('slug', slug)
     .maybeSingle()
@@ -129,6 +130,8 @@ export default async function EditEventPage({
     host_id: event.host_id,
     host_display_name: event.host?.display_name ?? null,
     host_avatar_url: event.host?.avatar_url ?? null,
+    host_payment_methods: (event.host?.payment_methods ??
+      null) as StoredPaymentMethods,
     cohosts,
     theme_id: event.theme_id,
     effect_id: event.effect_id,
@@ -155,6 +158,7 @@ export default async function EditEventPage({
     plus_one_max_adults: event.plus_one_max_adults,
     plus_one_max_children: event.plus_one_max_children,
     allow_rsvp_edit: event.allow_rsvp_edit,
+    show_payment_info: event.show_payment_info,
     guests,
   }
 
@@ -171,6 +175,7 @@ export default async function EditEventPage({
       viewer={{
         display_name: initialEvent.host_display_name,
         avatar_url: initialEvent.host_avatar_url,
+        payment_methods: initialEvent.host_payment_methods,
       }}
     />
   )

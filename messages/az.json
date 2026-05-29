@@ -197,7 +197,18 @@
       "editAriaLabel": "Tədbiri redaktə et",
       "guestListTitle": "Qonaq siyahısı",
       "viewAll": "Hamısına bax",
-      "noCover": "Üz şəkli yoxdur"
+      "noCover": "Üz şəkli yoxdur",
+      "payment": {
+        "title": "İştirak et",
+        "copy": "Kopyala",
+        "copied": "Mətn buferinə köçürüldü",
+        "copyFailed": "Kopyalamaq alınmadı. Yenidən cəhd edin.",
+        "methods": {
+          "m10": "m10",
+          "birbank": "Birbank",
+          "iban": "IBAN"
+        }
+      }
     },
     "settings": {
       "panelTitle": "Tədbir parametrləri",
@@ -210,6 +221,8 @@
       "showGuestNamesSubLabel": "Ziyarətçilər kimin gələcəyini görür, təkcə sayı deyil",
       "locationHiddenLabel": "RSVP-yə qədər ünvanı gizlət",
       "locationHiddenSubLabel": "Yalnız Bəli deyənlər ünvanı görür",
+      "showPaymentInfoLabel": "Tədbir səhifəsində ödəniş məlumatını göstər",
+      "showPaymentInfoSubLabel": "Yalnız dəvət olunan qonaqlar görür. Üsullar profil tənzimləmələrinizdən gəlir.",
       "allowMaybeLabel": "‘Bəlkə’ cavabına icazə ver",
       "allowMaybeSubLabel": "Söndürülsə = qonaqlar yalnız Bəli və ya Yox seçir",
       "requireNamesLabel": "Qonaq adı tələb et",

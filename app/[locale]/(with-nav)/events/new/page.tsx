@@ -4,6 +4,7 @@ import { EventEditorForm } from '@/components/event/EventEditorForm'
 import type { EffectRowMin } from '@/components/event/EffectPicker'
 import type { FontPresetForPicker } from '@/components/event/FontPicker'
 import type { CoverIllustration } from '@/components/event/cover-picker/LibraryTab'
+import type { StoredPaymentMethods } from '@/lib/schemas/payment'
 import type { ThemeRow } from '@/lib/schemas/theme'
 import { createClient } from '@/lib/supabase/server'
 
@@ -50,10 +51,12 @@ export default async function NewEventPage({
       // Logged-in user's profile — surfaces in the [ux-preview-mode]
       // editor preview's HostBlock as the about-to-be host of the
       // not-yet-created event. RLS allows users to read their own row
-      // via `profiles_select_self`.
+      // via `profiles_select_self`. payment_methods also threaded
+      // through so the preview's PaymentMethodsCard renders for create
+      // mode the same as for edit mode.
       supabase
         .from('profiles')
-        .select('display_name,avatar_url')
+        .select('display_name,avatar_url,payment_methods')
         .eq('id', user.id)
         .maybeSingle(),
     ])
@@ -65,6 +68,8 @@ export default async function NewEventPage({
   const viewer = {
     display_name: profileRes.data?.display_name ?? null,
     avatar_url: profileRes.data?.avatar_url ?? null,
+    payment_methods: (profileRes.data?.payment_methods ??
+      null) as StoredPaymentMethods,
   }
 
   return (

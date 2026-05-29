@@ -101,3 +101,24 @@ export const paymentMethodsSchema = z
   .nullable()
 
 export type PaymentMethods = z.infer<typeof paymentMethodsSchema>
+
+// ─── Read-path type ────────────────────────────────────────────────────────
+// Shape persisted by `updatePaymentMethods` in app/actions/profile.ts:
+// either the full column is null (no methods set), or it's an object with
+// every key present and values either a string or explicit null. Reading
+// code uses this — distinct from the Zod-inferred `PaymentMethods` whose
+// optional fields reflect the WRITE-side validation surface.
+export type StoredPaymentMethods = {
+  iban: string | null
+  m10_phone: string | null
+  birbank_phone: string | null
+} | null
+
+// ─── Display helpers ───────────────────────────────────────────────────────
+
+/** Pretty-print a stored spaceless IBAN as groups of 4 for display/editing.
+ *  The Zod schema strips spaces on save, so round-tripping is clean. */
+export function formatIbanForDisplay(s: string): string {
+  if (!s) return ''
+  return s.replace(/(.{4})/g, '$1 ').trim()
+}

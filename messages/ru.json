@@ -197,7 +197,18 @@
       "editAriaLabel": "Редактировать событие",
       "guestListTitle": "Список гостей",
       "viewAll": "Все",
-      "noCover": "Нет обложки"
+      "noCover": "Нет обложки",
+      "payment": {
+        "title": "Поучаствовать",
+        "copy": "Копировать",
+        "copied": "Скопировано в буфер обмена",
+        "copyFailed": "Не удалось скопировать. Попробуйте ещё раз.",
+        "methods": {
+          "m10": "m10",
+          "birbank": "Birbank",
+          "iban": "IBAN"
+        }
+      }
     },
     "settings": {
       "panelTitle": "Настройки события",
@@ -210,6 +221,8 @@
       "showGuestNamesSubLabel": "Посетители видят, кто идёт, а не только количество",
       "locationHiddenLabel": "Скрывать локацию до RSVP",
       "locationHiddenSubLabel": "Только те, кто ответил Иду, видят адрес",
+      "showPaymentInfoLabel": "Показывать информацию об оплате на странице события",
+      "showPaymentInfoSubLabel": "Видно только приглашённым гостям. Способы берутся из настроек профиля.",
       "allowMaybeLabel": "Разрешить ответ ‘Может быть’",
       "allowMaybeSubLabel": "Выключено = гости выбирают только Иду или Не смогу",
       "requireNamesLabel": "Требовать имя гостя",

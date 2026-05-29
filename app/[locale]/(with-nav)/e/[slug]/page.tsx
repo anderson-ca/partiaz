@@ -10,6 +10,7 @@ import { getGuestSummary } from '@/app/actions/guest-summary'
 import { getCurrentGuestForEvent } from '@/app/actions/rsvp'
 import { getEventForView } from '@/lib/event-fetch'
 import { resizeCoverUrl } from '@/lib/cover-url'
+import type { StoredPaymentMethods } from '@/lib/schemas/payment'
 import { getSiteUrl } from '@/lib/site-url'
 import type { ThemeBackgroundValue } from '@/lib/schemas/theme'
 import { createClient } from '@/lib/supabase/server'
@@ -278,6 +279,8 @@ export default async function PublicEventPage({
       id: event.host.id,
       display_name: event.host.display_name,
       avatar_url: event.host.avatar_url,
+      payment_methods: (event.host.payment_methods ??
+        null) as StoredPaymentMethods,
     },
     cohosts: cohostsForRender,
     show_guest_count: !!event.show_guest_count,
@@ -288,6 +291,7 @@ export default async function PublicEventPage({
     plus_one_enabled: event.plus_one_enabled ?? false,
     plus_one_max_adults: event.plus_one_max_adults ?? 1,
     plus_one_max_children: event.plus_one_max_children ?? 0,
+    show_payment_info: !!event.show_payment_info,
   }
 
   return (

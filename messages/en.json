@@ -197,7 +197,18 @@
       "editAriaLabel": "Edit event",
       "guestListTitle": "Guest List",
       "viewAll": "View all",
-      "noCover": "No cover image"
+      "noCover": "No cover image",
+      "payment": {
+        "title": "Contribute",
+        "copy": "Copy",
+        "copied": "Copied to clipboard",
+        "copyFailed": "Couldn't copy. Try again.",
+        "methods": {
+          "m10": "m10",
+          "birbank": "Birbank",
+          "iban": "IBAN"
+        }
+      }
     },
     "settings": {
       "panelTitle": "Event settings",
@@ -210,6 +221,8 @@
       "showGuestNamesSubLabel": "Visitors see who's coming, not just the count",
       "locationHiddenLabel": "Hide location until RSVP",
       "locationHiddenSubLabel": "Only guests who say Yes see the address",
+      "showPaymentInfoLabel": "Show payment info on event page",
+      "showPaymentInfoSubLabel": "Visible only to invited guests. Methods come from your profile settings.",
       "allowMaybeLabel": "Allow 'Maybe' responses",
       "allowMaybeSubLabel": "Off = guests pick only Yes or No",
       "requireNamesLabel": "Require guest names",

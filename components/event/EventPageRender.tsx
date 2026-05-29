@@ -6,6 +6,8 @@ import { Calendar, Crown, Lock, MapPin, Pencil } from 'lucide-react'
 import type { ISourceOptions } from '@tsparticles/engine'
 import type { CurrentGuest } from '@/app/actions/rsvp'
 import { CoverImage } from '@/components/event/CoverImage'
+import { PaymentMethodsCard } from '@/components/event/PaymentMethodsCard'
+import type { StoredPaymentMethods } from '@/lib/schemas/payment'
 import { EventTitle } from '@/components/event/EventTitle'
 import { LazyEffectOverlay as EffectOverlay } from '@/components/event/LazyEffectOverlay'
 import { RestrictedAccessCard } from '@/components/event/RestrictedAccessCard'
@@ -73,6 +75,7 @@ export type EventPageEvent = {
     id: string
     display_name: string | null
     avatar_url: string | null
+    payment_methods: StoredPaymentMethods
   }
   cohosts: Array<{
     user_id: string
@@ -87,6 +90,7 @@ export type EventPageEvent = {
   plus_one_enabled: boolean
   plus_one_max_adults: number
   plus_one_max_children: number
+  show_payment_info: boolean
 }
 
 export type EventPageViewer = {
@@ -366,6 +370,18 @@ export function EventPageRender({
                 </div>
               )}
             </div>
+
+            {/* Payment-methods card — sits ABOVE the RSVP card. Same access
+                gate as the RSVP card below (token-bearer / host / cohost
+                only — payment info shouldn't leak to anonymous scrapers).
+                Renders nothing when the host hasn't entered any methods,
+                so the slot is invisible until the host opts in fully via
+                profile + per-event toggle. */}
+            {event.show_payment_info && !restricted && (
+              <PaymentMethodsCard
+                paymentMethods={event.host.payment_methods}
+              />
+            )}
 
             {/* RSVP card — real flow as of [10]. Draft events skip this
                 entirely; the host already sees the draft banner up top. */}

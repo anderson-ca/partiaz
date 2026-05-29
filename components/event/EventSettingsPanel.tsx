@@ -14,6 +14,7 @@ export type EventSettingsValues = {
   plus_one_max_adults: number
   plus_one_max_children: number
   allow_rsvp_edit: boolean
+  show_payment_info: boolean
 }
 
 type EventSettingsPanelProps = {
@@ -54,6 +55,12 @@ export function EventSettingsPanel({ values, onChange }: EventSettingsPanelProps
           subLabel={t('locationHiddenSubLabel')}
           checked={values.location_hidden_until_rsvp}
           onChange={(v) => onChange({ location_hidden_until_rsvp: v })}
+        />
+        <ToggleRow
+          label={t('showPaymentInfoLabel')}
+          subLabel={t('showPaymentInfoSubLabel')}
+          checked={values.show_payment_info}
+          onChange={(v) => onChange({ show_payment_info: v })}
         />
       </div>
 
