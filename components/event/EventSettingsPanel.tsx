@@ -42,6 +42,11 @@ type EventSettingsPanelProps = {
     m10_phone: string
     birbank_phone: string
   }) => void
+  /** When set, the inline form's Save chains an event save right after
+   *  the profile save — so the show_payment_info toggle commits to the
+   *  event row in the same click. Edit-mode only; undefined in create
+   *  mode (event doesn't exist yet → main Save creates it). */
+  triggerEventSave: (() => Promise<void>) | undefined
 }
 
 // Plus-one cap range. Matches the DB check-constraint in [12a] migration —
@@ -55,6 +60,7 @@ export function EventSettingsPanel({
   isPrimaryHost,
   paymentMethodsInitial,
   onPaymentMethodsSaved,
+  triggerEventSave,
 }: EventSettingsPanelProps) {
   const t = useTranslations('events.settings')
 
@@ -103,6 +109,7 @@ export function EventSettingsPanel({
               <PaymentMethodsForm
                 initial={paymentMethodsInitial}
                 onSaved={onPaymentMethodsSaved}
+                triggerEventSave={triggerEventSave}
               />
             ) : (
               <p className="text-xs text-white/60">

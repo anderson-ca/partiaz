@@ -54,11 +54,19 @@ type PaymentMethodsFormProps = {
     m10_phone: string
     birbank_phone: string
   }) => void
+  /** When provided, the Save button chains an event save right after the
+   *  profile save — so unsaved event-level changes (notably the
+   *  show_payment_info toggle that revealed this form) commit in the
+   *  same click. Both saves run inside one useTransition tick. When
+   *  unset (the standalone /settings/payment-methods page), Save behaves
+   *  exactly as before — single profile write + "Saved" toast. */
+  triggerEventSave?: () => Promise<void>
 }
 
 export function PaymentMethodsForm({
   initial,
   onSaved,
+  triggerEventSave,
 }: PaymentMethodsFormProps) {
   const t = useTranslations('settings')
 
@@ -107,8 +115,21 @@ export function PaymentMethodsForm({
         toast.error(t('paymentMethods.error.update'))
         return
       }
-      toast.success(t('paymentMethods.saved'))
       onSaved?.({ iban, m10_phone: m10, birbank_phone: birbank })
+      if (triggerEventSave) {
+        // Chained mode: editor's onSubmit shows its own success/error
+        // toast, so we suppress ours here to avoid double-toasting. If
+        // the event save errors out, the profile is still saved — user
+        // sees the editor's error toast and can retry; the retry is
+        // idempotent on the profile side.
+        try {
+          await triggerEventSave()
+        } catch (e) {
+          console.error('[PaymentMethodsForm] event save errored:', e)
+        }
+      } else {
+        toast.success(t('paymentMethods.saved'))
+      }
     })
   }
 

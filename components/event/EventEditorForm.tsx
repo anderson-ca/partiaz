@@ -324,6 +324,20 @@ export function EventEditorForm({
   // inputs reads back from the store on the next render).
   const [previewing, setPreviewing] = useState(false)
 
+  // Chains the event-save right after a successful inline payment-methods
+  // save. Edit-mode only — in create mode the event row doesn't exist yet,
+  // so the inline form's "Save" persists the profile and the main editor
+  // Save handles creating the event itself. Without this, hosts toggle
+  // show_payment_info on, save inline, and never realize the toggle change
+  // is still buffered in RHF state — the public page reads the un-changed
+  // DB row and renders nothing. [ui-8.3.2]
+  const triggerEventSave =
+    mode === 'edit' && initialEvent
+      ? async () => {
+          await form.handleSubmit(onSubmit)()
+        }
+      : undefined
+
   async function onSubmit(values: EventInput) {
     setPending(true)
     try {
@@ -593,6 +607,7 @@ export function EventEditorForm({
             isPrimaryHost={isPrimaryHost}
             paymentMethodsInitial={paymentMethodsState}
             onPaymentMethodsSaved={handleInlinePaymentMethodsSaved}
+            triggerEventSave={triggerEventSave}
           />
         )}
         {mode === 'create' && <SettingsCreateHint />}
@@ -885,6 +900,7 @@ function SettingsSection({
   isPrimaryHost,
   paymentMethodsInitial,
   onPaymentMethodsSaved,
+  triggerEventSave,
 }: {
   form: ReturnType<typeof useForm<EventInput>>
   isPrimaryHost: boolean
@@ -898,6 +914,7 @@ function SettingsSection({
     m10_phone: string
     birbank_phone: string
   }) => void
+  triggerEventSave: (() => Promise<void>) | undefined
 }) {
   // RHF subscribes per-field; reading all toggles here re-renders the
   // section (and ONLY the section) when any toggle / stepper changes.
@@ -921,6 +938,7 @@ function SettingsSection({
         isPrimaryHost={isPrimaryHost}
         paymentMethodsInitial={paymentMethodsInitial}
         onPaymentMethodsSaved={onPaymentMethodsSaved}
+        triggerEventSave={triggerEventSave}
         onChange={(next) => {
           for (const [key, value] of Object.entries(next)) {
             form.setValue(key as keyof EventInput, value as never, {
