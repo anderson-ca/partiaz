@@ -223,6 +223,7 @@
       "locationHiddenSubLabel": "Only guests who say Yes see the address",
       "showPaymentInfoLabel": "Show payment info on event page",
       "showPaymentInfoSubLabel": "Visible only to invited guests. Methods come from your profile settings.",
+      "paymentMethodsCohostNote": "Only the host can edit payment methods.",
       "allowMaybeLabel": "Allow 'Maybe' responses",
       "allowMaybeSubLabel": "Off = guests pick only Yes or No",
       "requireNamesLabel": "Require guest names",
@@ -563,7 +564,8 @@
       "save": "Save",
       "saved": "Saved",
       "error": {
-        "update": "Couldn't save. Try again."
+        "update": "Couldn't save. Try again.",
+        "schema": "Database schema is out of date. Contact support."
       }
     }
   },

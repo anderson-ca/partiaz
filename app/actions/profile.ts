@@ -25,7 +25,15 @@ export type UpdatePaymentMethodsResult =
   | { ok: true }
   | {
       ok: false
-      error: 'unauthenticated' | 'invalid_payment_methods' | 'update_failed'
+      error:
+        | 'unauthenticated'
+        | 'invalid_payment_methods'
+        | 'update_failed'
+        /** The `profiles.payment_methods` column doesn't exist on the live
+         *  DB — the [ui-8.1] migration hasn't been applied. Distinct from
+         *  generic update_failed so the form can surface a specific
+         *  "schema out of date" message instead of "try again." */
+        | 'schema_missing'
       /** When error === 'invalid_payment_methods', this maps the offending
        *  field key (e.g. 'iban') to its Zod issue message
        *  (e.g. 'invalid_iban_checksum'). The form maps these to i18n keys. */
@@ -90,7 +98,19 @@ export async function updatePaymentMethods(
     .eq('id', user.id)
 
   if (dbError) {
-    console.error('[updatePaymentMethods] db update failed:', dbError)
+    console.error('[updatePaymentMethods] error:', dbError)
+    // 42703 = undefined_column. Surfaces when [ui-8.1]'s migration hasn't
+    // landed on cloud yet — the most common failure mode while the
+    // payment-info feature is rolling out, and the one that's invisible
+    // without this branch. Message-content fallback covers Supabase
+    // wrappers that may strip the error code.
+    const msg = (dbError.message ?? '').toLowerCase()
+    if (
+      dbError.code === '42703' ||
+      (msg.includes('column') && msg.includes('does not exist'))
+    ) {
+      return { ok: false, error: 'schema_missing' }
+    }
     return { ok: false, error: 'update_failed' }
   }
 

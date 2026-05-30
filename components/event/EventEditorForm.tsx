@@ -48,6 +48,7 @@ import {
 import { ThemeBackground } from '@/components/event/ThemeBackground'
 import { fontFamilyToCssVar } from '@/lib/fonts'
 import type { AppLocale } from '@/lib/dates'
+import { normalizePhone } from '@/lib/phone'
 import { eventInputSchema, type EventInput } from '@/lib/schemas/event'
 import type { StoredPaymentMethods } from '@/lib/schemas/payment'
 import type { ThemeBackgroundValue, ThemeRow } from '@/lib/schemas/theme'
@@ -274,6 +275,48 @@ export function EventEditorForm({
   )
 
   const [pending, setPending] = useState(false)
+
+  // True when the editor viewer is the EVENT's primary host. Drives
+  // (a) which inline payment-methods surface renders under the
+  // show-payment-info toggle (host: form / cohost: read-only note),
+  // and (b) which payment_methods value the preview surface reads.
+  // Create mode: viewer becomes primary host on save → true.
+  const isPrimaryHost = !initialEvent || initialEvent.host_id === currentUserId
+
+  // Live payment-methods state — sourced from the host's stored value in
+  // edit mode (the event's primary host, regardless of who's editing),
+  // and from the viewer's own methods in create mode. Held here so the
+  // inline form's just-saved values persist across the toggle off/on
+  // cycle AND flow through syntheticFromForm into the preview.
+  const initialHostMethods =
+    initialEvent?.host_payment_methods ?? viewer.payment_methods
+  const [paymentMethodsState, setPaymentMethodsState] = useState({
+    iban: initialHostMethods?.iban ?? '',
+    m10_phone: initialHostMethods?.m10_phone ?? '',
+    birbank_phone: initialHostMethods?.birbank_phone ?? '',
+  })
+
+  // After the inline form saves successfully, normalize its display
+  // strings back to the canonical stored form (spaceless IBAN, E.164
+  // phone) so paymentMethodsState stays in lockstep with what the
+  // server just persisted. Round-trip is safe because the form's
+  // onSaved only fires after the server-side schema parse succeeded —
+  // the same inputs WILL normalize cleanly here.
+  function handleInlinePaymentMethodsSaved(values: {
+    iban: string
+    m10_phone: string
+    birbank_phone: string
+  }) {
+    const ibanNormalized = values.iban.replace(/\s/g, '').toUpperCase()
+    const m10Result = normalizePhone(values.m10_phone.trim(), 'AZ')
+    const birbankResult = normalizePhone(values.birbank_phone.trim(), 'AZ')
+    setPaymentMethodsState({
+      iban: ibanNormalized,
+      m10_phone: m10Result.ok ? m10Result.e164 : '',
+      birbank_phone: birbankResult.ok ? birbankResult.e164 : '',
+    })
+  }
+
   // Preview mode toggle. Lives at this level so the editor's `useForm`
   // instance stays mounted across the toggle — preserving every field
   // value, dirty state, and validation status while the renderer swaps in
@@ -382,12 +425,20 @@ export function EventEditorForm({
         id: initialEvent?.host_id ?? currentUserId,
         display_name: viewer.display_name,
         avatar_url: viewer.avatar_url,
-        // Edit mode: the event's PRIMARY host's stored methods take
-        // priority — cohosts can edit the event but won't be shown as
-        // the host on the public page. Create mode: fall through to
-        // the viewer (the about-to-be host).
-        payment_methods:
-          initialEvent?.host_payment_methods ?? viewer.payment_methods,
+        // Live `paymentMethodsState` reads from the inline form's
+        // just-saved values when the host is editing here, otherwise
+        // falls back to the load-time snapshot. Cohosts can't write
+        // (the inline form isn't rendered for them), so this still
+        // reflects the EVENT host's data in cohost-edit flows.
+        payment_methods: paymentMethodsState.iban ||
+        paymentMethodsState.m10_phone ||
+        paymentMethodsState.birbank_phone
+          ? {
+              iban: paymentMethodsState.iban || null,
+              m10_phone: paymentMethodsState.m10_phone || null,
+              birbank_phone: paymentMethodsState.birbank_phone || null,
+            }
+          : null,
       },
       cohosts: (initialEvent?.cohosts ?? []).map((c) => ({
         user_id: c.user_id,
@@ -537,7 +588,12 @@ export function EventEditorForm({
         {/* Event settings — edit-mode only. Toggles save when the main
             Save button is clicked; no separate save UI on the panel. */}
         {mode === 'edit' && initialEvent && (
-          <SettingsSection form={form} />
+          <SettingsSection
+            form={form}
+            isPrimaryHost={isPrimaryHost}
+            paymentMethodsInitial={paymentMethodsState}
+            onPaymentMethodsSaved={handleInlinePaymentMethodsSaved}
+          />
         )}
         {mode === 'create' && <SettingsCreateHint />}
 
@@ -826,11 +882,25 @@ function CoHostsCreateHint() {
 
 function SettingsSection({
   form,
+  isPrimaryHost,
+  paymentMethodsInitial,
+  onPaymentMethodsSaved,
 }: {
   form: ReturnType<typeof useForm<EventInput>>
+  isPrimaryHost: boolean
+  paymentMethodsInitial: {
+    iban: string
+    m10_phone: string
+    birbank_phone: string
+  }
+  onPaymentMethodsSaved: (values: {
+    iban: string
+    m10_phone: string
+    birbank_phone: string
+  }) => void
 }) {
-  // RHF subscribes per-field; reading all nine here re-renders the section
-  // (and ONLY the section) when any toggle / stepper changes.
+  // RHF subscribes per-field; reading all toggles here re-renders the
+  // section (and ONLY the section) when any toggle / stepper changes.
   const values: EventSettingsValues = {
     show_guest_count: form.watch('show_guest_count') ?? true,
     show_guest_names: form.watch('show_guest_names') ?? true,
@@ -848,6 +918,9 @@ function SettingsSection({
     <section className="mx-auto mt-8 max-w-5xl px-4 md:px-8 md:pr-28">
       <EventSettingsPanel
         values={values}
+        isPrimaryHost={isPrimaryHost}
+        paymentMethodsInitial={paymentMethodsInitial}
+        onPaymentMethodsSaved={onPaymentMethodsSaved}
         onChange={(next) => {
           for (const [key, value] of Object.entries(next)) {
             form.setValue(key as keyof EventInput, value as never, {

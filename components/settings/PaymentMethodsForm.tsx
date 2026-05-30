@@ -43,9 +43,23 @@ type PaymentMethodsFormProps = {
     m10_phone: string
     birbank_phone: string
   }
+  /** Notifies the parent of the just-saved values so it can keep its own
+   *  copy in sync (e.g. EventEditorForm holds these for the preview
+   *  surface and for toggle-off/on persistence). The values passed back
+   *  are the form's current display strings — IBAN may include spaces,
+   *  phones may be in the user-typed format. Parent decides whether to
+   *  store as-is or re-format. */
+  onSaved?: (values: {
+    iban: string
+    m10_phone: string
+    birbank_phone: string
+  }) => void
 }
 
-export function PaymentMethodsForm({ initial }: PaymentMethodsFormProps) {
+export function PaymentMethodsForm({
+  initial,
+  onSaved,
+}: PaymentMethodsFormProps) {
   const t = useTranslations('settings')
 
   const [iban, setIban] = React.useState(formatIbanForDisplay(initial.iban))
@@ -86,10 +100,15 @@ export function PaymentMethodsForm({ initial }: PaymentMethodsFormProps) {
           setErrors(translated)
           return
         }
+        if (result.error === 'schema_missing') {
+          toast.error(t('paymentMethods.error.schema'))
+          return
+        }
         toast.error(t('paymentMethods.error.update'))
         return
       }
       toast.success(t('paymentMethods.saved'))
+      onSaved?.({ iban, m10_phone: m10, birbank_phone: birbank })
     })
   }
 

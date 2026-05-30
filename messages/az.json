@@ -223,6 +223,7 @@
       "locationHiddenSubLabel": "Yalnız Bəli deyənlər ünvanı görür",
       "showPaymentInfoLabel": "Tədbir səhifəsində ödəniş məlumatını göstər",
       "showPaymentInfoSubLabel": "Yalnız dəvət olunan qonaqlar görür. Üsullar profil tənzimləmələrinizdən gəlir.",
+      "paymentMethodsCohostNote": "Yalnız təşkilatçı ödəniş üsullarını redaktə edə bilər.",
       "allowMaybeLabel": "‘Bəlkə’ cavabına icazə ver",
       "allowMaybeSubLabel": "Söndürülsə = qonaqlar yalnız Bəli və ya Yox seçir",
       "requireNamesLabel": "Qonaq adı tələb et",
@@ -563,7 +564,8 @@
       "save": "Saxla",
       "saved": "Saxlanıldı",
       "error": {
-        "update": "Saxlamaq alınmadı. Yenidən cəhd edin."
+        "update": "Saxlamaq alınmadı. Yenidən cəhd edin.",
+        "schema": "Verilənlər bazası sxemi köhnəlmişdir. Dəstəklə əlaqə saxlayın."
       }
     }
   },

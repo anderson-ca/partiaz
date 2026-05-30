@@ -1,6 +1,7 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
+import { PaymentMethodsForm } from '@/components/settings/PaymentMethodsForm'
 import { StepperRow } from '@/components/ui/stepper-row'
 import { Switch } from '@/components/ui/switch'
 
@@ -20,6 +21,27 @@ export type EventSettingsValues = {
 type EventSettingsPanelProps = {
   values: EventSettingsValues
   onChange: (next: Partial<EventSettingsValues>) => void
+  /** True when the editor viewer is the event's primary host. Controls
+   *  whether the inline payment-methods form (host) or the cohost note
+   *  renders under the show-payment-info toggle. In create mode the
+   *  viewer is always the about-to-be primary host → pass true. */
+  isPrimaryHost: boolean
+  /** Pre-fill for the inline payment-methods form. Bound to the editor's
+   *  live state (updated via onPaymentMethodsSaved) so toggle-off/on
+   *  doesn't lose unsaved or just-saved values. */
+  paymentMethodsInitial: {
+    iban: string
+    m10_phone: string
+    birbank_phone: string
+  }
+  /** Fired by the inline form after a successful save so the editor can
+   *  update its preview-state copy. Editor preview reads from this so
+   *  freshly-saved methods show in the preview surface without a refresh. */
+  onPaymentMethodsSaved: (values: {
+    iban: string
+    m10_phone: string
+    birbank_phone: string
+  }) => void
 }
 
 // Plus-one cap range. Matches the DB check-constraint in [12a] migration —
@@ -27,7 +49,13 @@ type EventSettingsPanelProps = {
 // stay in sync.
 const PLUS_ONE_CAP_MAX = 5
 
-export function EventSettingsPanel({ values, onChange }: EventSettingsPanelProps) {
+export function EventSettingsPanel({
+  values,
+  onChange,
+  isPrimaryHost,
+  paymentMethodsInitial,
+  onPaymentMethodsSaved,
+}: EventSettingsPanelProps) {
   const t = useTranslations('events.settings')
 
   return (
@@ -62,6 +90,27 @@ export function EventSettingsPanel({ values, onChange }: EventSettingsPanelProps
           checked={values.show_payment_info}
           onChange={(v) => onChange({ show_payment_info: v })}
         />
+
+        {/* Inline payment-methods editor — appears nested under the toggle
+            when on, so the host enters their identifiers right where they
+            flipped the switch instead of being told to navigate away to
+            /settings. Cohosts see a small note explaining that only the
+            primary host can edit (the public page reads the primary host's
+            methods, not whoever happens to be editing). */}
+        {values.show_payment_info && (
+          <div className="ml-2 border-l border-white/10 pl-4">
+            {isPrimaryHost ? (
+              <PaymentMethodsForm
+                initial={paymentMethodsInitial}
+                onSaved={onPaymentMethodsSaved}
+              />
+            ) : (
+              <p className="text-xs text-white/60">
+                {t('paymentMethodsCohostNote')}
+              </p>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="space-y-3 border-t border-white/10 pt-4">

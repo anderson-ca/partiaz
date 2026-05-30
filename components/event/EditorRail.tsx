@@ -1,8 +1,8 @@
 'use client'
 
+import Link from 'next/link'
 import { Eye, Settings as SettingsIcon } from 'lucide-react'
-import { useTranslations } from 'next-intl'
-import { toast } from 'sonner'
+import { useLocale, useTranslations } from 'next-intl'
 import { EffectThumbnail } from '@/components/event/EffectThumbnail'
 import { ThemeBackground } from '@/components/event/ThemeBackground'
 import { ThemePicker } from '@/components/event/ThemePicker'
@@ -37,6 +37,8 @@ export function EditorRail({
   onPreview,
 }: EditorRailProps) {
   const t = useTranslations('events.editor')
+  const tNav = useTranslations('nav')
+  const locale = useLocale()
   return (
     <div
       className={cn(
@@ -79,11 +81,18 @@ export function EditorRail({
           }
         />
 
-        <RailIconButton
-          label="Settings"
-          icon={<SettingsIcon className="h-5 w-5" />}
-          onClick={() => toast('Settings panel coming soon')}
-        />
+        <Link
+          href={`/${locale}/settings`}
+          aria-label={tNav('settings')}
+          className="group flex w-16 flex-col items-center gap-1 focus-visible:outline-none"
+        >
+          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white ring-2 ring-white/0 transition group-hover:bg-white/20 group-hover:ring-white/40 group-focus-visible:ring-white/60">
+            <SettingsIcon className="h-5 w-5" />
+          </span>
+          <span className="text-[10px] leading-tight text-white/80">
+            {tNav('settings')}
+          </span>
+        </Link>
 
         <RailIconButton
           label={t('preview')}
