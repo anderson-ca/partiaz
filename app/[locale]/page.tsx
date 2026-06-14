@@ -7,6 +7,7 @@ import { LandingFooter } from '@/components/landing/LandingFooter'
 import { LandingNav } from '@/components/landing/LandingNav'
 import { ShowcaseSection } from '@/components/landing/ShowcaseSection'
 import { ValuePropSection } from '@/components/landing/ValuePropSection'
+import { Logo } from '@/components/navigation/Logo'
 import { createClient } from '@/lib/supabase/server'
 
 // Root landing page. Lives at `app/[locale]/page.tsx` (NOT inside the
@@ -35,7 +36,7 @@ export default async function HomePage({
 
   return (
     <div className="relative min-h-dvh">
-      <LandingNav locale={locale} />
+      <LandingNav locale={locale} logo={<Logo />} />
       <main>
         <HeroSection locale={locale} />
         <ShowcaseSection />

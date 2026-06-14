@@ -1,8 +1,10 @@
 import { AlertCircle } from 'lucide-react'
+import Image from 'next/image'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { redirect } from 'next/navigation'
 import { PhoneAuthForm } from '@/components/auth/PhoneAuthForm'
 import { LocaleSwitcher } from '@/components/navigation/LocaleSwitcher'
+import { Logo } from '@/components/navigation/Logo'
 import { isSafeRelativePath } from '@/lib/auth/safe-redirect'
 import { FLOATING_SURFACE } from '@/lib/ui/floating-surface'
 import { createClient } from '@/lib/supabase/server'
@@ -42,15 +44,19 @@ export default async function LoginPage({
   const tPage = await getTranslations('auth.loginPage')
 
   return (
-    <div className="relative min-h-screen">
-      {/* LocaleSwitcher floats top-right outside the card so users can flip
-          languages without committing to the form. The (auth) route group
-          has no global navbar, so we mount the switcher inline here. */}
-      <div className="absolute top-4 right-4 z-10">
-        <LocaleSwitcher />
-      </div>
+    <div className="flex min-h-screen flex-col">
+      {/* The (auth) route group has no global navbar, so the login page brings
+          its own. Matches the marketing nav's visual contract (h-16, max-w-6xl,
+          px gutters) but static/transparent — login isn't a scroll hero, so the
+          scroll-transform treatment LandingNav uses isn't warranted here. */}
+      <header>
+        <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 md:px-6">
+          <Logo />
+          <LocaleSwitcher />
+        </nav>
+      </header>
 
-      <main className="flex min-h-screen items-center justify-center px-4 py-12">
+      <main className="flex flex-1 items-center justify-center px-4 py-12">
         <div
           className={cn(
             FLOATING_SURFACE,
@@ -58,6 +64,14 @@ export default async function LoginPage({
           )}
         >
           <header className="mb-6 text-center">
+            <Image
+              src="/logo-white.png"
+              alt=""
+              width={2000}
+              height={2000}
+              priority
+              className="mx-auto mb-3 h-14 w-14"
+            />
             <h1 className="text-3xl font-semibold tracking-tight text-white">
               PartiAZ
             </h1>

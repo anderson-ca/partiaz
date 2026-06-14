@@ -1,7 +1,6 @@
 'use client'
 
 import * as React from 'react'
-import Image from 'next/image'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { LocaleSwitcher } from '@/components/navigation/LocaleSwitcher'
@@ -12,6 +11,10 @@ const SCROLL_THRESHOLD = 32
 
 type LandingNavProps = {
   locale: string
+  // Server-rendered <Logo /> slot. LandingNav is a client component (scroll
+  // listener) and Logo is an async server component, so it's threaded in as a
+  // prop from the server landing page rather than imported here.
+  logo: React.ReactNode
 }
 
 /**
@@ -23,7 +26,7 @@ type LandingNavProps = {
  * Client component because of the scroll listener. Initial state mirrors
  * SSR output (transparent), so no hydration mismatch.
  */
-export function LandingNav({ locale }: LandingNavProps) {
+export function LandingNav({ locale, logo }: LandingNavProps) {
   const t = useTranslations('landing.nav')
   const [scrolled, setScrolled] = React.useState(false)
 
@@ -49,21 +52,7 @@ export function LandingNav({ locale }: LandingNavProps) {
       )}
     >
       <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 md:px-6">
-        <Link
-          href={`/${locale}`}
-          className="flex items-center gap-2 transition-opacity hover:opacity-80"
-        >
-          <Image
-            src="/favicon-96x96.png"
-            alt=""
-            width={28}
-            height={28}
-            className="shrink-0"
-          />
-          <span className="text-base font-semibold tracking-tight text-white">
-            PartiAZ
-          </span>
-        </Link>
+        {logo}
 
         <div className="flex items-center gap-1 md:gap-2">
           <LocaleSwitcher />
