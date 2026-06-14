@@ -44,7 +44,7 @@ export default async function HomePage({
         <BakuSection />
         <FinalCtaSection locale={locale} />
       </main>
-      <LandingFooter locale={locale} />
+      <LandingFooter />
     </div>
   )
 }
