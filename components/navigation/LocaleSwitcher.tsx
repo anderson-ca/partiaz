@@ -1,7 +1,6 @@
 'use client'
 
-import { useEffect, useState, useTransition } from 'react'
-import { Check, Languages } from 'lucide-react'
+import { useEffect, useState, useTransition, type ComponentType } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
 import { useSearchParams } from 'next/navigation'
 import {
@@ -15,6 +14,9 @@ import {
 import { usePathname, useRouter, routing } from '@/i18n/routing'
 import { FLOATING_SURFACE } from '@/lib/ui/floating-surface'
 import { cn } from '@/lib/utils'
+import { FlagAz } from './FlagAz'
+import { FlagRu } from './FlagRu'
+import { FlagGb } from './FlagGb'
 
 type Locale = (typeof routing.locales)[number]
 
@@ -25,6 +27,17 @@ const LOCALE_LABELS: Record<Locale, string> = {
   ru: 'Русский',
   en: 'English',
 }
+
+// Flag artwork per locale. `en` maps to the UK flag (Union Jack).
+const FLAG_BY_LOCALE: Record<Locale, ComponentType<{ className?: string }>> = {
+  az: FlagAz,
+  ru: FlagRu,
+  en: FlagGb,
+}
+
+// 4×3 flag footprint — matches the previous trigger icon's visual weight
+// (h-4) while keeping the flag's aspect ratio (w-5 ≈ 4:3).
+const FLAG_CLASS = 'h-4 w-5 shrink-0 rounded-[2px]'
 
 const TRIGGER_CLASS =
   'flex h-9 w-9 cursor-pointer items-center justify-center rounded-full text-white transition-all duration-150 hover:bg-white/10 active:scale-[0.95] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400/40 disabled:cursor-not-allowed disabled:opacity-50'
@@ -42,6 +55,8 @@ export function LocaleSwitcher() {
   const searchParams = useSearchParams()
   const currentLocale = useLocale() as Locale
   const [pending, startTransition] = useTransition()
+  const ActiveFlag = FLAG_BY_LOCALE[currentLocale]
+  const triggerLabel = `${t('languageMenuLabel')}: ${LOCALE_LABELS[currentLocale]}`
 
   // Pre-mount: render the bare trigger only, no DropdownMenu wrapper. The
   // Radix Root calls `useId()` for the trigger ↔ content aria-controls
@@ -73,11 +88,11 @@ export function LocaleSwitcher() {
     return (
       <button
         type="button"
-        aria-label={t('languageMenuLabel')}
+        aria-label={triggerLabel}
         disabled
         className={TRIGGER_CLASS}
       >
-        <Languages className="h-4 w-4" />
+        <ActiveFlag className={FLAG_CLASS} aria-hidden="true" />
       </button>
     )
   }
@@ -87,11 +102,11 @@ export function LocaleSwitcher() {
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          aria-label={t('languageMenuLabel')}
+          aria-label={triggerLabel}
           disabled={pending}
           className={TRIGGER_CLASS}
         >
-          <Languages className="h-4 w-4" />
+          <ActiveFlag className={FLAG_CLASS} aria-hidden="true" />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
@@ -105,18 +120,18 @@ export function LocaleSwitcher() {
         <DropdownMenuSeparator className="bg-white/10" />
         {routing.locales.map((loc) => {
           const isActive = loc === currentLocale
+          const Flag = FLAG_BY_LOCALE[loc]
           return (
             <DropdownMenuItem
               key={loc}
               onClick={() => changeLocale(loc)}
-              className="gap-2 rounded-lg px-2 py-1.5 text-sm text-white focus:bg-white/10 focus:text-white"
+              aria-current={isActive ? 'true' : undefined}
+              className={cn(
+                'gap-2 rounded-lg px-2 py-1.5 text-sm text-white focus:bg-white/10 focus:text-white',
+                isActive && 'bg-brand-400/15',
+              )}
             >
-              <Check
-                className={cn(
-                  'h-3.5 w-3.5 transition-opacity',
-                  isActive ? 'opacity-100' : 'opacity-0',
-                )}
-              />
+              <Flag className={FLAG_CLASS} aria-hidden="true" />
               {LOCALE_LABELS[loc]}
             </DropdownMenuItem>
           )
